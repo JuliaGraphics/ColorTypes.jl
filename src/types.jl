@@ -1,13 +1,12 @@
+typealias Fractional Union(FloatingPoint, FixedPoint)
 
-###Colors
-# should go into Colors.jl, even though these are more "hardware colortypes", these are still colors
-
-abstract Color{T, N}        <: FixedVector{T, N}
-abstract AlphaColor{T}      <: Color{T, 4}
-abstract Color3{T}          <: Color{T, 3}
-abstract Gray{T}            <: Color{T, 1}
-abstract Intensity{T}       <: Color{T, 1}
-abstract AbstractRGB{T}     <: Color3{T}
+abstract Color{T, N}                <: FixedVector{T, N}
+abstract AlphaColor{T}              <: Color{T, 4}
+abstract Color3{T}                  <: Color{T, 3}
+abstract AbstractGray{T}            <: Color{T, 1}
+abstract Intensity{T}               <: Color{T, 1}
+abstract AbstractRGB{T}             <: Color3{T}
+abstract AbstractAlphaColorValue{Col, Alph}
 
 
 # Little-endian RGB (useful for BGRA & Cairo)
@@ -15,8 +14,6 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
     b::T
     g::T
     r::T
-
-    BGR(r::Real, g::Real, b::Real) = new(b, g, r)
 end
 
 
@@ -26,7 +23,6 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
     r::T
     g::T
     b::T
-
     RGB1(r::Real, g::Real, b::Real) = new(one(T), r, g, b)
 end
 
@@ -35,7 +31,6 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
     g::T
     b::T
     alphadummy::T
-
     RGB4(r::Real, g::Real, b::Real) = new(r, g, b, one(T))
 end
 
@@ -43,7 +38,7 @@ immutable Gray{T<:Fractional} <: AbstractGray{T}
     val::T
 end
 
-immutable Gray24 <: ColorValue{Uint8}
+immutable Gray24 <: AbstractGray{Uint8}
     color::Uint32
 end
 
@@ -53,32 +48,26 @@ end
 
 
 # YIQ (NTSC)
-immutable YIQ{T<:FloatingPoint} <: ColorValue{T}
+immutable YIQ{T<:FloatingPoint} <: Color3{T}
     y::T
     i::T
     q::T
-
-    YIQ(y::Real, i::Real, q::Real) = new(y, i, q)
 end
 
 
 # Y'CbCr
-immutable YCbCr{T<:FloatingPoint} <: ColorValue{T}
+immutable YCbCr{T<:FloatingPoint} <: Color3{T}
     y::T
     cb::T
     cr::T
-
-    YCbCr(y::Real, cb::Real, cr::Real) = new(y, cb, cr)
 end
 
 
 # HSI
-immutable HSI{T<:FloatingPoint} <: ColorValue{T}
+immutable HSI{T<:FloatingPoint} <: Color3{T}
     h::T
     s::T
     i::T
-
-    HSI(h::Real, s::Real, i::Real) = new(h, s, i)
 end
 
 
@@ -97,7 +86,7 @@ typemin{T}(::Type{RGB{T}}) = RGB{T}(zero(T), zero(T), zero(T))
 typemax{T}(::Type{RGB{T}}) = RGB{T}(one(T),  one(T),  one(T))
 
 # HSV (Hue-Saturation-Value)
-immutable HSV{T<:FloatingPoint} <: ColorValue{T}
+immutable HSV{T<:FloatingPoint} <: Color3{T}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
@@ -111,26 +100,23 @@ HSB(h, s, b) = HSV(h, s, b)
 
 
 # HSL (Hue-Lightness-Saturation)
-immutable HSL{T<:FloatingPoint} <: ColorValue{T}
+immutable HSL{T<:FloatingPoint} <: Color3{T}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
-
-
 HLS(h, l, s) = HSL(h, s, l)
 
 
 # XYZ (CIE 1931)
-immutable XYZ{T<:Fractional} <: ColorValue{T}
+immutable XYZ{T<:Fractional} <: Color3{T}
     x::T
     y::T
     z::T
 end
 
-
 # CIE 1931 xyY (chromaticity + luminance) space
-immutable xyY{T<:FloatingPoint} <: ColorValue{T}
+immutable xyY{T<:FloatingPoint} <: Color3{T}
     x::T
     y::T
     Y::T
@@ -139,20 +125,15 @@ xyY{T<:FloatingPoint}(x::T, y::T, Y::T) = xyY{T}(x, y, Y)
 xyY(x, y, Y) = xyY{Float64}(x, y, Y)
 xyY() = xyY(0.0,0.0,0.0)
 
-
 # Lab (CIELAB)
-immutable Lab{T<:FloatingPoint} <: ColorValue{T}
+immutable Lab{T<:FloatingPoint} <: Color3{T}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
-
-typealias LAB Lab
-
-
 # LCHab (Luminance-Chroma-Hue, Polar-Lab)
-immutable LCHab{T<:FloatingPoint} <: ColorValue{T}
+immutable LCHab{T<:FloatingPoint} <: Color3{T}
     l::T # Luminance in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360]
@@ -160,17 +141,15 @@ end
 
 
 # Luv (CIELUV)
-immutable Luv{T<:FloatingPoint} <: ColorValue{T}
+immutable Luv{T<:FloatingPoint} <: Color3{T}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
-typealias LUV Luv
-
 
 # LCHuv (Luminance-Chroma-Hue, Polar-Luv)
-immutable LCHuv{T<:FloatingPoint} <: ColorValue{T}
+immutable LCHuv{T<:FloatingPoint} <: Color3{T}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
@@ -178,44 +157,36 @@ end
 
 
 # DIN99 (L99, a99, b99) - adaptation of CIELAB
-immutable DIN99{T<:FloatingPoint} <: ColorValue{T}
+immutable DIN99{T<:FloatingPoint} <: Color3{T}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
-
-
 # DIN99d (L99d, a99d, b99d) - Improvement on DIN99
-immutable DIN99d{T<:FloatingPoint} <: ColorValue{T}
+immutable DIN99d{T<:FloatingPoint} <: Color3{T}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
-
-
 # DIN99o (L99o, a99o, b99o) - adaptation of CIELAB
-immutable DIN99o{T<:FloatingPoint} <: ColorValue{T}
+immutable DIN99o{T<:FloatingPoint} <: Color3{T}
     l::T # L99o
     a::T # a99o
     b::T # b99o
 end
 
-
-
 # LMS (Long Medium Short)
-immutable LMS{T<:FloatingPoint} <: ColorValue{T}
+immutable LMS{T<:FloatingPoint} <: Color3{T}
     l::T # Long
     m::T # Medium
     s::T # Short
 end
 
-
-
 # 24 bit RGB and 32 bit ARGB (used by Cairo)
 # It would be nice to make this a subtype of AbstractRGB, but it doesn't have operations like c.r defined.
-immutable RGB24 <: ColorValue{Uint8}
+immutable RGB24 <: AbstractRGB{Uint8}
     color::Uint32
 end
 RGB24() = RGB24(0)
