@@ -19,6 +19,7 @@ export Color3
 export Gray
 export Intensity
 export AbstractRGB
+export AbstractAlphaColorValue
 
 
 # Little-endian RGB (useful for BGRA & Cairo)
