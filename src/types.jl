@@ -9,6 +9,15 @@ abstract AbstractRGB{T}             <: Color3{T}
 abstract AbstractAlphaColorValue{Col, Alph}
 
 
+
+# Little-endian RGB (useful for BGRA & Cairo)
+immutable RGBA{T<:Fractional} <: AlphaColor{T}
+    r::T
+    g::T
+    b::T
+    a::T
+end
+
 # Little-endian RGB (useful for BGRA & Cairo)
 immutable BGR{T<:Fractional} <: AbstractRGB{T}
     b::T

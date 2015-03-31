@@ -21,7 +21,6 @@ export Intensity
 export AbstractRGB
 export AbstractAlphaColorValue
 
-
 # Little-endian RGB (useful for BGRA & Cairo)
 export BGR
 # Some readers return a byte for an alpha channel even if it's not meaningful
@@ -38,6 +37,8 @@ export YCbCr
 export HSI
 # sRGB (standard Red-Green-Blue)
 export RGB
+export RGBA # Simple rgb alpha color
+
 # HSV (Hue-Saturation-Value)
 export HSV
 # HSL (Hue-Lightness-Saturation)
