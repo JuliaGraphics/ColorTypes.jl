@@ -23,6 +23,7 @@ export AbstractAlphaColorValue
 
 # Little-endian RGB (useful for BGRA & Cairo)
 export BGR
+export BGRA
 # Some readers return a byte for an alpha channel even if it's not meaningful
 export RGB1
 export RGB4

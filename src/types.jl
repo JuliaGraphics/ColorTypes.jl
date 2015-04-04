@@ -8,8 +8,12 @@ abstract Intensity{T}               <: Color{T, 1}
 abstract AbstractRGB{T}             <: Color3{T}
 abstract AbstractAlphaColorValue{Col, Alph}
 
-
-
+immutable BGRA{T} <: AlphaColor{T}
+    b::T
+    g::T
+    r::T
+    a::T
+end
 # Little-endian RGB (useful for BGRA & Cairo)
 immutable RGBA{T<:Fractional} <: AlphaColor{T}
     r::T
