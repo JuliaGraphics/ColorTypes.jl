@@ -6,21 +6,22 @@ abstract Color3{T}                  <: Color{T, 3}
 abstract AbstractGray{T}            <: Color{T, 1}
 abstract Intensity{T}               <: Color{T, 1}
 abstract AbstractRGB{T}             <: Color3{T}
-abstract AbstractAlphaColorValue{Col, Alph}
+abstract AbstractAlphaColor{ColorType, T} <: AlphaColor{T}
 
-immutable BGRA{T} <: AlphaColor{T}
-    b::T
-    g::T
-    r::T
-    a::T
+
+
+
+# sRGB (standard Red-Green-Blue)
+immutable RGB{T<:Fractional} <: AbstractRGB{T}
+    r::T # Red [0,1]
+    g::T # Green [0,1]
+    b::T # Blue [0,1]
 end
-# Little-endian RGB (useful for BGRA & Cairo)
-immutable RGBA{T<:Fractional} <: AlphaColor{T}
-    r::T
-    g::T
-    b::T
-    a::T
-end
+
+
+typemin{T}(::Type{RGB{T}}) = RGB{T}(zero(T), zero(T), zero(T))
+typemax{T}(::Type{RGB{T}}) = RGB{T}(one(T),  one(T),  one(T))
+
 
 # Little-endian RGB (useful for BGRA & Cairo)
 immutable BGR{T<:Fractional} <: AbstractRGB{T}
@@ -28,6 +29,21 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
     g::T
     r::T
 end
+
+immutable BGRA{T} <: AbstractAlphaColor{BGR{T}, T}
+    b::T
+    g::T
+    r::T
+    a::T
+end
+# Little-endian RGB (useful for BGRA & Cairo)
+immutable RGBA{T<:Fractional} <: AbstractAlphaColor{RGB{T}, T}
+    r::T
+    g::T
+    b::T
+    a::T
+end
+
 
 
 # Some readers return a byte for an alpha channel even if it's not meaningful
@@ -55,7 +71,7 @@ immutable Gray24 <: AbstractGray{Uint8}
     color::Uint32
 end
 
-immutable AGray32 <: AbstractAlphaColorValue{Gray24, Uint8}
+immutable AGray32 <: AbstractAlphaColor{Gray24, Uint8}
     color::Uint32
 end
 
@@ -85,18 +101,6 @@ end
 
 
 
-
-
-# sRGB (standard Red-Green-Blue)
-immutable RGB{T<:Fractional} <: AbstractRGB{T}
-    r::T # Red [0,1]
-    g::T # Green [0,1]
-    b::T # Blue [0,1]
-end
-
-
-typemin{T}(::Type{RGB{T}}) = RGB{T}(zero(T), zero(T), zero(T))
-typemax{T}(::Type{RGB{T}}) = RGB{T}(one(T),  one(T),  one(T))
 
 # HSV (Hue-Saturation-Value)
 immutable HSV{T<:FloatingPoint} <: Color3{T}
@@ -206,7 +210,7 @@ RGB24() = RGB24(0)
 RGB24(r::Uint8, g::Uint8, b::Uint8) = RGB24(uint32(r)<<16 | uint32(g)<<8 | uint32(b))
 RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 
-immutable ARGB32 <: AbstractAlphaColorValue{RGB24, Uint8}
+immutable ARGB32 <: AbstractAlphaColor{RGB24, Uint8}
     color::Uint32
 end
 ARGB32() = ARGB32(0)
