@@ -19,7 +19,7 @@ export Color3
 export Gray
 export Intensity
 export AbstractRGB
-export AbstractAlphaColorValue
+export AbstractAlphaColor
 
 # Little-endian RGB (useful for BGRA & Cairo)
 export BGR
@@ -72,6 +72,12 @@ export LMS
 export RGB24
 export ARGB32
 
+typealias RGBAU8 RGBA{Ufixed8}
+export RGBAU8
+rgba(r::Real, g::Real, b::Real, a::Real)   = RGBA{Float32}(r,g,b,a)
+rgbaU8(r::Real, g::Real, b::Real, a::Real) = RGBA{Ufixed8}(r,g,b,a)
+export rgba
+export rgbaU8
 
 end # module
 
