@@ -67,6 +67,11 @@ immutable Gray{T<:Fractional} <: AbstractGray{T}
     val::T
 end
 
+immutable GrayAlpha{T<:Fractional} <: Color{T, 2}
+    val::T
+    alpha::T
+end
+
 immutable Gray24 <: AbstractGray{Uint8}
     color::Uint32
 end

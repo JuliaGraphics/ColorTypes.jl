@@ -17,6 +17,7 @@ export Color
 export AlphaColor
 export Color3
 export Gray
+export AbstractGray
 export Intensity
 export AbstractRGB
 export AbstractAlphaColor
@@ -28,6 +29,7 @@ export BGRA
 export RGB1
 export RGB4
 export Gray
+export GrayAlpha
 export Gray24
 export AGray32
 # YIQ (NTSC)
