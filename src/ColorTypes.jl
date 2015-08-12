@@ -29,7 +29,7 @@ export GrayAlpha, AlphaGray
 # algorithmically, see `@eval` statements in types.jl.
 
 ## Functions
-export basecolortype, colorstring, colortype
+export basecolortype, basepainttype, ccolor, colortype
 
 include("types.jl")
 include("traits.jl")

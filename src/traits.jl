@@ -6,17 +6,11 @@
 eltype{T}(  ::Type{Paint{T}})   = T
 eltype{T,N}(::Type{Paint{T,N}}) = T
 eltype{P<:Paint}(::Type{P}) = eltype(super(P))
-# # The problem with the above definitions is they can lose
-# # type information for non-concrete types: eltype(RGB) -> Any
-# # This definition returns the appropriately-bounded TypeVar
-# @generated function eltype{P<:Paint}(::Type{P})
-#     T = P.parameters[1]
-#     :($T)
-# end
 
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
 # Being able to do this is one reason that C is a parameter of
 # Transparent
+colortype(P::TypeConstructor)  = P.body.parameters[1]  # colortype(ARGB)
 colortype{C<:AbstractColor    }(::Type{C})                  = C
 colortype{C<:AbstractColor    }(::Type{Transparent{C}})     = C
 colortype{C<:AbstractColor,T  }(::Type{Transparent{C,T}})   = C
@@ -30,6 +24,45 @@ basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
     name = C.name.name
     :($name)
 end
+
+# basepainttype(ARGB{Float32}) -> ARGB{T}
+basepainttype{C<:AbstractColor}(::Type{C}) = basecolortype(C)
+basepainttype{P<:Paint}(::Type{P}) = _basepainttype(P, basecolortype(P))
+@generated function _basepainttype{P<:AbstractAlphaColor,C}(::Type{P}, ::Type{C})
+    name = symbol("A",C.name.name)
+    :($name)
+end
+@generated function _basepainttype{P<:AbstractColorAlpha,C}(::Type{P}, ::Type{C})
+    name = symbol(C.name.name,"A")
+    :($name)
+end
+
+"""
+ `ccolor` ("concrete color") helps write flexible methods. The
+idea is that users may write `convert(HSV, c)` or even
+`convert(Array{HSV}, A)` without specifying the element type
+explicitly (e.g., `convert(HSV{Float32}, c)`). `ccolor`
+implements the logic "choose the user's eltype if specified,
+otherwise retain the eltype of the source object."
+
+Note that in some cases you may have to supply the element type
+directly; e.g., `HSV` supports `Float32` but not `U8`, so
+`convert(HSV, c::RGB{U8})` will fail. We could automatically pick
+`Float32` in such cases, but one worries whether it might be too
+magical.
+
+Usage:
+    ccolor(desttype, srctype) -> concrete desttype
+
+Example:
+    convert{P<:Paint}(::Type{P}, p::Paint) = cnvt(ccolor(P,typeof(p)), p)
+
+where `cnvt` is the function that performs explicit conversion.
+"""
+ccolor{Pdest<:Paint,Psrc<:Paint}(::Type{Pdest}, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(eltype(Pdest), eltype(Psrc))}
+pick_eltype{T1<:Number,T2}(::Type{T1}, ::Type{T2}) = T1
+pick_eltype{T2}(::Any, ::Type{T2})                 = T2
+
 
 # This formulation ensures that only concrete types work
 typemin{C<:AbstractRGB}(::Type{C}) = (T = eltype(C); colortype(C)(zero(T),zero(T),zero(T)))
