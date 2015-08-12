@@ -10,7 +10,7 @@ eltype{P<:Paint}(::Type{P}) = eltype(super(P))
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
 # Being able to do this is one reason that C is a parameter of
 # Transparent
-colortype(P::TypeConstructor)  = P.body.parameters[1]  # colortype(ARGB)
+colortype(P::TypeConstructor) = basecolortype(P.body.parameters[1]) # colortype(ARGB)
 colortype{C<:AbstractColor    }(::Type{C})                  = C
 colortype{C<:AbstractColor    }(::Type{Transparent{C}})     = C
 colortype{C<:AbstractColor,T  }(::Type{Transparent{C,T}})   = C
@@ -19,6 +19,7 @@ colortype{P<:Transparent}(::Type{P}) = colortype(super(P))
 colortype(c::Paint) = colortype(typeof(c))
 
 # basecolortype(RGB{Float64}) -> RGB{T}
+basecolortype(P::TypeConstructor) = colortype(P)
 basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
 @generated function _basecolortype{C}(::Type{C})
     name = C.name.name
@@ -26,6 +27,7 @@ basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
 end
 
 # basepainttype(ARGB{Float32}) -> ARGB{T}
+basepainttype(P::TypeConstructor) = P
 basepainttype{C<:AbstractColor}(::Type{C}) = basecolortype(C)
 basepainttype{P<:Paint}(::Type{P}) = _basepainttype(P, basecolortype(P))
 @generated function _basepainttype{P<:AbstractAlphaColor,C}(::Type{P}, ::Type{C})
@@ -59,6 +61,7 @@ Example:
 
 where `cnvt` is the function that performs explicit conversion.
 """
+ccolor{Psrc<:Paint}(Pdest::TypeConstructor, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(eltype(Pdest), eltype(Psrc))}
 ccolor{Pdest<:Paint,Psrc<:Paint}(::Type{Pdest}, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(eltype(Pdest), eltype(Psrc))}
 pick_eltype{T1<:Number,T2}(::Type{T1}, ::Type{T2}) = T1
 pick_eltype{T2}(::Any, ::Type{T2})                 = T2
