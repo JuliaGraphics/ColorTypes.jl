@@ -40,3 +40,15 @@ eltype(RGB)      # just test that it doesn't error
 @test ccolor(ARGB{Float32}, HSV{Float32}) == ARGB{Float32}
 @test ccolor(ARGB{U8},      HSV{Float32}) == ARGB{U8}
 @test ccolor(ARGB,          HSV{Float32}) == ARGB{Float32}
+
+@test eltype(RGB{U8}(1,0,0)) == U8
+@test eltype(argb(1.0,0.8,0.6,0.4)) == Float64
+
+@test colortype(RGB{U8}(1,0,0)) == RGB{U8}
+@test colortype(argb(1.0,0.8,0.6,0.4)) == RGB{Float64}
+
+@test basecolortype(RGB{U8}(1,0,0)) == RGB
+@test basecolortype(argb(1.0,0.8,0.6,0.4)) == RGB
+
+@test basepainttype(RGB{U8}(1,0,0)) == RGB
+@test basepainttype(argb(1.0,0.8,0.6,0.4)) == ARGB

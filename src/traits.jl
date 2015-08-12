@@ -16,6 +16,7 @@ colortype{C<:AbstractColor    }(::Type{Transparent{C}})     = C
 colortype{C<:AbstractColor,T  }(::Type{Transparent{C,T}})   = C
 colortype{C<:AbstractColor,T,N}(::Type{Transparent{C,T,N}}) = C
 colortype{P<:Transparent}(::Type{P}) = colortype(super(P))
+
 colortype(c::Paint) = colortype(typeof(c))
 
 # basecolortype(RGB{Float64}) -> RGB{T}
@@ -25,6 +26,8 @@ basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
     name = C.name.name
     :($name)
 end
+
+basecolortype(c::Paint) = basecolortype(typeof(c))
 
 # basepainttype(ARGB{Float32}) -> ARGB{T}
 basepainttype(P::TypeConstructor) = P
@@ -38,6 +41,8 @@ end
     name = symbol(C.name.name,"A")
     :($name)
 end
+
+basepainttype(c::Paint) = basepainttype(typeof(c))
 
 """
  `ccolor` ("concrete color") helps write flexible methods. The
