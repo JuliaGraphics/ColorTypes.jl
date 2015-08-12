@@ -1,32 +1,23 @@
 using ColorTypes
 using Base.Test
 
-#very simple first test
-b =  [0.2, 0.2, 0.3]
-a = RGB(b)
-@test a+a == RGB(0.4, 0.4, 0.6)
-mul = a.*a
-mulj = b.*b
-for i=1:3
-	@test isapprox(mul[i], mulj[i])
-end
-s = sin(a)
-sj = RGB(sin(b))
-for i=1:3
-	@test isapprox(s[i], sj[i])
-end
+@test eltype(Paint{U8}) == U8
+@test eltype(RGB{Float32}) == Float32
+@test eltype(RGBA{Float64}) == Float64
+# @test eltype(RGB) == TypeVar(:T, Fractional)
+eltype(RGB)      # just test that it doesn't error
 
-@test eltype(a) == Float64
-@test size(a) == (3,)
-@test ndims(a) == 1
-@test length(a) == 3
+@test colortype(RGB{U8}) == RGB{U8}
+@test colortype(RGB) == RGB
+@test colortype(RGBA{Float32}) == RGB{Float32}
+@test colortype(GrayAlpha{U8}) == Gray{U8}
+@test colortype(RGB24)  == RGB24
+@test colortype(ARGB32) == RGB24
+@test colortype(Transparent{RGB}) == RGB
+@test colortype(Transparent{RGB,Float64}) == RGB
+@test colortype(Transparent{RGB{Float64},Float64}) == RGB{Float64}
+@test_throws MethodError colortype(Transparent)
+@test_throws MethodError colortype(Paint{U8})
 
-@test a[1] == 0.2
-@test a.r == 0.2
-
-b = typeof(a)
-@test eltype(b) == Float64
-@test size(b) == (3,)
-@test ndims(b) == 1
-@test length(b) == 3
-
+@test basecolortype(RGBA{Float32}) == RGB
+@test basecolortype(BGR{U8}) == BGR
