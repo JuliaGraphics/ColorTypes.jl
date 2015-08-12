@@ -229,7 +229,16 @@ immutable AGray32 <: AbstractAlphaColor{Gray24, UInt8}
     color::UInt32
 end
 
-# Add typealiases here
-typealias RGBA{T} ColorAlpha{RGB{T},T}
-typealias ARGB{T} AlphaColor{RGB{T},T}
-typealias BGRA{T} ColorAlpha{BGR{T},T}
+# Make and export transparent versions (e.g., ARGB)
+st = union(setdiff(subtypes(Color), [RGB24]), subtypes(AbstractRGB))
+for t in st
+    if t.abstract
+        continue
+    end
+    sym = t.name.name
+    asym = symbol("A",sym)
+    syma = symbol(sym,"A")
+    @eval typealias $asym{T} AlphaColor{$sym{T},T}
+    @eval typealias $syma{T} ColorAlpha{$sym{T},T}
+    @eval export $asym, $syma
+end
