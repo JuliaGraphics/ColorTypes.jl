@@ -20,10 +20,10 @@ immutable AlphaColor{C<:Color,T} <: AbstractAlphaColor{C,T,4}
     alpha::T
     c::C
 
-    function AlphaColor(x1::Real, x2::Real, x3::Real, alpha::Real = 1.0)
-        new(C(x1, x2, x3), alpha)
+    function AlphaColor(x1::T, x2::T, x3::T, alpha::T = one(T))
+        new(alpha, C(x1, x2, x3))
     end
-    AlphaColor(c::Color, alpha::Real) = new(c, alpha)
+    AlphaColor(c::Color{T}, alpha::T) = new(alpha, c)
 end
 
 immutable ColorAlpha{C<:Color,T} <: AbstractColorAlpha{C,T,4}
@@ -229,7 +229,7 @@ immutable AGray32 <: AbstractAlphaColor{Gray24, UInt8}
     color::UInt32
 end
 
-# Make and export transparent versions (e.g., ARGB)
+# Transparent paints (e.g., ARGB)
 st = union(setdiff(subtypes(Color), [RGB24]), subtypes(AbstractRGB))
 for t in st
     if t.abstract
@@ -238,7 +238,26 @@ for t in st
     sym = t.name.name
     asym = symbol("A",sym)
     syma = symbol(sym,"A")
+    # Make the typealiases
     @eval typealias $asym{T} AlphaColor{$sym{T},T}
     @eval typealias $syma{T} ColorAlpha{$sym{T},T}
+    # Export the names
     @eval export $asym, $syma
+    # Build the constructors
+    # We can't use the same name, unfortunately
+    asym = symbol(lowercase(string(asym)))
+    syma = symbol(lowercase(string(syma)))
+    @eval begin
+        function $asym(x1, x2, x3, alpha)
+            x1p, x2p, x3p, alphap = promote(x1, x2, x3, alpha)
+            T = typeof(alphap)
+            AlphaColor{$sym{T},T}(x1p, x2p, x3p, alphap)
+        end
+        function $syma(x1, x2, x3, alpha)
+            x1p, x2p, x3p, alphap = promote(x1, x2, x3, alpha)
+            T = typeof(alphap)
+            ColorAlpha{$sym{T},T}(x1p, x2p, x3p, alphap)
+        end
+        export $asym, $syma
+    end
 end
