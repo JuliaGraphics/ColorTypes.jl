@@ -46,6 +46,7 @@ eltype(RGB)      # just test that it doesn't error
 @test eltype(RGB(1.0,0,0)) == Float64
 @test eltype(ARGB(1.0,0.8,0.6,0.4)) == Float64
 @test eltype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == Float32
+@test eltype(RGB(0x01,0x00,0x00)) == U8
 
 @test colortype(RGB{U8}(1,0,0)) == RGB{U8}
 @test colortype(ARGB(1.0,0.8,0.6,0.4)) == RGB{Float64}

@@ -201,13 +201,13 @@ macro make_constructors(C, fields, elty)
     fields = fields.args
     Cstr = string(C)
     Cesc = esc(C)
-    intfields  = Expr[:($f::Int)  for f in fields]
-    fieldsz    = zeros(Int, length(fields))
+    Tfields  = Expr[:($f::T)  for f in fields]
+    zfields    = zeros(Int, length(fields))
     esc(quote
         # More constructors for the non-alpha version
-        $C($(intfields...)) = $C{$elty}($(fields...))
+        $C{T<:Integer}($(Tfields...)) = $C{$elty}($(fields...))
         $C($(fields...)) = $C(promote($(fields...))...)
-        $C() = $C{$elty}($(fieldsz...))
+        $C() = $C{$elty}($(zfields...))
     end)
 end
 
@@ -221,8 +221,7 @@ macro make_alpha(C, fields, ub, elty)
     Cesc = esc(C)
     Tfields    = Expr[:($f::T)    for f in fields]
     realfields = Expr[:($f::Real) for f in fields]
-    intfields  = Expr[:($f::Int)  for f in fields]
-    fieldsz    = zeros(Int, length(fields))
+    zfields    = zeros(Int, length(fields))
     acol = symbol(string("A",Cstr))
     cola = symbol(string(Cstr,"A"))
     Tconstr = Expr(:<:, :T, ub)
@@ -245,7 +244,7 @@ macro make_alpha(C, fields, ub, elty)
         coloralpha{C<:$C}(::Type{C}) = $cola
 
         # More constructors for the alpha versions
-        $acol($(intfields...), alpha::Integer=1) = $acol{$elty}($(fields...), alpha)
+        $acol{T<:Integer}($(Tfields...), alpha::T=1) = $acol{$elty}($(fields...), alpha)
         function $acol($(fields...))
             p = promote($(fields...))
             T = typeof(p[1])
@@ -256,9 +255,9 @@ macro make_alpha(C, fields, ub, elty)
             T = typeof(p[1])
             $acol{T}(p...)
         end
-        $acol() = $acol{$elty}($(fieldsz...))
+        $acol() = $acol{$elty}($(zfields...))
 
-        $cola($(intfields...), alpha::Integer=1) = $cola{$elty}($(fields...), alpha)
+        $cola{T<:Integer}($(Tfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
         function $cola($(fields...))
             p = promote($(fields...))
             T = typeof(p[1])
@@ -269,7 +268,7 @@ macro make_alpha(C, fields, ub, elty)
             T = typeof(p[1])
             $cola{T}(p...)
         end
-        $cola() = $cola{$elty}($(fieldsz...))
+        $cola() = $cola{$elty}($(zfields...))
     end)
 end
 
