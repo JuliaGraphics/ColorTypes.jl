@@ -29,9 +29,11 @@ export GrayAlpha, AlphaGray
 # algorithmically, see `@eval` statements in types.jl.
 
 ## Functions
-export basecolortype, basepainttype, ccolor, colortype
+export basecolortype, basepainttype, ccolor, colortype, supports_fixed
+export alphacolor, coloralpha
 
 include("types.jl")
 include("traits.jl")
+#include("show.jl")
 
 end # module

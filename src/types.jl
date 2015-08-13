@@ -6,35 +6,14 @@ abstract Paint{T, N}
 # AbstractColor means just color, no transparency
 abstract AbstractColor{T, N} <: Paint{T, N}
 abstract Color{T}            <: AbstractColor{T, 3}
-abstract AbstractRGB{T}      <: Color{T}
 abstract AbstractGray{T}     <: AbstractColor{T, 1}
+abstract AbstractRGB{T}      <: Color{T}
 
 # Types with transparency
 abstract Transparent{C<:AbstractColor,T,N} <: Paint{T,N}
 # The storage order can be (alpha,color) or (color,alpha)
 abstract AbstractAlphaColor{C,T,N} <: Transparent{C,T,N}
 abstract AbstractColorAlpha{C,T,N} <: Transparent{C,T,N}
-
-# Containers
-immutable AlphaColor{C<:Color,T} <: AbstractAlphaColor{C,T,4}
-    alpha::T
-    c::C
-
-    function AlphaColor(x1::T, x2::T, x3::T, alpha::T = one(T))
-        new(alpha, C(x1, x2, x3))
-    end
-    AlphaColor(c::Color{T}, alpha::T) = new(alpha, c)
-end
-
-immutable ColorAlpha{C<:Color,T} <: AbstractColorAlpha{C,T,4}
-    c::C
-    alpha::T
-
-    function ColorAlpha(x1::T, x2::T, x3::T, alpha::T = one(T))
-        new(C(x1, x2, x3), alpha)
-    end
-    ColorAlpha(c::Color{T}, alpha::T) = new(c, alpha)
-end
 
 # sRGB (standard Red-Green-Blue)
 immutable RGB{T<:Fractional} <: AbstractRGB{T}
@@ -60,6 +39,7 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
 
     RGB1(r::Real, g::Real, b::Real) = new(one(T), r, g, b)
 end
+RGB1{T}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
 
 immutable RGB4{T<:Fractional} <: AbstractRGB{T}
     r::T
@@ -69,6 +49,7 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
 
     RGB4(r::Real, g::Real, b::Real) = new(r, g, b, one(T))
 end
+RGB4{T}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
 # HSV (Hue-Saturation-Value)
 immutable HSV{T<:FloatingPoint} <: Color{T}
@@ -76,13 +57,8 @@ immutable HSV{T<:FloatingPoint} <: Color{T}
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
-HSV{T<:FloatingPoint}(h::T, s::T, v::T) = HSV{T}(h, s, v)
-HSV(h, s, v) = HSV{Float64}(h, s, v)
-HSV() = HSV(0.0, 0.0, 0.0)
-
 
 HSB(h, s, b) = HSV(h, s, b)
-
 
 # HSL (Hue-Lightness-Saturation)
 immutable HSL{T<:FloatingPoint} <: Color{T}
@@ -90,11 +66,9 @@ immutable HSL{T<:FloatingPoint} <: Color{T}
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
-HLS(h, l, s) = HSL(h, s, l)
-
 
 # XYZ (CIE 1931)
-immutable XYZ{T<:Fractional} <: Color{T}
+immutable XYZ{T<:FloatingPoint} <: Color{T}
     x::T
     y::T
     z::T
@@ -106,9 +80,6 @@ immutable xyY{T<:FloatingPoint} <: Color{T}
     y::T
     Y::T
 end
-xyY{T<:FloatingPoint}(x::T, y::T, Y::T) = xyY{T}(x, y, Y)
-xyY(x, y, Y) = xyY{Float64}(x, y, Y)
-xyY() = xyY(0.0,0.0,0.0)
 
 # Lab (CIELAB)
 immutable Lab{T<:FloatingPoint} <: Color{T}
@@ -124,7 +95,6 @@ immutable LCHab{T<:FloatingPoint} <: Color{T}
     h::T # Hue in [0,360]
 end
 
-
 # Luv (CIELUV)
 immutable Luv{T<:FloatingPoint} <: Color{T}
     l::T # Luminance
@@ -132,14 +102,12 @@ immutable Luv{T<:FloatingPoint} <: Color{T}
     v::T # Blue/Yellow
 end
 
-
 # LCHuv (Luminance-Chroma-Hue, Polar-Luv)
 immutable LCHuv{T<:FloatingPoint} <: Color{T}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
 end
-
 
 # DIN99 (L99, a99, b99) - adaptation of CIELAB
 immutable DIN99{T<:FloatingPoint} <: Color{T}
@@ -211,16 +179,6 @@ immutable Gray{T<:Fractional} <: AbstractGray{T}
     val::T
 end
 
-immutable AlphaGray{T<:Fractional} <: Transparent{Gray{T},T,2}
-    alpha::T
-    c::Gray{T}
-end
-
-immutable GrayAlpha{T<:Fractional} <: Transparent{Gray{T},T,2}
-    c::Gray{T}
-    alpha::T
-end
-
 immutable Gray24 <: AbstractGray{Uint8}
     color::UInt32
 end
@@ -229,35 +187,100 @@ immutable AGray32 <: AbstractAlphaColor{Gray24, UInt8}
     color::UInt32
 end
 
-# Transparent paints (e.g., ARGB)
-st = union(setdiff(subtypes(Color), [RGB24]), subtypes(AbstractRGB))
-for t in st
-    if t.abstract
-        continue
-    end
-    sym = t.name.name
-    asym = symbol("A",sym)
-    syma = symbol(sym,"A")
-    # Make the typealiases
-    @eval typealias $asym{T} AlphaColor{$sym{T},T}
-    @eval typealias $syma{T} ColorAlpha{$sym{T},T}
-    # Export the names
-    @eval export $asym, $syma
-    # Build the constructors
-    # We can't use the same name, unfortunately
-    asym = symbol(lowercase(string(asym)))
-    syma = symbol(lowercase(string(syma)))
-    @eval begin
-        function $asym(x1, x2, x3, alpha)
-            x1p, x2p, x3p, alphap = promote(x1, x2, x3, alpha)
-            T = typeof(alphap)
-            AlphaColor{$sym{T},T}(x1p, x2p, x3p, alphap)
-        end
-        function $syma(x1, x2, x3, alpha)
-            x1p, x2p, x3p, alphap = promote(x1, x2, x3, alpha)
-            T = typeof(alphap)
-            ColorAlpha{$sym{T},T}(x1p, x2p, x3p, alphap)
-        end
-        export $asym, $syma
-    end
+# Generated code:
+#   - more constructors for colors
+#   - transparent paint typealiases (e.g., ARGB), exports, and constructors
+#   - coloralpha(::Color) and alphacolor(::Color) traits for corresponding types
+
+const colortypes = filter(x->!x.abstract, union(subtypes(Color), subtypes(AbstractRGB)))
+const parametric = filter(x->!isempty(x.parameters), colortypes)
+
+# Generate convenience constructors for a type
+macro make_constructors(C, fields, elty)
+    # elty = default element type when supplied with Integer arguments
+    fields = fields.args
+    Cstr = string(C)
+    Cesc = esc(C)
+    intfields  = Expr[:($f::Int)  for f in fields]
+    fieldsz    = zeros(Int, length(fields))
+    esc(quote
+        # More constructors for the non-alpha version
+        $C($(intfields...)) = $C{$elty}($(fields...))
+        $C($(fields...)) = $C(promote($(fields...))...)
+        $C() = $C{$elty}($(fieldsz...))
+    end)
 end
+
+# Generate transparent versions
+macro make_alpha(C, fields, ub, elty)
+    # ub = upper-bound on T in C{T}
+    # elty = default element type when supplied with Integer arguments
+    fields = fields.args
+    N = length(fields)+1
+    Cstr = string(C)
+    Cesc = esc(C)
+    Tfields    = Expr[:($f::T)    for f in fields]
+    realfields = Expr[:($f::Real) for f in fields]
+    intfields  = Expr[:($f::Int)  for f in fields]
+    fieldsz    = zeros(Int, length(fields))
+    acol = symbol(string("A",Cstr))
+    cola = symbol(string(Cstr,"A"))
+    Tconstr = Expr(:<:, :T, ub)
+    esc(quote
+        immutable $acol{$Tconstr} <: AbstractAlphaColor{$C{T}, T, $N}
+            alpha::T
+            $(Tfields...)
+
+            $acol($(realfields...), alpha::Real=one(T)) = new(alpha, $(fields...))
+        end
+        immutable $cola{$Tconstr} <: AbstractColorAlpha{$C{T}, T, $N}
+            $(Tfields...)
+            alpha::T
+
+            $cola($(realfields...), alpha::Real=one(T)) = new($(fields...), alpha)
+        end
+        export $acol, $cola
+        alphacolor{C<:$C}(::Type{C}) = $acol
+        coloralpha{C<:$C}(::Type{C}) = $cola
+
+        # More constructors for the alpha versions
+        $acol($(intfields...), alpha::Integer=1) = $acol{$elty}($(fields...), alpha)
+        function $acol($(fields...))
+            p = promote($(fields...))
+            T = typeof(p[1])
+            $acol{T}(p...)
+        end
+        function $acol($(fields...), alpha)
+            p = promote($(fields...), alpha)
+            T = typeof(p[1])
+            $acol{T}(p...)
+        end
+        $acol() = $acol{$elty}($(fieldsz...))
+
+        $cola($(intfields...), alpha::Integer=1) = $cola{$elty}($(fields...), alpha)
+        function $cola($(fields...))
+            p = promote($(fields...))
+            T = typeof(p[1])
+            $cola{T}(p...)
+        end
+        function $cola($(fields...), alpha)
+            p = promote($(fields...), alpha)
+            T = typeof(p[1])
+            $cola{T}(p...)
+        end
+        $cola() = $cola{$elty}($(fieldsz...))
+    end)
+end
+
+for C in union(setdiff(parametric, [RGB1,RGB4]), [Gray])
+    fn = Expr(:tuple, fieldnames(C)...)
+    use_fractional = C <: AbstractRGB || C == Gray
+    ub   = use_fractional ? Fractional : FloatingPoint
+    elty = use_fractional ? U8 : Float32
+    Csym = C.name.name
+    @eval @make_constructors $Csym $fn $elty
+    @eval @make_alpha $Csym $fn $ub $elty
+end
+
+@make_constructors RGB1 (r,g,b) U8
+@make_constructors RGB4 (r,g,b) U8
