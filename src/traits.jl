@@ -50,18 +50,13 @@ basepainttype(c::Paint) = basepainttype(typeof(c))
 paint_string{P<:Paint}(::Type{P}) = string(P.name.name)
 
 """
- `ccolor` ("concrete color") helps write flexible methods. The
-idea is that users may write `convert(HSV, c)` or even
-`convert(Array{HSV}, A)` without specifying the element type
-explicitly (e.g., `convert(HSV{Float32}, c)`). `ccolor`
-implements the logic "choose the user's eltype if specified,
-otherwise retain the eltype of the source object."
-
-Note that in some cases you may have to supply the element type
-directly; e.g., `HSV` supports `Float32` but not `U8`, so
-`convert(HSV, c::RGB{U8})` will fail. We could automatically pick
-`Float32` in such cases, but one worries whether it might be too
-magical.
+ `ccolor` ("concrete color") helps write flexible methods. The idea is
+that users may write `convert(HSV, c)` or even `convert(Array{HSV},
+A)` without specifying the element type explicitly (e.g.,
+`convert(HSV{Float32}, c)`). `ccolor` implements the logic "choose the
+user's eltype if specified, otherwise retain the eltype of the source
+object." However, when the source object has FixedPoint element type,
+and the destination only supports FloatingPoint, we choose Float32.
 
 Usage:
     ccolor(desttype, srctype) -> concrete desttype
@@ -71,9 +66,11 @@ Example:
 
 where `cnvt` is the function that performs explicit conversion.
 """
-ccolor{Pdest<:Paint,Psrc<:Paint}(::Type{Pdest}, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(eltype(Pdest), eltype(Psrc))}
-pick_eltype{T1<:Number,T2}(::Type{T1}, ::Type{T2}) = T1
-pick_eltype{T2}(::Any, ::Type{T2})                 = T2
+ccolor{Pdest<:Paint,Psrc<:Paint}(::Type{Pdest}, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(colortype(Pdest), eltype(Pdest), eltype(Psrc))}
+pick_eltype{C,T1<:Number,T2}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype{C,T1<:Number,T2<:FixedPoint}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype{C,T2}(::Type{C}, ::Any, ::Type{T2})                 = T2
+pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = supports_fixed(C) ? T2 : Float32
 
 supports_fixed{C<:AbstractRGB}(::Type{C}) = true
 supports_fixed{C<:Gray}(::Type{C}) = true
