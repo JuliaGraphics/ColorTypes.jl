@@ -1,6 +1,6 @@
 module ColorTypes
 
-using FixedPointNumbers
+using FixedPointNumbers, Compat
 
 typealias Fractional Union(FloatingPoint, FixedPoint)
 typealias U8 Ufixed8

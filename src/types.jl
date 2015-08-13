@@ -226,6 +226,7 @@ macro make_alpha(C, fields, ub, elty)
     acol = symbol(string("A",Cstr))
     cola = symbol(string(Cstr,"A"))
     Tconstr = Expr(:<:, :T, ub)
+    exportexpr = Expr(:export, acol, cola)  # needed only for 0.3
     esc(quote
         immutable $acol{$Tconstr} <: AbstractAlphaColor{$C{T}, T, $N}
             alpha::T
@@ -239,7 +240,7 @@ macro make_alpha(C, fields, ub, elty)
 
             $cola($(realfields...), alpha::Real=one(T)) = new($(fields...), alpha)
         end
-        export $acol, $cola
+        $exportexpr
         alphacolor{C<:$C}(::Type{C}) = $acol
         coloralpha{C<:$C}(::Type{C}) = $cola
 

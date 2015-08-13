@@ -7,10 +7,13 @@ eltype{T}(  ::Type{Paint{T}})   = T
 eltype{T,N}(::Type{Paint{T,N}}) = T
 eltype{P<:Paint}(::Type{P}) = eltype(super(P))
 
+if VERSION < v"0.4.0"
+    eltype(c::Paint) = eltype(typeof(c))
+end
+
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
 # Being able to do this is one reason that C is a parameter of
 # Transparent
-#colortype(P::TypeConstructor) = basecolortype(P.body.parameters[1]) # colortype(ARGB)
 colortype{C<:AbstractColor    }(::Type{C})                  = C
 colortype{P<:AbstractAlphaColor}(::Type{P}) = colortype(super(P))
 colortype{P<:AbstractColorAlpha}(::Type{P}) = colortype(super(P))
@@ -19,34 +22,32 @@ colortype{P<:Transparent}(::Type{P}) = P.parameters[1]
 colortype(c::Paint) = colortype(typeof(c))
 
 # basecolortype(RGB{Float64}) -> RGB{T}
-#basecolortype(P::TypeConstructor) = colortype(P)
 basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
-@generated function _basecolortype{C}(::Type{C})
-    name = C.name.name
-    :($name)
+if VERSION < v"0.4.0"
+    _basecolortype{C}(::Type{C}) = eval(C.name.name)
+else
+    @eval @generated function _basecolortype{C}(::Type{C})
+        name = C.name.name
+        :($name)
+    end
 end
 
 basecolortype(c::Paint) = basecolortype(typeof(c))
 
 # basepainttype(ARGB{Float32}) -> ARGB{T}
-#basepainttype(P::TypeConstructor) = P
 basepainttype{C<:AbstractColor}(::Type{C}) = basecolortype(C)
-@generated function basepainttype{P<:Paint}(::Type{P})
-    name = symbol(paint_string(P))
-    :($name)
+if VERSION < v"0.4.0"
+    basepainttype{P<:Paint}(::Type{P}) = eval(P.name.name)
+else
+    @eval @generated function basepainttype{P<:Paint}(::Type{P})
+        name = P.name.name
+        :($name)
+    end
 end
 
 basepainttype(c::Paint) = basepainttype(typeof(c))
 
 paint_string{P<:Paint}(::Type{P}) = string(P.name.name)
-
-# paint_string{C<:AbstractColor}(::Type{C}) = string(C.name.name)
-# paint_string(P::TypeConstructor) = paint_string(P.body)
-# paint_string{P<:AlphaColor}(::Type{P}) = string("A", basecolortype(P))
-# paint_string{P<:ColorAlpha}(::Type{P}) = string(basecolortype(P), "A")
-# paint_string{P<:Gray}(::Type{P}) = "Gray"
-# paint_string{P<:AlphaGray}(::Type{P}) = "AlphaGray"
-# paint_string{P<:GrayAlpha}(::Type{P}) = "GrayAlpha"
 
 """
  `ccolor` ("concrete color") helps write flexible methods. The
@@ -70,7 +71,6 @@ Example:
 
 where `cnvt` is the function that performs explicit conversion.
 """
-#ccolor{Psrc<:Paint}(Pdest::TypeConstructor, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(eltype(Pdest), eltype(Psrc))}
 ccolor{Pdest<:Paint,Psrc<:Paint}(::Type{Pdest}, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(eltype(Pdest), eltype(Psrc))}
 pick_eltype{T1<:Number,T2}(::Type{T1}, ::Type{T2}) = T1
 pick_eltype{T2}(::Any, ::Type{T2})                 = T2
