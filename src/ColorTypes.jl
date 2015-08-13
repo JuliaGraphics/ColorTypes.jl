@@ -5,7 +5,7 @@ using FixedPointNumbers, Compat
 typealias Fractional Union(FloatingPoint, FixedPoint)
 typealias U8 Ufixed8
 
-import Base: convert, eltype, typemax, typemin
+import Base: ==, convert, eltype, typemax, typemin
 
 ## Types
 export Fractional, U8

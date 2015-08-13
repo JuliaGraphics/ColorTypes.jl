@@ -7,7 +7,7 @@ eltype{T}(  ::Type{Paint{T}})   = T
 eltype{T,N}(::Type{Paint{T,N}}) = T
 eltype{P<:Paint}(::Type{P}) = eltype(super(P))
 
-if VERSION < v"0.4.0"
+if VERSION < v"0.4.0-dev"
     eltype(c::Paint) = eltype(typeof(c))
 end
 
@@ -23,7 +23,7 @@ colortype(c::Paint) = colortype(typeof(c))
 
 # basecolortype(RGB{Float64}) -> RGB{T}
 basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
-if VERSION < v"0.4.0"
+if VERSION < v"0.4.0-dev"
     _basecolortype{C}(::Type{C}) = eval(C.name.name)
 else
     @eval @generated function _basecolortype{C}(::Type{C})
@@ -36,7 +36,7 @@ basecolortype(c::Paint) = basecolortype(typeof(c))
 
 # basepainttype(ARGB{Float32}) -> ARGB{T}
 basepainttype{C<:AbstractColor}(::Type{C}) = basecolortype(C)
-if VERSION < v"0.4.0"
+if VERSION < v"0.4.0-dev"
     basepainttype{P<:Paint}(::Type{P}) = eval(P.name.name)
 else
     @eval @generated function basepainttype{P<:Paint}(::Type{P})
@@ -83,3 +83,6 @@ supports_fixed{P<:Paint}(::Type{P}) = supports_fixed(colortype(P))
 # This formulation ensures that only concrete types work
 typemin{C<:AbstractRGB}(::Type{C}) = (T = eltype(C); colortype(C)(zero(T),zero(T),zero(T)))
 typemax{C<:AbstractRGB}(::Type{C}) = (T = eltype(C); colortype(C)(one(T), one(T), one(T)))
+
+### Equality
+==(c1::AbstractRGB, c2::AbstractRGB) = c1.r == c2.r && c1.g == c2.g && c1.b == c2.b
