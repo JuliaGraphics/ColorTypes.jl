@@ -34,6 +34,6 @@ export alphacolor, coloralpha
 
 include("types.jl")
 include("traits.jl")
-#include("show.jl")
+include("show.jl")
 
 end # module

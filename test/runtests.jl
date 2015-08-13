@@ -1,4 +1,4 @@
-using ColorTypes
+using ColorTypes, FixedPointNumbers
 using Base.Test
 
 @test eltype(Paint{U8}) == U8
@@ -10,14 +10,15 @@ eltype(RGB)      # just test that it doesn't error
 @test colortype(RGB{U8}) == RGB{U8}
 @test colortype(RGB) == RGB
 @test colortype(RGBA{Float32}) == RGB{Float32}
-@test colortype(GrayAlpha{U8}) == Gray{U8}
+@test colortype(GrayA{U8}) == Gray{U8}
 @test colortype(RGBA) == RGB
 @test colortype(RGB24)  == RGB24
 @test colortype(ARGB32) == RGB24
 @test colortype(Transparent{RGB}) == RGB
 @test colortype(Transparent{RGB,Float64}) == RGB
 @test colortype(Transparent{RGB{Float64},Float64}) == RGB{Float64}
-@test_throws MethodError colortype(Transparent)
+@test colortype(Transparent) <: AbstractColor
+@test AbstractColor <: colortype(Transparent)
 @test_throws MethodError colortype(Paint{U8})
 
 @test basecolortype(RGBA{Float32}) == RGB
@@ -32,7 +33,6 @@ eltype(RGB)      # just test that it doesn't error
 @test basepainttype(BGR{U8})       == BGR
 @test basepainttype(HSV)  == HSV
 @test basepainttype(HSVA) == HSVA
-@test_throws MethodError basepainttype(Transparent{RGB{Float64},Float64})
 
 @test ccolor(RGB{Float32}, HSV{Float32}) == RGB{Float32}
 @test ccolor(RGB{U8},      HSV{Float32}) == RGB{U8}
@@ -44,19 +44,19 @@ eltype(RGB)      # just test that it doesn't error
 # Traits for instances (and their constructors)
 @test eltype(RGB{U8}(1,0,0)) == U8
 @test eltype(RGB(1.0,0,0)) == Float64
-@test eltype(argb(1.0,0.8,0.6,0.4)) == Float64
+@test eltype(ARGB(1.0,0.8,0.6,0.4)) == Float64
 @test eltype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == Float32
 
 @test colortype(RGB{U8}(1,0,0)) == RGB{U8}
-@test colortype(argb(1.0,0.8,0.6,0.4)) == RGB{Float64}
+@test colortype(ARGB(1.0,0.8,0.6,0.4)) == RGB{Float64}
 @test colortype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == RGB{Float32}
 
 @test basecolortype(RGB{U8}(1,0,0)) == RGB
-@test basecolortype(argb(1.0,0.8,0.6,0.4)) == RGB
+@test basecolortype(ARGB(1.0,0.8,0.6,0.4)) == RGB
 @test basecolortype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == RGB
 
 @test basepainttype(RGB{U8}(1,0,0)) == RGB
-@test basepainttype(argb(1.0,0.8,0.6,0.4)) == ARGB
+@test basepainttype(ARGB(1.0,0.8,0.6,0.4)) == ARGB
 @test basepainttype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == RGBA
 
 # Constructors
@@ -84,7 +84,7 @@ for (AC,C) in ((RGBA, RGB), (HSVA, HSV), (HSLA, HSL),
 end
 
 iob = IOBuffer()
-c = RGB{Ufixed8}(0.32218,0.14983,0.87819)
+c = RGB{U8}(0.32218,0.14983,0.87819)
 show(iob, c)
 @test takebuf_string(iob) == "RGB{U8}(0.322,0.149,0.878)"
 c = RGB{Ufixed16}(0.32218,0.14983,0.87819)

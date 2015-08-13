@@ -282,5 +282,10 @@ for C in union(setdiff(parametric, [RGB1,RGB4]), [Gray])
     @eval @make_alpha $Csym $fn $ub $elty
 end
 
+# RGB1 and RGB4 require special handling because of the alphadummy field
 @make_constructors RGB1 (r,g,b) U8
 @make_constructors RGB4 (r,g,b) U8
+alphacolor{C<:RGB1}(::Type{C}) = ARGB
+alphacolor{C<:RGB4}(::Type{C}) = ARGB
+coloralpha{C<:RGB1}(::Type{C}) = RGBA
+coloralpha{C<:RGB4}(::Type{C}) = RGBA
