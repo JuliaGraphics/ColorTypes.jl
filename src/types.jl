@@ -12,8 +12,8 @@ abstract AbstractRGB{T}      <: Color{T}
 # Types with transparency
 abstract Transparent{C<:AbstractColor,T,N} <: Paint{T,N}
 # The storage order can be (alpha,color) or (color,alpha)
-abstract AbstractAlphaColor{C,T,N} <: Transparent{C,T,N}
-abstract AbstractColorAlpha{C,T,N} <: Transparent{C,T,N}
+abstract AlphaColor{C,T,N} <: Transparent{C,T,N}
+abstract ColorAlpha{C,T,N} <: Transparent{C,T,N}
 
 # sRGB (standard Red-Green-Blue)
 immutable RGB{T<:Fractional} <: AbstractRGB{T}
@@ -167,7 +167,7 @@ RGB24() = RGB24(0)
 RGB24(r::Uint8, g::Uint8, b::Uint8) = RGB24(uint32(r)<<16 | uint32(g)<<8 | uint32(b))
 RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 
-immutable ARGB32 <: AbstractAlphaColor{RGB24, U8}
+immutable ARGB32 <: AlphaColor{RGB24, U8}
     color::UInt32
 end
 ARGB32() = ARGB32(0)
@@ -183,7 +183,7 @@ immutable Gray24 <: AbstractGray{Uint8}
     color::UInt32
 end
 
-immutable AGray32 <: AbstractAlphaColor{Gray24, UInt8}
+immutable AGray32 <: AlphaColor{Gray24, UInt8}
     color::UInt32
 end
 
@@ -227,13 +227,13 @@ macro make_alpha(C, fields, ub, elty)
     Tconstr = Expr(:<:, :T, ub)
     exportexpr = Expr(:export, acol, cola)  # needed only for 0.3
     esc(quote
-        immutable $acol{$Tconstr} <: AbstractAlphaColor{$C{T}, T, $N}
+        immutable $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
             alpha::T
             $(Tfields...)
 
             $acol($(realfields...), alpha::Real=one(T)) = new(alpha, $(fields...))
         end
-        immutable $cola{$Tconstr} <: AbstractColorAlpha{$C{T}, T, $N}
+        immutable $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
             $(Tfields...)
             alpha::T
 

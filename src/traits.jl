@@ -23,8 +23,8 @@ end
 # Being able to do this is one reason that C is a parameter of
 # Transparent
 colortype{C<:AbstractColor     }(::Type{C}) = C
-colortype{P<:AbstractAlphaColor}(::Type{P}) = colortype(super(P))
-colortype{P<:AbstractColorAlpha}(::Type{P}) = colortype(super(P))
+colortype{P<:AlphaColor}(::Type{P}) = colortype(super(P))
+colortype{P<:ColorAlpha}(::Type{P}) = colortype(super(P))
 colortype{P<:Transparent       }(::Type{P}) = P.parameters[1]
 
 colortype(c::Paint) = colortype(typeof(c))
