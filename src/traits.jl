@@ -12,6 +12,27 @@ else
     end
     Color(c) = color(c)
 end
+color(c::ARGB32) = convert(RGB24, c)
+
+alpha(c::Transparent) = c.alpha
+alpha(c::AbstractColor) = one(eltype(c))
+alpha(c::RGB24)  = Ufixed8(1)
+alpha(c::ARGB32) = Ufixed8((c.color & 0xff000000)>>24, 0)
+
+red(c::AbstractRGB) = c.r
+red{C<:AbstractRGB}(c::Transparent{C}) = c.r
+red(c::RGB24)  = Ufixed8((c.color & 0x00ff0000)>>16, 0)
+red(c::ARGB32) = Ufixed8((c.color & 0x00ff0000)>>16, 0)
+
+green(c::AbstractRGB) = c.g
+green{C<:AbstractRGB}(c::Transparent{C}) = c.g
+green(c::RGB24)  = Ufixed8((c.color & 0x0000ff00)>>8, 0)
+green(c::ARGB32) = Ufixed8((c.color & 0x0000ff00)>>8, 0)
+
+blue(c::AbstractRGB) = c.b
+blue{C<:AbstractRGB}(c::Transparent{C}) = c.b
+blue(c::RGB24)  = Ufixed8(c.color & 0x000000ff, 0)
+blue(c::ARGB32) = Ufixed8(c.color & 0x000000ff, 0)
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the

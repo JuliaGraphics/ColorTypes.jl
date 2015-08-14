@@ -30,6 +30,7 @@ export RGB24, ARGB32
 ## Functions
 export basecolortype, basepainttype, ccolor, color, colorfields, colortype, eltype_default
 export alphacolor, coloralpha
+export alpha, blue, green, red
 
 include("types.jl")
 include("traits.jl")

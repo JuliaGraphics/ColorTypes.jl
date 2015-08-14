@@ -1,4 +1,4 @@
-using ColorTypes, FixedPointNumbers
+using ColorTypes, FixedPointNumbers, Compat
 using Base.Test
 
 @test eltype(Paint{U8}) == U8
@@ -75,9 +75,9 @@ end
 # storage order is not
 for C in subtypes(AbstractRGB)
     c = C(1, 0.5, 0)
-    @test c.r == 1
-    @test c.g == 0.5
-    @test c.b == 0
+    @test red(c)   == c.r == 1
+    @test green(c) == c.g == 0.5
+    @test blue(c)  == c.b == 0
 end
 
 # Transparency
@@ -105,6 +105,32 @@ for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
         @test convert(C,          c) == C{Float64}(1,0.8,0.6)
         @test convert(C{Float32}, c) == C{Float32}(1,0.8,0.6)
     end
+end
+ac = ARGB32(rand(UInt32))
+@test convert(ARGB32, ac) == ac
+c = convert(RGB24, ac)
+@test convert(RGB24, c) == c
+@test red(c)   == red(ac)
+@test green(c) == green(ac)
+@test blue(c)  == blue(ac)
+ac2 = convert(ARGB32, c)
+@test ac2.color == (c.color | 0xff000000)
+@test color(c) == c
+@test color(ac) == c
+@test alpha(c) == U8(1)
+@test alpha(ac) == Ufixed8(ac.color>>24, 0)
+@test alpha(ac2) == U8(1)
+for C in subtypes(AbstractRGB)
+    rgb = convert(C, c)
+    @test rgb.r == red(c)
+    @test rgb.g == green(c)
+    @test rgb.b == blue(c)
+    argb = convert(alphacolor(C), ac)
+    @test argb.alpha == alpha(ac)
+    @test argb.r == red(ac)
+    @test argb.g == green(ac)
+    @test argb.b == blue(ac)
+
 end
 
 iob = IOBuffer()

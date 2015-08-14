@@ -162,19 +162,21 @@ immutable YCbCr{T<:FloatingPoint} <: Color{T}
 end
 
 # 24 bit RGB and 32 bit ARGB (used by Cairo)
-# It would be nice to make this a subtype of AbstractRGB, but it doesn't have operations like c.r defined.
+# It would be nice to make this a subtype of AbstractRGB, but it
+# doesn't have operations like c.r defined.
+
 immutable RGB24 <: Color{U8}
     color::UInt32
 end
 RGB24() = RGB24(0)
-RGB24(r::Uint8, g::Uint8, b::Uint8) = RGB24(uint32(r)<<16 | uint32(g)<<8 | uint32(b))
+RGB24(r::Uint8, g::Uint8, b::Uint8) = RGB24(@compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
 RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 
 immutable ARGB32 <: AlphaColor{RGB24, U8}
     color::UInt32
 end
-ARGB32() = ARGB32(0)
-ARGB32(r::Uint8, g::Uint8, b::Uint8, alpha::Uint8) = ARGB32(uint32(alpha)<<24 | uint32(r)<<16 | uint32(g)<<8 | uint32(b))
+ARGB32() = ARGB32(@compat(UInt32(0xff))<<24)
+ARGB32(r::Uint8, g::Uint8, b::Uint8, alpha::Uint8) = ARGB32(@compat(UInt32(alpha))<<24 | @compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
 ARGB32(r::Ufixed8, g::Ufixed8, b::Ufixed8, alpha::Ufixed8) = ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 
 # Grayscale
@@ -336,6 +338,17 @@ for C in union(ColorTypes.parametric, [Gray])
            convert(::Type{$CA},    c::$C, alpha) = $CA($(fnc...), alpha)
         convert{T}(::Type{$CA{T}}, c::$C, alpha) = $CA($(fnT...), convert(T, alpha))
     end
+    if C <: AbstractRGB
+        @eval begin
+               convert(::Type{$C},     c::RGB24)  = $C(red(c), green(c), blue(c))
+               convert(::Type{$AC},    c::ARGB32) = $AC(red(c), green(c), blue(c), alpha(c))
+            convert{T}(::Type{$AC{T}}, c::ARGB32) = $AC{T}(red(c), green(c), blue(c), alpha(c))
+               convert(::Type{$CA},    c::ARGB32) = $CA(red(c), green(c), blue(c), alpha(c))
+            convert{T}(::Type{$CA{T}}, c::ARGB32) = $CA{T}(red(c), green(c), blue(c), alpha(c))
+        end
+    end
 end
-convert(::RGB24, c::RGB24) = c
-convert(::ARGB32, c::ARGB32) = c
+convert(::Type{RGB24},  c::RGB24)  = c
+convert(::Type{ARGB32}, c::ARGB32) = c
+convert(::Type{RGB24},  c::ARGB32) = RGB24(c.color)
+convert(::Type{ARGB32}, c::RGB24)  = ARGB32(c.color | 0xff000000)
