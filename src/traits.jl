@@ -16,8 +16,9 @@ color(c::ARGB32) = convert(RGB24, c)
 
 alpha(c::Transparent) = c.alpha
 alpha(c::AbstractColor) = one(eltype(c))
-alpha(c::RGB24)  = Ufixed8(1)
-alpha(c::ARGB32) = Ufixed8((c.color & 0xff000000)>>24, 0)
+alpha(c::RGB24)   = Ufixed8(1)
+alpha(c::ARGB32)  = Ufixed8((c.color & 0xff000000)>>24, 0)
+alpha(c::AGray32) = Ufixed8((c.color & 0xff000000)>>24, 0)
 
 red(c::AbstractRGB) = c.r
 red{C<:AbstractRGB}(c::Transparent{C}) = c.r
@@ -33,6 +34,10 @@ blue(c::AbstractRGB) = c.b
 blue{C<:AbstractRGB}(c::Transparent{C}) = c.b
 blue(c::RGB24)  = Ufixed8(c.color & 0x000000ff, 0)
 blue(c::ARGB32) = Ufixed8(c.color & 0x000000ff, 0)
+
+gray(c::Gray)    = c.val
+gray(c::Gray24)  = Ufixed8(c.color & 0x000000ff, 0)
+gray(c::AGray32) = Ufixed8(c.color & 0x000000ff, 0)
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
@@ -111,9 +116,18 @@ pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = pick_eltype_co
 pick_eltype_compat{T1            ,T2}(::Any, ::Type{T1}, ::Type{T2}) = T1
 pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
 
-# This formulation ensures that only concrete types work
-typemin{C<:AbstractRGB}(::Type{C}) = (T = eltype(C); colortype(C)(zero(T),zero(T),zero(T)))
-typemax{C<:AbstractRGB}(::Type{C}) = (T = eltype(C); colortype(C)(one(T), one(T), one(T)))
-
 ### Equality
 ==(c1::AbstractRGB, c2::AbstractRGB) = c1.r == c2.r && c1.g == c2.g && c1.b == c2.b
+
+for T in (RGB24, ARGB32, Gray24, AGray32)
+    @eval begin
+        ==(x::Uint32, y::$T) = x == convert(Uint32, y)
+        ==(x::$T, y::Uint32) = ==(y, x)
+    end
+end
+=={T}(x::Gray{T}, y::Gray{T}) = x.val == y.val
+=={T}(x::T, y::Gray{T}) = x == convert(T, y)
+=={T}(x::Gray{T}, y::T) = ==(y, x)
+
+zero{T}(::Type{Gray{T}}) = Gray{T}(zero(T))
+ one{T}(::Type{Gray{T}}) = Gray{T}(one(T))

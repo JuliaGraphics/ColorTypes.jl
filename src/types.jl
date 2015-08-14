@@ -169,14 +169,14 @@ immutable RGB24 <: Color{U8}
     color::UInt32
 end
 RGB24() = RGB24(0)
-RGB24(r::Uint8, g::Uint8, b::Uint8) = RGB24(@compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
+RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(@compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
 RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 
 immutable ARGB32 <: AlphaColor{RGB24, U8}
     color::UInt32
 end
 ARGB32() = ARGB32(@compat(UInt32(0xff))<<24)
-ARGB32(r::Uint8, g::Uint8, b::Uint8, alpha::Uint8) = ARGB32(@compat(UInt32(alpha))<<24 | @compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
+ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = ARGB32(@compat(UInt32(alpha))<<24 | @compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
 ARGB32(r::Ufixed8, g::Ufixed8, b::Ufixed8, alpha::Ufixed8) = ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 
 # Grayscale
@@ -184,13 +184,19 @@ immutable Gray{T<:Fractional} <: AbstractGray{T}
     val::T
 end
 
-immutable Gray24 <: AbstractGray{Uint8}
+immutable Gray24 <: AbstractGray{U8}
     color::UInt32
 end
+Gray24() = Gray24(0)
+Gray24(val::UInt8) = (g = uint32(val); g<<16 | g<<8 | g)
+Gray24(val::Ufixed8) = Gray24(reinterpret(val))
 
-immutable AGray32 <: AlphaColor{Gray24, UInt8}
+immutable AGray32 <: AlphaColor{Gray24, U8}
     color::UInt32
 end
+AGray32() = AGray32(0)
+AGray32(val::UInt8, alpha::UInt8) = (g = uint32(val); uint32(alpha)<<24 | g<<16 | g<<8 | g)
+AGray32(val::Ufixed8, alpha::Ufixed8) = AGray32(reinterpret(val), reinterpret(alpha))
 
 # Generated code:
 #   - more constructors for colors
@@ -301,7 +307,7 @@ macro make_alpha(C, fields, constrfields, ub, elty)
 end
 
 eltype_default{C<:AbstractRGB  }(::Type{C}) = U8
-eltype_default{C<:Gray         }(::Type{C}) = U8
+eltype_default{C<:AbstractGray }(::Type{C}) = U8
 eltype_default{C<:AbstractColor}(::Type{C}) = Float32
 eltype_default{P<:Paint        }(::Type{P}) = eltype_default(colortype(P))
 
@@ -327,6 +333,13 @@ alphacolor{C<:RGB1}(::Type{C}) = ARGB
 alphacolor{C<:RGB4}(::Type{C}) = ARGB
 coloralpha{C<:RGB1}(::Type{C}) = RGBA
 coloralpha{C<:RGB4}(::Type{C}) = RGBA
+
+Gray24() = Gray24(0)
+Gray24(val::UInt8) = (g = uint32(val); g<<16 | g<<8 | g)
+Gray24(val::Ufixed8) = Gray24(reinterpret(val))
+
+convert(::Type{UInt32}, g::Gray24) = g.color
+
 
 # no-op and element-type conversions, plus conversion to and from transparency
 for C in union(ColorTypes.parametric, [Gray])
@@ -365,3 +378,13 @@ convert(::Type{RGB24},  c::RGB24)  = c
 convert(::Type{ARGB32}, c::ARGB32) = c
 convert(::Type{RGB24},  c::ARGB32) = RGB24(c.color)
 convert(::Type{ARGB32}, c::RGB24)  = ARGB32(c.color | 0xff000000)
+
+convert(::Type{Gray24}, g::Gray{U8}) = Gray24(g.val)
+convert(::Type{Gray24}, g::Gray)     = Gray24(convert(Gray{U8}, g))
+convert(::Type{Gray},   g::Gray24)   = Gray(Ufixed8(g.color & 0x000000ff,0))
+convert{T}(::Type{Gray{T}}, g::Gray24) = Gray{T}(Gray(g))
+
+convert(::Type{UInt32}, c::RGB24)   = c.color
+convert(::Type{UInt32}, c::ARGB32)  = c.color
+convert(::Type{UInt32}, g::Gray24)  = g.color
+convert(::Type{UInt32}, g::AGray32) = g.color

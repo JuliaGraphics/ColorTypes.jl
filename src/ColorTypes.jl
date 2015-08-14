@@ -5,7 +5,7 @@ using FixedPointNumbers, Compat
 typealias Fractional Union(FloatingPoint, FixedPoint)
 typealias U8 Ufixed8
 
-import Base: ==, convert, eltype, typemax, typemin
+import Base: ==, convert, eltype, one, zero
 
 ## Types
 export Fractional, U8
@@ -21,7 +21,7 @@ export YIQ, YCbCr
 
 export Gray
 
-export RGB24, ARGB32
+export RGB24, ARGB32, Gray24, AGray32
 
 # Note: the parametric transparent Paints are exported
 # algorithmically, see `@make_alpha` in types.jl.
@@ -30,7 +30,7 @@ export RGB24, ARGB32
 ## Functions
 export basecolortype, basepainttype, ccolor, color, colorfields, colortype, eltype_default
 export alphacolor, coloralpha
-export alpha, blue, green, red
+export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 
 include("types.jl")
 include("traits.jl")
