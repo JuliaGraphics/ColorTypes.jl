@@ -27,7 +27,10 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
     b::T
     g::T
     r::T
+
+    BGR(r::Real, g::Real, b::Real) = new(b, g, r)
 end
+BGR{T}(r::T, g::T, b::T) = BGR{T}(r, g, b)
 
 # 4-byte RGB values (with meaningless alpha channel)
 # These have nice memory-alignment properties and are returned by some readers
@@ -195,6 +198,14 @@ end
 const colortypes = filter(x->!x.abstract, union(subtypes(Color), subtypes(AbstractRGB)))
 const parametric = filter(x->!isempty(x.parameters), colortypes)
 
+# Provide the field names in the order expected by the constructor
+colorfields{C<:AbstractColor}(::Type{C}) = fieldnames(C)
+colorfields{C<:RGB1}(::Type{C}) = (:r, :g, :b)
+colorfields{C<:RGB4}(::Type{C}) = (:r, :g, :b)
+colorfields{C<:BGR }(::Type{C}) = (:r, :g, :b)
+colorfields{P<:Transparent}(::Type{P}) = tuple(colorfields(colortype(P))..., :alpha)
+colorfields(c::Paint) = colorfields(typeof(c))
+
 # Generate convenience constructors for a type
 macro make_constructors(C, fields, elty)
     # elty = default element type when supplied with Integer arguments
@@ -212,16 +223,18 @@ macro make_constructors(C, fields, elty)
 end
 
 # Generate transparent versions
-macro make_alpha(C, fields, ub, elty)
+macro make_alpha(C, fields, constrfields, ub, elty)
     # ub = upper-bound on T in C{T}
     # elty = default element type when supplied with Integer arguments
     fields = fields.args
+    constrfields = constrfields.args
     N = length(fields)+1
     Cstr = string(C)
     Cesc = esc(C)
-    Tfields    = Expr[:($f::T)    for f in fields]
-    realfields = Expr[:($f::Real) for f in fields]
-    zfields    = zeros(Int, length(fields))
+    Tfields       = Expr[:($f::T)    for f in fields]
+    Tconstrfields = Expr[:($f::T)    for f in constrfields]
+    realfields    = Expr[:($f::Real) for f in constrfields]
+    zfields       = zeros(Int, length(fields))
     acol = symbol(string("A",Cstr))
     cola = symbol(string(Cstr,"A"))
     Tconstr = Expr(:<:, :T, ub)
@@ -244,27 +257,27 @@ macro make_alpha(C, fields, ub, elty)
         coloralpha{C<:$C}(::Type{C}) = $cola
 
         # More constructors for the alpha versions
-        $acol{T<:Integer}($(Tfields...), alpha::T=1) = $acol{$elty}($(fields...), alpha)
-        function $acol($(fields...))
-            p = promote($(fields...))
+        $acol{T<:Integer}($(Tconstrfields...), alpha::T=1) = $acol{$elty}($(fields...), alpha)
+        function $acol($(constrfields...))
+            p = promote($(constrfields...))
             T = typeof(p[1])
             $acol{T}(p...)
         end
-        function $acol($(fields...), alpha)
-            p = promote($(fields...), alpha)
+        function $acol($(constrfields...), alpha)
+            p = promote($(constrfields...), alpha)
             T = typeof(p[1])
             $acol{T}(p...)
         end
         $acol() = $acol{$elty}($(zfields...))
 
-        $cola{T<:Integer}($(Tfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
-        function $cola($(fields...))
-            p = promote($(fields...))
+        $cola{T<:Integer}($(Tconstrfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
+        function $cola($(constrfields...))
+            p = promote($(constrfields...))
             T = typeof(p[1])
             $cola{T}(p...)
         end
-        function $cola($(fields...), alpha)
-            p = promote($(fields...), alpha)
+        function $cola($(constrfields...), alpha)
+            p = promote($(constrfields...), alpha)
             T = typeof(p[1])
             $cola{T}(p...)
         end
@@ -283,12 +296,13 @@ eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
 eltype_ub{T<:FloatingPoint}(::Type{T}) = FloatingPoint
 
 for C in union(setdiff(parametric, [RGB1,RGB4]), [Gray])
-    fn = Expr(:tuple, fieldnames(C)...)
+    fn  = Expr(:tuple, fieldnames(C)...)
+    cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
     Csym = C.name.name
     @eval @make_constructors $Csym $fn $elty
-    @eval @make_alpha $Csym $fn $ub $elty
+    @eval @make_alpha $Csym $fn $cfn $ub $elty
 end
 
 # RGB1 and RGB4 require special handling because of the alphadummy field

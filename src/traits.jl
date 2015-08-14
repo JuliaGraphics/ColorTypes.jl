@@ -1,10 +1,16 @@
-# Provide the field names in the order expected by the constructor
-colorfields{C<:AbstractColor}(::Type{C}) = fieldnames(C)
-colorfields{C<:RGB1}(::Type{C}) = (:r, :g, :b)
-colorfields{C<:RGB4}(::Type{C}) = (:r, :g, :b)
-colorfields{C<:BGR }(::Type{C}) = (:r, :g, :b)
-colorfields{P<:Transparent}(::Type{P}) = tuple(colorfields(colortype(P))..., :alpha)
-colorfields(c::Paint) = colorfields(typeof(c))
+# Extract the color from a paint
+Color(c::AbstractColor) = c
+if VERSION < v"0.4.0-dev"
+    for C in parametric
+        fex = [:(c.$f) for f in colorfields(C)]
+        @eval Color{T}(c::Transparent{C{T}}) = C{T}($(fex...))
+    end
+else
+    @generated function Color{C<:AbstractColor}(c::Transparent{C})
+        fex = [:(c.$f) for f in colorfields(C)]
+        :(C($(fex...)))
+    end
+end
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the

@@ -70,18 +70,26 @@ for C in ColorTypes.parametric
     @test colortype(C{Float32}) == C{Float32}
 end
 
-for (AC,C) in ((RGBA, RGB), (HSVA, HSV), (HSLA, HSL),
-               (XYZA, XYZ), (xyYA, xyY), (LabA, Lab),
-               (LCHabA, LCHab), (LuvA, Luv),
-               (LCHuvA, LCHuv), (DIN99A, DIN99),
-               (DIN99dA, DIN99d), (DIN99oA, DIN99o),
-               (LMSA, LMS))
-    @test eltype(AC{Float32}) == Float32
-    @test colortype(AC) == C
-    @test colortype(AC{Float32}) == C{Float32}
-    @test colortype(AC{Float64}(1,0,0,1)) == C{Float64}
-    @test coloralpha(C) == AC
-    @test coloralpha(C{Float32}) == AC
+# Specifically test the AbstractRGB types
+# This checks that the constructor order is the same, even if the
+# storage order is not
+for C in subtypes(AbstractRGB)
+    c = C(1, 0.5, 0)
+    @test c.r == 1
+    @test c.g == 0.5
+    @test c.b == 0
+end
+
+# Transparency
+for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
+    for A in (alphacolor(C), coloralpha(C))
+        @test eltype(A{Float32}) == Float32
+        @test colortype(A) == C
+        @test colortype(A{Float32}) == C{Float32}
+        c = A{Float64}(1,0.8,0.6,0.4)
+        @test colortype(c) == C{Float64}
+        @test Color(c) == C{Float64}(1,0.8,0.6)
+    end
 end
 
 iob = IOBuffer()
