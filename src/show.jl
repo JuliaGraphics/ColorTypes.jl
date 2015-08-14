@@ -15,7 +15,13 @@ macro make_show(have_fixed, P, fields)
     exc = [d < length(fields) ? (:(print(io, ','))) : (:(print(io, ')'))) for d = 1:length(fields)]
     exboth = hcat(exs, exc)'
     ex = Expr(:block, exboth...)
+    exs = [:(show(io, $(fn))) for fn in objfields]
+    exfull = Expr(:block, (hcat(exs, exc)')...)
     ret = quote
+        function Base.show{T}(io::IO, c::$Pesc{T})
+            print(io, "$($Pstr){$T}(")
+            $exfull
+        end
         function Base.showcompact{T}(io::IO, c::$Pesc{T})
             print(io, "$($Pstr){$T}(")
             $ex

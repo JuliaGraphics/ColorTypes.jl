@@ -68,6 +68,7 @@ for C in ColorTypes.parametric
     @test colortype(C(1,0,0)) == C{et}
     @test colortype(C) == C
     @test colortype(C{Float32}) == C{Float32}
+    @test eltype(C{Float32}(1,0,0)) == Float32
 end
 
 # Specifically test the AbstractRGB types
@@ -86,6 +87,7 @@ for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
         @test eltype(A{Float32}) == Float32
         @test colortype(A) == C
         @test colortype(A{Float32}) == C{Float32}
+        @test eltype(A(1,0.8,0.6,0.4)) == Float64
         c = A{Float64}(1,0.8,0.6,0.4)
         @test colortype(c) == C{Float64}
         cc = color(c)
@@ -134,7 +136,8 @@ for C in subtypes(AbstractRGB)
 end
 
 iob = IOBuffer()
-c = RGB{U8}(0.32218,0.14983,0.87819)
+cf = RGB{Float32}(0.32218,0.14983,0.87819)
+c  = convert(RGB{U8}, cf)
 show(iob, c)
 @test takebuf_string(iob) == "RGB{U8}(0.322,0.149,0.878)"
 c = RGB{Ufixed16}(0.32218,0.14983,0.87819)
@@ -143,3 +146,13 @@ show(iob, c)
 c = RGBA{Ufixed8}(0.32218,0.14983,0.87819,0.99241)
 show(iob, c)
 @test takebuf_string(iob) == "RGBA{U8}(0.322,0.149,0.878,0.992)"
+show(iob, cf)
+@test takebuf_string(iob) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
+showcompact(iob, cf)
+@test takebuf_string(iob) == "RGB{Float32}(0.32218,0.14983,0.87819)"
+
+c = Gray(0.8)
+show(iob, c)
+@test takebuf_string(iob) == "Gray{Float64}(0.8)"
+show(iob, AGray(0.8))
+@test takebuf_string(iob) == "AGray{Float64}(0.8,1.0)"
