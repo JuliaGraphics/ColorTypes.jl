@@ -1,15 +1,16 @@
 # Extract the color from a paint
-Color(c::AbstractColor) = c
+color(c::AbstractColor) = c
 if VERSION < v"0.4.0-dev"
     for C in parametric
         fex = [:(c.$f) for f in colorfields(C)]
-        @eval Color{T}(c::Transparent{C{T}}) = C{T}($(fex...))
+        @eval color{T}(c::Transparent{$C{T}}) = $C{T}($(fex...))
     end
 else
-    @generated function Color{C<:AbstractColor}(c::Transparent{C})
+    @eval @generated function color{C<:AbstractColor}(c::Transparent{C})
         fex = [:(c.$f) for f in colorfields(C)]
         :(C($(fex...)))
     end
+    Color(c) = color(c)
 end
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the

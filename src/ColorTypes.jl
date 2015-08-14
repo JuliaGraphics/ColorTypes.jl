@@ -28,7 +28,7 @@ export RGB24, ARGB32
 
 
 ## Functions
-export basecolortype, basepainttype, ccolor, colorfields, colortype, eltype_default
+export basecolortype, basepainttype, ccolor, color, colorfields, colortype, eltype_default
 export alphacolor, coloralpha
 
 include("types.jl")

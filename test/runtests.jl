@@ -88,14 +88,22 @@ for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
         @test colortype(A{Float32}) == C{Float32}
         c = A{Float64}(1,0.8,0.6,0.4)
         @test colortype(c) == C{Float64}
-        cc = Color(c)
+        cc = color(c)
         @test cc == C{Float64}(1,0.8,0.6)
-        @test A(cc) == A{Float64}(1,0.8,0.6,1)
-        @test A(cc, 0.4)  == c
-        @test A(cc, 0x01) == A{Float64}(1,0.8,0.6,1)
-        @test A{Float32}(cc, 0x01) == A{Float32}(1,0.8,0.6,1)
-        @test C(c) == C{Float64}(1,0.8,0.6)
-        @test C{Float32}(c) == C{Float32}(1,0.8,0.6)
+        if VERSION >= v"0.4.0-dev"
+            @test A(cc) == A{Float64}(1,0.8,0.6,1)
+            @test A(cc, 0.4)  == c
+            @test A(cc, 0x01) == A{Float64}(1,0.8,0.6,1)
+            @test A{Float32}(cc, 0x01) == A{Float32}(1,0.8,0.6,1)
+            @test C(c         ) == C{Float64}(1,0.8,0.6)
+            @test C{Float32}(c) == C{Float32}(1,0.8,0.6)
+        end
+        @test convert(A, cc) == A{Float64}(1,0.8,0.6,1)
+        @test convert(A, cc, 0.4)  == c
+        @test convert(A, cc, 0x01) == A{Float64}(1,0.8,0.6,1)
+        @test convert(A{Float32}, cc, 0x01) == A{Float32}(1,0.8,0.6,1)
+        @test convert(C,          c) == C{Float64}(1,0.8,0.6)
+        @test convert(C{Float32}, c) == C{Float32}(1,0.8,0.6)
     end
 end
 
