@@ -1,6 +1,11 @@
-# These traits exploit a nice trick: for subtypes, walk up the type
-# hierarchy until we get to a stage where we can define the function
-# in general
+# Provide the field names in the order expected by the constructor
+colorfields{C<:AbstractColor}(::Type{C}) = fieldnames(C)
+colorfields{C<:RGB1}(::Type{C}) = (:r, :g, :b)
+colorfields{C<:RGB4}(::Type{C}) = (:r, :g, :b)
+colorfields{C<:BGR }(::Type{C}) = (:r, :g, :b)
+colorfields{P<:Transparent}(::Type{P}) = tuple(colorfields(colortype(P))..., :alpha)
+colorfields(c::Paint) = colorfields(typeof(c))
+
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
 # function in general
