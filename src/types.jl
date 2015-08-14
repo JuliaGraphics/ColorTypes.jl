@@ -236,23 +236,35 @@ macro make_alpha(C, fields, constrfields, ub, elty)
     Tfields       = Expr[:($f::T)    for f in fields]
     Tconstrfields = Expr[:($f::T)    for f in constrfields]
     realfields    = Expr[:($f::Real) for f in constrfields]
+    cfields       = Expr[:(c.$f)     for f in constrfields]
+    cinnerfields  = Expr[:(c.$f)     for f in fields]
     zfields       = zeros(Int, length(fields))
     acol = symbol(string("A",Cstr))
     cola = symbol(string(Cstr,"A"))
     Tconstr = Expr(:<:, :T, ub)
-    exportexpr = Expr(:export, acol, cola)  # needed only for 0.3
+    # Handling limitations of 0.3
+    exportexpr = Expr(:export, acol, cola)
+    Tcfields = Expr[:(convert(T, c.$f)) for f in constrfields]
+    extradefs = VERSION >= v"0.4.0-dev" ? nothing : quote
+        $acol(c::$C) = $acol($(cfields...))
+        $acol(c::$C, alpha) = $acol($(cfields...), convert(eltype(c), alpha))
+        $cola(c::$C) = $cola($(cfields...))
+        $cola(c::$C, alpha) = $cola($(cfields...), convert(eltype(c), alpha))
+    end
     esc(quote
         immutable $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
             alpha::T
             $(Tfields...)
 
             $acol($(realfields...), alpha::Real=one(T)) = new(alpha, $(fields...))
+            $acol(c::$C, alpha::Real=one(T)) = new(alpha, $(cinnerfields...))
         end
         immutable $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
             $(Tfields...)
             alpha::T
 
             $cola($(realfields...), alpha::Real=one(T)) = new($(fields...), alpha)
+            $cola(c::$C, alpha::Real=one(T)) = new($(cinnerfields...), alpha)
         end
         $exportexpr
         alphacolor{C<:$C}(::Type{C}) = $acol
@@ -284,6 +296,7 @@ macro make_alpha(C, fields, constrfields, ub, elty)
             $cola{T}(p...)
         end
         $cola() = $cola{$elty}($(zfields...))
+        $extradefs
     end)
 end
 
