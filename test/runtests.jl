@@ -88,7 +88,11 @@ for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
         @test colortype(A{Float32}) == C{Float32}
         c = A{Float64}(1,0.8,0.6,0.4)
         @test colortype(c) == C{Float64}
-        @test Color(c) == C{Float64}(1,0.8,0.6)
+        cc = Color(c)
+        @test cc == C{Float64}(1,0.8,0.6)
+        @test A(cc) == A{Float64}(1,0.8,0.6,1)
+        @test A(cc, 0.4)  == c
+        @test A(cc, 0x01) == A{Float64}(1,0.8,0.6,1)
     end
 end
 

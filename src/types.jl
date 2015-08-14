@@ -234,6 +234,7 @@ macro make_alpha(C, fields, constrfields, ub, elty)
     Tfields       = Expr[:($f::T)    for f in fields]
     Tconstrfields = Expr[:($f::T)    for f in constrfields]
     realfields    = Expr[:($f::Real) for f in constrfields]
+    cfields       = Expr[:(c.$f)     for f in constrfields]
     zfields       = zeros(Int, length(fields))
     acol = symbol(string("A",Cstr))
     cola = symbol(string(Cstr,"A"))
@@ -268,6 +269,8 @@ macro make_alpha(C, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $acol{T}(p...)
         end
+        $acol(c::$C) = $acol($(cfields...))
+        $acol(c::$C, alpha) = $acol($(cfields...), convert(eltype(c), alpha))
         $acol() = $acol{$elty}($(zfields...))
 
         $cola{T<:Integer}($(Tconstrfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
@@ -281,6 +284,8 @@ macro make_alpha(C, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $cola{T}(p...)
         end
+        $cola(c::$C) = $cola($(cfields...))
+        $cola(c::$C, alpha) = $cola($(cfields...), convert(eltype(c), alpha))
         $cola() = $cola{$elty}($(zfields...))
     end)
 end
