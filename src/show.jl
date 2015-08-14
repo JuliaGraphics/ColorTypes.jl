@@ -39,7 +39,7 @@ macro make_show(have_fixed, P, fields)
 end
 
 for C in union(parametric, [Gray])
-    fixed = supports_fixed(C)
+    fixed = eltype_default(C) <: Ufixed
     AC, CA = alphacolor(C), coloralpha(C)
     fn  = fieldnames(C)
     ex  = Expr(:tuple, fn...)

@@ -24,12 +24,11 @@ export Gray
 export AlphaColor, ColorAlpha
 
 export ARGB32
-export GrayAlpha, AlphaGray
 # Note: the rest of the transparent Paints are exported
 # algorithmically, see `@eval` statements in types.jl.
 
 ## Functions
-export basecolortype, basepainttype, ccolor, colortype, supports_fixed
+export basecolortype, basepainttype, ccolor, colorfields, colortype, eltype_default
 export alphacolor, coloralpha
 
 include("types.jl")

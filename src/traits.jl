@@ -1,6 +1,9 @@
 # These traits exploit a nice trick: for subtypes, walk up the type
 # hierarchy until we get to a stage where we can define the function
 # in general
+# Some of these traits exploit a nice trick: for subtypes, walk up the
+# type hierarchy until we get to a stage where we can define the
+# function in general
 
 # eltype(RGB{Float32}) -> Float32
 eltype{T}(  ::Type{Paint{T}})   = T
@@ -14,17 +17,17 @@ end
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
 # Being able to do this is one reason that C is a parameter of
 # Transparent
-colortype{C<:AbstractColor    }(::Type{C})                  = C
+colortype{C<:AbstractColor     }(::Type{C}) = C
 colortype{P<:AbstractAlphaColor}(::Type{P}) = colortype(super(P))
 colortype{P<:AbstractColorAlpha}(::Type{P}) = colortype(super(P))
-colortype{P<:Transparent}(::Type{P}) = P.parameters[1]
+colortype{P<:Transparent       }(::Type{P}) = P.parameters[1]
 
 colortype(c::Paint) = colortype(typeof(c))
 
 # basecolortype(RGB{Float64}) -> RGB{T}
 basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
 if VERSION < v"0.4.0-dev"
-    _basecolortype{C}(::Type{C}) = eval(C.name.name)
+    _basecolortype{C}(::Type{C}) = eval(C.name.name)  # slow, but oh well
 else
     @eval @generated function _basecolortype{C}(::Type{C})
         name = C.name.name
@@ -67,15 +70,13 @@ Example:
 where `cnvt` is the function that performs explicit conversion.
 """
 ccolor{Pdest<:Paint,Psrc<:Paint}(::Type{Pdest}, ::Type{Psrc}) = basepainttype(Pdest){pick_eltype(colortype(Pdest), eltype(Pdest), eltype(Psrc))}
-pick_eltype{C,T1<:Number,T2}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype{C,T1<:Number,T2            }(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
 pick_eltype{C,T1<:Number,T2<:FixedPoint}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
-pick_eltype{C,T2}(::Type{C}, ::Any, ::Type{T2})                 = T2
-pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = supports_fixed(C) ? T2 : Float32
-
-supports_fixed{C<:AbstractRGB}(::Type{C}) = true
-supports_fixed{C<:Gray}(::Type{C}) = true
-supports_fixed{C<:AbstractColor}(::Type{C}) = false
-supports_fixed{P<:Paint}(::Type{P}) = supports_fixed(colortype(P))
+pick_eltype{C,T2            }(::Type{C}, ::Any, ::Type{T2})     = T2
+pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = pick_eltype_compat(C, eltype_default(C), T2)
+# When T2 <: FixedPoint, choosed based on whether color type supports it
+pick_eltype_compat{T1            ,T2}(::Any, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
 
 # This formulation ensures that only concrete types work
 typemin{C<:AbstractRGB}(::Type{C}) = (T = eltype(C); colortype(C)(zero(T),zero(T),zero(T)))

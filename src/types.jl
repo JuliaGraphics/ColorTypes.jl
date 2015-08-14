@@ -67,6 +67,13 @@ immutable HSL{T<:FloatingPoint} <: Color{T}
     l::T # Lightness in [0,1]
 end
 
+# HSI (Hue-Saturation-Intensity)
+immutable HSI{T<:FloatingPoint} <: Color{T}
+    h::T
+    s::T
+    i::T
+end
+
 # XYZ (CIE 1931)
 immutable XYZ{T<:FloatingPoint} <: Color{T}
     x::T
@@ -149,13 +156,6 @@ immutable YCbCr{T<:FloatingPoint} <: Color{T}
     y::T
     cb::T
     cr::T
-end
-
-# HSI
-immutable HSI{T<:FloatingPoint} <: Color{T}
-    h::T
-    s::T
-    i::T
 end
 
 # 24 bit RGB and 32 bit ARGB (used by Cairo)
@@ -272,11 +272,20 @@ macro make_alpha(C, fields, ub, elty)
     end)
 end
 
+eltype_default{C<:AbstractRGB  }(::Type{C}) = U8
+eltype_default{C<:Gray         }(::Type{C}) = U8
+eltype_default{C<:AbstractColor}(::Type{C}) = Float32
+eltype_default{P<:Paint        }(::Type{P}) = eltype_default(colortype(P))
+
+# Upper bound on element type for each color type
+eltype_ub{P<:Paint        }(::Type{P}) = eltype_ub(eltype_default(P))
+eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
+eltype_ub{T<:FloatingPoint}(::Type{T}) = FloatingPoint
+
 for C in union(setdiff(parametric, [RGB1,RGB4]), [Gray])
     fn = Expr(:tuple, fieldnames(C)...)
-    use_fractional = C <: AbstractRGB || C == Gray
-    ub   = use_fractional ? Fractional : FloatingPoint
-    elty = use_fractional ? U8 : Float32
+    elty = eltype_default(C)
+    ub   = eltype_ub(C)
     Csym = C.name.name
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $fn $ub $elty
