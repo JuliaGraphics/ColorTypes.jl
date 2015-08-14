@@ -234,7 +234,6 @@ macro make_alpha(C, fields, constrfields, ub, elty)
     Tfields       = Expr[:($f::T)    for f in fields]
     Tconstrfields = Expr[:($f::T)    for f in constrfields]
     realfields    = Expr[:($f::Real) for f in constrfields]
-    cfields       = Expr[:(c.$f)     for f in constrfields]
     zfields       = zeros(Int, length(fields))
     acol = symbol(string("A",Cstr))
     cola = symbol(string(Cstr,"A"))
@@ -269,8 +268,6 @@ macro make_alpha(C, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $acol{T}(p...)
         end
-        $acol(c::$C) = $acol($(cfields...))
-        $acol(c::$C, alpha) = $acol($(cfields...), convert(eltype(c), alpha))
         $acol() = $acol{$elty}($(zfields...))
 
         $cola{T<:Integer}($(Tconstrfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
@@ -284,8 +281,6 @@ macro make_alpha(C, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $cola{T}(p...)
         end
-        $cola(c::$C) = $cola($(cfields...))
-        $cola(c::$C, alpha) = $cola($(cfields...), convert(eltype(c), alpha))
         $cola() = $cola{$elty}($(zfields...))
     end)
 end
@@ -317,3 +312,30 @@ alphacolor{C<:RGB1}(::Type{C}) = ARGB
 alphacolor{C<:RGB4}(::Type{C}) = ARGB
 coloralpha{C<:RGB1}(::Type{C}) = RGBA
 coloralpha{C<:RGB4}(::Type{C}) = RGBA
+
+# no-op and element-type conversions, plus conversion to and from transparency
+for C in union(ColorTypes.parametric, [Gray])
+    AC, CA = alphacolor(C), coloralpha(C)
+    fn  = colorfields(C)
+    fnc = Expr[:(c.$f) for f in fn]
+    fnT = Expr[:(convert(T, c.$f)) for f in fn]
+    @eval begin
+        convert{T}(::Type{$C{T}},  c::$C{T}) = c
+           convert(::Type{$C},     c::$C   ) = c
+        convert{T}(::Type{$C{T}},  c::$C   ) = $C{T}($(fnc...))
+        convert{T}(::Type{$C{T}},  c::$AC  ) = $C{T}($(fnc...))
+           convert(::Type{$C},     c::$AC  ) = $C{eltype(c)}($(fnc...))
+        convert{T}(::Type{$C{T}},  c::$CA  ) = $C{T}($(fnc...))
+           convert(::Type{$C},     c::$CA  ) = $C{eltype(c)}($(fnc...))
+           convert(::Type{$AC},    c::$C   ) = $AC($(fnc...))
+        convert{T}(::Type{$AC{T}}, c::$C   ) = $AC($(fnT...))
+           convert(::Type{$CA},    c::$C   ) = $CA($(fnc...))
+        convert{T}(::Type{$CA{T}}, c::$C   ) = $CA($(fnT...))
+           convert(::Type{$AC},    c::$C, alpha) = $AC($(fnc...), alpha)
+        convert{T}(::Type{$AC{T}}, c::$C, alpha) = $AC($(fnT...), convert(T, alpha))
+           convert(::Type{$CA},    c::$C, alpha) = $CA($(fnc...), alpha)
+        convert{T}(::Type{$CA{T}}, c::$C, alpha) = $CA($(fnT...), convert(T, alpha))
+    end
+end
+convert(::RGB24, c::RGB24) = c
+convert(::ARGB32, c::ARGB32) = c

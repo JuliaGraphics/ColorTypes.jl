@@ -93,6 +93,9 @@ for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
         @test A(cc) == A{Float64}(1,0.8,0.6,1)
         @test A(cc, 0.4)  == c
         @test A(cc, 0x01) == A{Float64}(1,0.8,0.6,1)
+        @test A{Float32}(cc, 0x01) == A{Float32}(1,0.8,0.6,1)
+        @test C(c) == C{Float64}(1,0.8,0.6)
+        @test C{Float32}(c) == C{Float32}(1,0.8,0.6)
     end
 end
 
