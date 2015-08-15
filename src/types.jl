@@ -188,15 +188,15 @@ immutable Gray24 <: AbstractGray{U8}
     color::UInt32
 end
 Gray24() = Gray24(0)
-Gray24(val::UInt8) = (g = uint32(val); g<<16 | g<<8 | g)
+Gray24(val::UInt8) = (g = @compat(UInt32(val)); Gray24(g<<16 | g<<8 | g))
 Gray24(val::Ufixed8) = Gray24(reinterpret(val))
 
 immutable AGray32 <: AlphaColor{Gray24, U8}
     color::UInt32
 end
 AGray32() = AGray32(0)
-AGray32(val::UInt8, alpha::UInt8) = (g = uint32(val); uint32(alpha)<<24 | g<<16 | g<<8 | g)
-AGray32(val::Ufixed8, alpha::Ufixed8) = AGray32(reinterpret(val), reinterpret(alpha))
+AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = @compat(UInt32(val)); AGray32(@compat(UInt32(alpha))<<24 | g<<16 | g<<8 | g))
+AGray32(val::Ufixed8, alpha::Ufixed8 = Ufixed8(1)) = AGray32(reinterpret(val), reinterpret(alpha))
 
 # Generated code:
 #   - more constructors for colors
@@ -334,13 +334,6 @@ alphacolor{C<:RGB4}(::Type{C}) = ARGB
 coloralpha{C<:RGB1}(::Type{C}) = RGBA
 coloralpha{C<:RGB4}(::Type{C}) = RGBA
 
-Gray24() = Gray24(0)
-Gray24(val::UInt8) = (g = uint32(val); g<<16 | g<<8 | g)
-Gray24(val::Ufixed8) = Gray24(reinterpret(val))
-
-convert(::Type{UInt32}, g::Gray24) = g.color
-
-
 # no-op and element-type conversions, plus conversion to and from transparency
 for C in union(ColorTypes.parametric, [Gray])
     AC, CA = alphacolor(C), coloralpha(C)
@@ -380,12 +373,33 @@ convert(::Type{ARGB32}, c::ARGB32) = c
 convert(::Type{RGB24},  c::ARGB32) = RGB24(c.color)
 convert(::Type{ARGB32}, c::RGB24)  = ARGB32(c.color | 0xff000000)
 
-convert(::Type{Gray24}, g::Gray{U8}) = Gray24(g.val)
-convert(::Type{Gray24}, g::Gray)     = Gray24(convert(Gray{U8}, g))
-convert(::Type{Gray},   g::Gray24)   = Gray(Ufixed8(g.color & 0x000000ff,0))
-convert{T}(::Type{Gray{T}}, g::Gray24) = Gray{T}(Gray(g))
+convert(::Type{Gray24}, g::Gray{U8})   = Gray24(g.val)
+convert(::Type{Gray24}, g::Gray)       = Gray24(convert(Gray{U8}, g))
+convert(::Type{Gray},   g::Gray24)     = Gray{U8}(gray(g))
+convert{T}(::Type{Gray{T}}, g::Gray24) = Gray{T}(gray(g))
+convert{T}(::Type{Gray{T}}, x::Real)   = Gray{T}(x)
+convert{T<:Real}(::Type{T}, x::Gray)   = convert(T, x.val)
+convert(::Type{Gray24}, x::UInt8)      = Gray24(x)
+
+convert(::Type{AGray32}, x::UInt8)       = AGray24(x)
+convert(::Type{AGray32}, g::Gray{U8})    = AGray32(g.val)
+convert(::Type{AGray32}, g::Gray)        = AGray32(convert(Gray{U8}, g))
+convert(::Type{Gray},   g::AGray32)      = Gray{U8}(gray(g))
+convert{T}(::Type{Gray{T}}, g::AGray32)  = Gray{T}(gray(g))
+convert(::Type{AGray},   g::AGray32)     = AGray{U8}(gray(g), alpha(g))
+convert{T}(::Type{AGray{T}}, g::AGray32) = AGray{T}(gray(g), alpha(g))
+convert(::Type{GrayA},   g::AGray32)     = GrayA{U8}(gray(g), alpha(g))
+convert{T}(::Type{GrayA{T}}, g::AGray32) = GrayA{T}(gray(g), alpha(g))
+convert{T}(::Type{AGray{T}}, x::Real)    = AGray{T}(x)
+convert{T}(::Type{GrayA{T}}, x::Real)    = GrayA{T}(x)
+convert(::Type{AGray32}, x::UInt8)       = AGray32(x)
 
 convert(::Type{UInt32}, c::RGB24)   = c.color
 convert(::Type{UInt32}, c::ARGB32)  = c.color
 convert(::Type{UInt32}, g::Gray24)  = g.color
 convert(::Type{UInt32}, g::AGray32) = g.color
+
+convert(::Type{RGB24},   x::UInt32) = RGB24(x)
+convert(::Type{ARGB32},  x::UInt32) = ARGB32(x)
+convert(::Type{Gray24},  x::UInt32) = Gray24(x)
+convert(::Type{AGray32}, x::UInt32) = AGray32(x)

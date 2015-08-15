@@ -122,6 +122,9 @@ ac2 = convert(ARGB32, c)
 @test alpha(c) == U8(1)
 @test alpha(ac) == Ufixed8(ac.color>>24, 0)
 @test alpha(ac2) == U8(1)
+@test convert(RGB24,  0xff020304).color == 0xff020304
+@test convert(ARGB32, 0x01020304).color == 0x01020304
+
 for C in subtypes(AbstractRGB)
     rgb = convert(C, c)
     @test rgb.r == red(c)
@@ -132,8 +135,16 @@ for C in subtypes(AbstractRGB)
     @test argb.r == red(ac)
     @test argb.g == green(ac)
     @test argb.b == blue(ac)
-
 end
+
+@test Gray{U8}(0.37).val           == U8(0.37)
+@test convert(Gray{U8}, 0.37).val  == U8(0.37)
+@test Gray24(0x0d).color           == 0x000d0d0d
+@test convert(Gray24, 0x0d).color  == 0x000d0d0d
+@test AGray32(0x0d).color          == 0xff0d0d0d
+@test convert(AGray32, 0x0d).color == 0xff0d0d0d
+@test AGray32(0x0d, 0x80).color    == 0x800d0d0d
+@test convert(Gray{Ufixed16}, Gray24(0x0d)) == Gray{Ufixed16}(0.05098)
 
 iob = IOBuffer()
 cf = RGB{Float32}(0.32218,0.14983,0.87819)
