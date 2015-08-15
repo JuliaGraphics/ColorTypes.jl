@@ -348,28 +348,29 @@ for C in union(ColorTypes.parametric, [Gray])
     fnc = Expr[:(c.$f) for f in fn]
     fnT = Expr[:(convert(T, c.$f)) for f in fn]
     @eval begin
-        convert{T}(::Type{$C{T}},  c::$C{T}) = c
-           convert(::Type{$C},     c::$C   ) = c
-        convert{T}(::Type{$C{T}},  c::$C   ) = $C{T}($(fnc...))
-        convert{T}(::Type{$C{T}},  c::$AC  ) = $C{T}($(fnc...))
-           convert(::Type{$C},     c::$AC  ) = $C{eltype(c)}($(fnc...))
-        convert{T}(::Type{$C{T}},  c::$CA  ) = $C{T}($(fnc...))
-           convert(::Type{$C},     c::$CA  ) = $C{eltype(c)}($(fnc...))
-           convert(::Type{$AC},    c::$C   ) = $AC($(fnc...))
-        convert{T}(::Type{$AC{T}}, c::$C   ) = $AC($(fnT...))
-           convert(::Type{$CA},    c::$C   ) = $CA($(fnc...))
-        convert{T}(::Type{$CA{T}}, c::$C   ) = $CA($(fnT...))
-           convert(::Type{$AC},    c::$C, alpha) = $AC($(fnc...), alpha)
-        convert{T}(::Type{$AC{T}}, c::$C, alpha) = $AC($(fnT...), convert(T, alpha))
-           convert(::Type{$CA},    c::$C, alpha) = $CA($(fnc...), alpha)
-        convert{T}(::Type{$CA{T}}, c::$C, alpha) = $CA($(fnT...), convert(T, alpha))
+        convert{T}(::Type{$C{T}},  c::$C{T})  = c
+        convert{T}(::Type{$C},     c::$C{T})  = c
+        convert{T}(::Type{$C{T}},  c::$C   )  = $C{T}($(fnc...))
+        convert{T}(::Type{$C{T}},  c::$AC  )  = $C{T}($(fnc...))
+        convert{T}(::Type{$C},     c::$AC{T}) = $C{T}($(fnc...))
+        convert{T}(::Type{$C{T}},  c::$CA  )  = $C{T}($(fnc...))
+        convert{T}(::Type{$C},     c::$CA{T}) = $C{T}($(fnc...))
+        convert{T}(::Type{$AC},    c::$C{T})  = $AC{T}($(fnc...))
+        convert{T}(::Type{$AC{T}}, c::$C   )  = $AC{T}($(fnT...))
+        convert{T}(::Type{$CA},    c::$C{T})  = $CA{T}($(fnc...))
+        convert{T}(::Type{$CA{T}}, c::$C   )  = $CA{T}($(fnT...))
+        convert{T}(::Type{$AC},    c::$C{T}, alpha) = $AC{T}($(fnc...), alpha)
+        convert{T}(::Type{$AC{T}}, c::$C,    alpha) = $AC{T}($(fnT...), convert(T, alpha))
+        convert{T}(::Type{$CA},    c::$C{T}, alpha) = $CA{T}($(fnc...), alpha)
+        convert{T}(::Type{$CA{T}}, c::$C,    alpha) = $CA{T}($(fnT...), convert(T, alpha))
     end
     if C <: AbstractRGB
+        # TODO: use `reinterpret` for one of these (see julia #10140)
         @eval begin
-               convert(::Type{$C},     c::RGB24)  = $C(red(c), green(c), blue(c))
-               convert(::Type{$AC},    c::ARGB32) = $AC(red(c), green(c), blue(c), alpha(c))
+               convert(::Type{$C},     c::RGB24)  = $C{U8}(red(c), green(c), blue(c))
+               convert(::Type{$AC},    c::ARGB32) = $AC{U8}(red(c), green(c), blue(c), alpha(c))
             convert{T}(::Type{$AC{T}}, c::ARGB32) = $AC{T}(red(c), green(c), blue(c), alpha(c))
-               convert(::Type{$CA},    c::ARGB32) = $CA(red(c), green(c), blue(c), alpha(c))
+               convert(::Type{$CA},    c::ARGB32) = $CA{U8}(red(c), green(c), blue(c), alpha(c))
             convert{T}(::Type{$CA{T}}, c::ARGB32) = $CA{T}(red(c), green(c), blue(c), alpha(c))
         end
     end

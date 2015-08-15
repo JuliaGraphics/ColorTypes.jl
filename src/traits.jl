@@ -14,6 +14,10 @@ else
 end
 color(c::ARGB32) = convert(RGB24, c)
 
+# Generate the transparent analog of a color
+alphacolor{C<:AbstractColor}(c::C) = alphacolor(C)(c)
+coloralpha{C<:AbstractColor}(c::C) = coloralpha(C)(c)
+
 alpha(c::Transparent) = c.alpha
 alpha(c::AbstractColor) = one(eltype(c))
 alpha(c::RGB24)   = Ufixed8(1)
