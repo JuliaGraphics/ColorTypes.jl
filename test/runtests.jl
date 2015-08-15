@@ -7,10 +7,12 @@ using Base.Test
 # @test eltype(RGB) == TypeVar(:T, Fractional)
 eltype(RGB)      # just test that it doesn't error
 
-@test length(RGB) == 3
-@test length(RGB1) == 3
-@test length(Gray) == 1
-@test length(ARGB) == 4
+@test length(RGB)    == 3
+@test length(RGB1)   == 3
+@test length(Gray)   == 1
+@test length(ARGB)   == 4
+@test length(RGB24)  == 3
+@test length(ARGB32) == 4
 @test length(AGray{Float32}) == 2
 
 @test colortype(RGB{U8}) == RGB{U8}
@@ -53,6 +55,8 @@ eltype(RGB)      # just test that it doesn't error
 @test eltype(ARGB(1.0,0.8,0.6,0.4)) == Float64
 @test eltype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == Float32
 @test eltype(RGB(0x01,0x00,0x00)) == U8
+
+@test length(ARGB(1.0,0.8,0.6,0.4)) == 4
 
 @test colortype(RGB{U8}(1,0,0)) == RGB{U8}
 @test colortype(ARGB(1.0,0.8,0.6,0.4)) == RGB{Float64}

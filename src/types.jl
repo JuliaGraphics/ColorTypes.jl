@@ -172,7 +172,7 @@ RGB24() = RGB24(0)
 RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(@compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
 RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 
-immutable ARGB32 <: AlphaColor{RGB24, U8}
+immutable ARGB32 <: AlphaColor{RGB24, U8, 4}
     color::UInt32
 end
 ARGB32() = ARGB32(@compat(UInt32(0xff))<<24)
@@ -220,8 +220,8 @@ macro make_constructors(C, fields, elty)
     fields = fields.args
     Cstr = string(C)
     Cesc = esc(C)
-    Tfields  = Expr[:($f::T)  for f in fields]
-    zfields    = zeros(Int, length(fields))
+    Tfields = Expr[:($f::T) for f in fields]
+    zfields = zeros(Int, length(fields))
     esc(quote
         # More constructors for the non-alpha version
         $C{T<:Integer}($(Tfields...)) = $C{$elty}($(fields...))

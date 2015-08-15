@@ -48,11 +48,23 @@ gray(c::AGray32) = Ufixed8(c.color & 0x000000ff, 0)
 # function in general
 
 # eltype(RGB{Float32}) -> Float32
-eltype{T}(  ::Type{Paint{T}})   = T
-eltype{T,N}(::Type{Paint{T,N}}) = T
-eltype{P<:Paint}(::Type{P}) = eltype(super(P))
-
 if VERSION < v"0.4.0-dev"
+    eltype{T}(  ::Type{Paint{T}})   = T
+    eltype{T,N}(::Type{Paint{T,N}}) = T
+    eltype{N}(::Type{Paint{TypeVar(:T),N}}) = Void
+    eltype{P<:Paint}(::Type{P}) = eltype(super(P))
+
+    eltype(c::Paint) = eltype(typeof(c))
+else
+    # See julia #12636. These are inferrable.
+    @generated function eltype{C<:AbstractColor}(::Type{C})
+        T = C.parameters[1]
+        :($T)
+    end
+    @generated function eltype{P<:Transparent}(::Type{P})
+        T = P <: Union(AlphaColor,ColorAlpha) ? super(P).parameters[2] : P.parameters[2]
+        :($T)
+    end
     eltype(c::Paint) = eltype(typeof(c))
 end
 
@@ -62,13 +74,15 @@ length{T,N}(::Type{Paint{T,N}}) = N
 length{N}(::Type{Paint{TypeVar(:T),N}}) = N   # julia #12596
 length{P<:Paint}(::Type{P}) = length(super(P))
 
+length(c::Paint) = length(typeof(c))
+
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
 # Being able to do this is one reason that C is a parameter of
 # Transparent
-colortype{C<:AbstractColor     }(::Type{C}) = C
-colortype{P<:AlphaColor}(::Type{P}) = colortype(super(P))
-colortype{P<:ColorAlpha}(::Type{P}) = colortype(super(P))
-colortype{P<:Transparent       }(::Type{P}) = P.parameters[1]
+colortype{C<:AbstractColor}(::Type{C}) = C
+colortype{P<:AlphaColor   }(::Type{P}) = colortype(super(P))
+colortype{P<:ColorAlpha   }(::Type{P}) = colortype(super(P))
+colortype{P<:Transparent  }(::Type{P}) = P.parameters[1]
 
 colortype(c::Paint) = colortype(typeof(c))
 
