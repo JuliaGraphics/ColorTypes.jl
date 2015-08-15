@@ -56,6 +56,12 @@ if VERSION < v"0.4.0-dev"
     eltype(c::Paint) = eltype(typeof(c))
 end
 
+# Return the number of components in the color
+# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
+length{T,N}(::Type{Paint{T,N}}) = N
+length{N}(::Type{Paint{TypeVar(:T),N}}) = N   # julia #12596
+length{P<:Paint}(::Type{P}) = length(super(P))
+
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
 # Being able to do this is one reason that C is a parameter of
 # Transparent
