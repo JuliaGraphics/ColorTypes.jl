@@ -34,6 +34,7 @@ export alpha, red, green, blue, gray   # accessor functions that generalize to R
 
 include("types.jl")
 include("traits.jl")
+include("conversions.jl")
 include("show.jl")
 
 end # module

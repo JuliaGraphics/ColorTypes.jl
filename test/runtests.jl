@@ -86,6 +86,7 @@ end
 # storage order is not
 for C in subtypes(AbstractRGB)
     c = C(1, 0.5, 0)
+    C == RGB24 && continue
     @test red(c)   == c.r == 1
     @test green(c) == c.g == 0.5
     @test blue(c)  == c.b == 0
@@ -137,10 +138,11 @@ ac2 = convert(ARGB32, c)
 
 for C in subtypes(AbstractRGB)
     rgb = convert(C, c)
+    C == RGB24 && continue
+    argb = convert(alphacolor(C), ac)
     @test rgb.r == red(c)
     @test rgb.g == green(c)
     @test rgb.b == blue(c)
-    argb = convert(alphacolor(C), ac)
     @test argb.alpha == alpha(ac)
     @test argb.r == red(ac)
     @test argb.g == green(ac)
@@ -149,12 +151,12 @@ end
 
 @test Gray{U8}(0.37).val           == U8(0.37)
 @test convert(Gray{U8}, 0.37).val  == U8(0.37)
-@test Gray24(0x0d).color           == 0x000d0d0d
-@test convert(Gray24, 0x0d).color  == 0x000d0d0d
-@test AGray32(0x0d).color          == 0xff0d0d0d
-@test convert(AGray32, 0x0d).color == 0xff0d0d0d
-@test AGray32(0x0d, 0x80).color    == 0x800d0d0d
-@test convert(Gray{Ufixed16}, Gray24(0x0d)) == Gray{Ufixed16}(0.05098)
+@test Gray24(0x0duf8).color           == 0x000d0d0d
+@test convert(Gray24, 0x0duf8).color  == 0x000d0d0d
+@test AGray32(0x0duf8).color          == 0xff0d0d0d
+@test convert(AGray32, 0x0duf8).color == 0xff0d0d0d
+@test AGray32(0x0duf8, 0x80uf8).color    == 0x800d0d0d
+@test convert(Gray{Ufixed16}, Gray24(0x0duf8)) == Gray{Ufixed16}(0.05098)
 
 iob = IOBuffer()
 cf = RGB{Float32}(0.32218,0.14983,0.87819)
