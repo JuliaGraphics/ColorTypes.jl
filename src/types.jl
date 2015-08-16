@@ -15,8 +15,11 @@ abstract Transparent{C<:AbstractColor,T,N} <: Paint{T,N}
 abstract AlphaColor{C,T,N} <: Transparent{C,T,N}
 abstract ColorAlpha{C,T,N} <: Transparent{C,T,N}
 
+# These are types we'll dispatch on
 typealias TransparentRGB{C<:AbstractRGB,T,N}   Transparent{C,T,N}
 typealias TransparentGray{C<:AbstractGray,T,N} Transparent{C,T,N}
+typealias PaintUfixed{T<:Ufixed,N}             Paint{T,N}
+typealias PaintU8{N}                           Paint{U8,N}
 
 # sRGB (standard Red-Green-Blue)
 immutable RGB{T<:Fractional} <: AbstractRGB{T}
