@@ -1,11 +1,21 @@
 using ColorTypes, FixedPointNumbers, Compat
 using Base.Test
 
-@test eltype(Paint{U8}) == U8
-@test eltype(RGB{Float32}) == Float32
-@test eltype(RGBA{Float64}) == Float64
+if VERSION < v"0.4.0-dev"
+    macro infrd(ex)
+        ex
+    end
+else
+    macro infrd(ex)
+        Expr(:macrocall, symbol("@inferred"), ex)
+    end
+end
+
+@test @infrd(eltype(Paint{U8})) == U8
+@test @infrd(eltype(RGB{Float32})) == Float32
+@test @infrd(eltype(RGBA{Float64})) == Float64
 # @test eltype(RGB) == TypeVar(:T, Fractional)
-eltype(RGB)      # just test that it doesn't error
+@infrd(eltype(RGB))      # just test that it doesn't error
 
 @test length(RGB)    == 3
 @test length(RGB1)   == 3
@@ -15,60 +25,60 @@ eltype(RGB)      # just test that it doesn't error
 @test length(ARGB32) == 4
 @test length(AGray{Float32}) == 2
 
-@test colortype(RGB{U8}) == RGB{U8}
-@test colortype(RGB) == RGB
-@test colortype(RGBA{Float32}) == RGB{Float32}
-@test colortype(GrayA{U8}) == Gray{U8}
-@test colortype(RGBA) == RGB
-@test colortype(RGB24)  == RGB24
-@test colortype(ARGB32) == RGB24
-@test colortype(Transparent{RGB}) == RGB
-@test colortype(Transparent{RGB,Float64}) == RGB
-@test colortype(Transparent{RGB{Float64},Float64}) == RGB{Float64}
+@test @infrd(colortype(RGB{U8})) == RGB{U8}
+@test @infrd(colortype(RGB)) == RGB
+@test @infrd(colortype(RGBA{Float32})) == RGB{Float32}
+@test @infrd(colortype(GrayA{U8})) == Gray{U8}
+@test @infrd(colortype(RGBA)) == RGB
+@test @infrd(colortype(RGB24) ) == RGB24
+@test @infrd(colortype(ARGB32)) == RGB24
+@test @infrd(colortype(Transparent{RGB})) == RGB
+@test @infrd(colortype(Transparent{RGB,Float64})) == RGB
+@test @infrd(colortype(Transparent{RGB{Float64},Float64})) == RGB{Float64}
 @test colortype(Transparent) <: AbstractColor
 @test AbstractColor <: colortype(Transparent)
 @test_throws MethodError colortype(Paint{U8})
 
-@test basecolortype(RGBA{Float32}) == RGB
-@test basecolortype(ARGB{Float32}) == RGB
-@test basecolortype(BGR{U8})       == BGR
-@test basecolortype(HSV)  == HSV
-@test basecolortype(HSVA) == HSV
-@test basecolortype(Transparent{RGB{Float64},Float64}) == RGB
+@test @infrd(basecolortype(RGBA{Float32})) == RGB
+@test @infrd(basecolortype(ARGB{Float32})) == RGB
+@test @infrd(basecolortype(BGR{U8})      ) == BGR
+@test @infrd(basecolortype(HSV) ) == HSV
+@test @infrd(basecolortype(HSVA)) == HSV
+@test @infrd(basecolortype(Transparent{RGB{Float64},Float64})) == RGB
 
-@test basepainttype(RGBA{Float32}) == RGBA
-@test basepainttype(ARGB{Float32}) == ARGB
-@test basepainttype(BGR{U8})       == BGR
-@test basepainttype(HSV)  == HSV
-@test basepainttype(HSVA) == HSVA
+@test @infrd(basepainttype(RGBA{Float32})) == RGBA
+@test @infrd(basepainttype(ARGB{Float32})) == ARGB
+@test @infrd(basepainttype(BGR{U8})      ) == BGR
+@test @infrd(basepainttype(HSV) ) == HSV
+@test @infrd(basepainttype(HSVA)) == HSVA
 
-@test ccolor(RGB{Float32}, HSV{Float32}) == RGB{Float32}
-@test ccolor(RGB{U8},      HSV{Float32}) == RGB{U8}
-@test ccolor(RGB,          HSV{Float32}) == RGB{Float32}
-@test ccolor(ARGB{Float32}, HSV{Float32}) == ARGB{Float32}
-@test ccolor(ARGB{U8},      HSV{Float32}) == ARGB{U8}
-@test ccolor(ARGB,          HSV{Float32}) == ARGB{Float32}
+@test @infrd(ccolor(RGB{Float32}, HSV{Float32})) == RGB{Float32}
+@test @infrd(ccolor(RGB{U8},      HSV{Float32})) == RGB{U8}
+@test @infrd(ccolor(RGB,          HSV{Float32})) == RGB{Float32}
+@test @infrd(ccolor(ARGB{Float32}, HSV{Float32})) == ARGB{Float32}
+@test @infrd(ccolor(ARGB{U8},      HSV{Float32})) == ARGB{U8}
+@test @infrd(ccolor(ARGB,          HSV{Float32})) == ARGB{Float32}
 
 # Traits for instances (and their constructors)
-@test eltype(RGB{U8}(1,0,0)) == U8
-@test eltype(RGB(1.0,0,0)) == Float64
-@test eltype(ARGB(1.0,0.8,0.6,0.4)) == Float64
-@test eltype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == Float32
-@test eltype(RGB(0x01,0x00,0x00)) == U8
+@test @infrd(eltype(RGB{U8}(1,0,0))) == U8
+@test @infrd(eltype(RGB(1.0,0,0))) == Float64
+@test @infrd(eltype(ARGB(1.0,0.8,0.6,0.4))) == Float64
+@test @infrd(eltype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == Float32
+@test @infrd(eltype(RGB(0x01,0x00,0x00))) == U8
 
 @test length(ARGB(1.0,0.8,0.6,0.4)) == 4
 
-@test colortype(RGB{U8}(1,0,0)) == RGB{U8}
-@test colortype(ARGB(1.0,0.8,0.6,0.4)) == RGB{Float64}
-@test colortype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == RGB{Float32}
+@test @infrd(colortype(RGB{U8}(1,0,0))) == RGB{U8}
+@test @infrd(colortype(ARGB(1.0,0.8,0.6,0.4))) == RGB{Float64}
+@test @infrd(colortype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB{Float32}
 
-@test basecolortype(RGB{U8}(1,0,0)) == RGB
-@test basecolortype(ARGB(1.0,0.8,0.6,0.4)) == RGB
-@test basecolortype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == RGB
+@test @infrd(basecolortype(RGB{U8}(1,0,0))) == RGB
+@test @infrd(basecolortype(ARGB(1.0,0.8,0.6,0.4))) == RGB
+@test @infrd(basecolortype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB
 
-@test basepainttype(RGB{U8}(1,0,0)) == RGB
-@test basepainttype(ARGB(1.0,0.8,0.6,0.4)) == ARGB
-@test basepainttype(RGBA{Float32}(1.0,0.8,0.6,0.4)) == RGBA
+@test @infrd(basepainttype(RGB{U8}(1,0,0))) == RGB
+@test @infrd(basepainttype(ARGB(1.0,0.8,0.6,0.4))) == ARGB
+@test @infrd(basepainttype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
 
 # Constructors
 for C in ColorTypes.parametric

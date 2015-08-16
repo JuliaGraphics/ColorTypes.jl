@@ -56,33 +56,18 @@ coloralpha{C<:AbstractColor}(c::C) = coloralpha(C)(c)
 # function in general
 
 # recurse up the type hierarchy until you get to Paint{T,N} for
-# specific T,N. This will only be called on concrete types, so the
-# inference problems that plague eltype (see below) don't apply.
+# specific T,N.
 to_paint{T,N}(::Type{Paint{T,N}}) = Paint{T,N}
 to_paint{P<:Paint}(::Type{P}) = to_paint(super(P))
 
 to_paint(c::Paint) = to_paint(typeof(c))
 
 # eltype(RGB{Float32}) -> Float32
-if VERSION < v"0.4.0-dev"
-    eltype{T}(  ::Type{Paint{T}})   = T
-    eltype{T,N}(::Type{Paint{T,N}}) = T
-    eltype{N}(::Type{Paint{TypeVar(:T),N}}) = Void
-    eltype{P<:Paint}(::Type{P}) = eltype(super(P))
+eltype{T       }(::Type{Paint{T}})   = T
+eltype{T,N     }(::Type{Paint{T,N}}) = T
+eltype{P<:Paint}(::Type{P}) = eltype(super(P))
 
-    eltype(c::Paint) = eltype(typeof(c))
-else
-    # See julia #12636. These are inferrable.
-    @generated function eltype{C<:AbstractColor}(::Type{C})
-        T = C.parameters[1]
-        :($T)
-    end
-    @generated function eltype{P<:Transparent}(::Type{P})
-        T = P <: Union(AlphaColor,ColorAlpha) ? super(P).parameters[2] : P.parameters[2]
-        :($T)
-    end
-    eltype(c::Paint) = eltype(typeof(c))
-end
+eltype(c::Paint) = eltype(typeof(c))
 
 # Return the number of components in the color
 # Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
@@ -93,39 +78,25 @@ length{P<:Paint}(::Type{P}) = length(super(P))
 length(c::Paint) = length(typeof(c))
 
 # colortype(AlphaColor{RGB{Ufixed8},Ufixed8}) -> RGB{Ufixed8}
-# Being able to do this is one reason that C is a parameter of
-# Transparent
 colortype{C<:AbstractColor}(::Type{C}) = C
 colortype{P<:AlphaColor   }(::Type{P}) = colortype(super(P))
 colortype{P<:ColorAlpha   }(::Type{P}) = colortype(super(P))
-if VERSION < v"0.4.0-dev"
-    colortype{P<:Transparent  }(::Type{P}) = P.parameters[1]
-else
-    @eval @generated function colortype{P<:Transparent  }(::Type{P})
-        T = P.parameters[1]
-        :($T)
-    end
-end
+colortype{     }(::Type{Transparent})        = AbstractColor
+colortype{C    }(::Type{Transparent{C}})     = C
+colortype{C,T  }(::Type{Transparent{C,T}})   = C
+colortype{C,T,N}(::Type{Transparent{C,T,N}}) = C
+colortype{C,N  }(::Type{Transparent{C,TypeVar(:T),N}}) = C
 
 colortype(c::Paint) = colortype(typeof(c))
 
 # basecolortype(RGB{Float64}) -> RGB{T}
-basecolortype{P<:Paint}(::Type{P}) = _basecolortype(colortype(P))
-if VERSION < v"0.4.0-dev"
-    _basecolortype{C}(::Type{C}) = eval(C.name.name)  # slow, but oh well
-else
-    @eval @generated function _basecolortype{C}(::Type{C})
-        name = C.name.name
-        :($name)
-    end
-end
+basecolortype{P<:Paint}(::Type{P}) = basepainttype(colortype(P))
 
 basecolortype(c::Paint) = basecolortype(typeof(c))
 
 # basepainttype(ARGB{Float32}) -> ARGB{T}
-basepainttype{C<:AbstractColor}(::Type{C}) = basecolortype(C)
 if VERSION < v"0.4.0-dev"
-    basepainttype{P<:Paint}(::Type{P}) = eval(P.name.name)
+    basepainttype{P<:Paint}(::Type{P}) = eval(P.name.name)  # slow, but oh well
 else
     @eval @generated function basepainttype{P<:Paint}(::Type{P})
         name = P.name.name
