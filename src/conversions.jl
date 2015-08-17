@@ -4,6 +4,10 @@
 convert{P<:Paint}(::Type{P}, p::Paint) = _convert(ccolor(P, typeof(p)), basecolortype(P), basecolortype(p), p)
 convert{P<:Transparent}(::Type{P}, p::AbstractColor, alpha) = _convert(ccolor(P, typeof(p)), basecolortype(P), basecolortype(p), p, alpha)
 
+# Fallback definitions that print nice error messages
+_convert{P}(::Type{P}, ::Any, ::Any, p) = error("No conversion of ", p, " to ", P, " has been defined")
+_convert{P}(::Type{P}, ::Any, ::Any, p, alpha) = error("No conversion of (", p, ",alpha=$alpha) to ", P, " has been defined")
+
 # Implementations for when the base color type is not changing
 _convert{Cout<:Color,Ccmp<:Color}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) = Cout(comp1(c), comp2(c), comp3(c))
 _convert{A<:Transparent,Ccmp<:Color}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c) = A(comp1(c), comp2(c), comp3(c), alpha(c))
@@ -22,7 +26,7 @@ _convert{A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{A}, ::Type{C1
 # Grayscale
 _convert{Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) = Cout(gray(c))
 _convert{A<:Transparent,C1<:AbstractGray,C2<:AbstractGray}(::Type{A}, ::Type{C1}, ::Type{C2}, c) = A(gray(c), alpha(c))
-_convert{A<:Transparent,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(comp1(c), alpha)
+_convert{A<:Transparent,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(gray(c), alpha)
 
 
 convert(::Type{UInt32}, c::RGB24)   = c.color

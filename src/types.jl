@@ -1,34 +1,100 @@
-# Paint means either Color or Color+Transparency
-# N is the number of _meaningful_ entries. For the number of T elements,
-# use length().  (See RGB1 and RGB4 below.)
+@doc """
+`Paint{T,N}` is the abstract super-type of all types in ColorTypes,
+and refers to both colors and colors-with-transparency (alpha channel)
+information.  `T` is the element type (extractable with `eltype`) and
+`N` is the number of *meaningful* entries (extractable with `length`),
+i.e., the number of arguments you would supply to the constructor.
+""" ->
 abstract Paint{T, N}
 
-# AbstractColor means just color, no transparency
+# "Colors" (without transparency)
+@doc """
+`AbstractColor{T,N}` is the abstract supertype for a color (or
+grayscale) with no transparency.
+""" ->
 abstract AbstractColor{T, N} <: Paint{T, N}
+@doc """
+`Color{T}` is the abstract supertype for any 3-component color, such
+as `RGB` (red, green, blue) or `HSV` (hue, saturation, value).
+""" ->
 abstract Color{T}            <: AbstractColor{T, 3}
+@doc """
+`AbstractGray{T}` means a 1-component color, such as `Gray` or `Gray24`.
+Extract the value using `gray(c)`.
+""" ->
 abstract AbstractGray{T}     <: AbstractColor{T, 1}
+@doc """
+`AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
+can be constructed as `C(r, g, b)` and for which the elements can be
+extracted as `red(c)`, `green(c)`, `blue(c)`. You should *not* make
+assumptions about internal storage order, the number of fields, or the
+representation. One `AbstractRGB` color-type, `RGB24`, is not
+parametric and does not have fields named `r`, `g`, `b`.
+""" ->
 abstract AbstractRGB{T}      <: Color{T}
 
+
 # Types with transparency
+@doc """
+`Transparent{C,T,N}` is the abstract type for any
+color-with-transparency.  The `C` parameter refers to the type of the
+pure color (without transparency) and can be extracted with
+`colortype`. `T` is the element type of both `C` and the `alpha`
+channel, and `N` has the same meaning as in `Paint` (and is 1 larger
+than the corresponding color type).
+
+All transparent types should support two modes of construction:
+
+    P(color, alpha)
+    P(component1, component2, component3, alpha) (assuming a 3-component color)
+
+For a `Paint` `p`, the color component can be extracted with
+`color(p)`, and the alpha channel with `alpha(p)`. Note that types
+such as `ARGB32` do not have a field named `alpha`.
+
+Most concrete types, like `RGB`, have both `ARGB` and `RGBA`
+transparent analogs.  These two indicate different internal storage
+order (see `AlphaColor` and `ColorAlpha`, and the `alphacolor` and
+`coloralpha` functions).
+""" ->
 abstract Transparent{C<:AbstractColor,T,N} <: Paint{T,N}
-# The storage order can be (alpha,color) or (color,alpha)
+@doc """
+`AlphaColor` is an abstract supertype for types like `ARGB`, where the
+alpha channel comes first in the internal storage order. **Note** that
+the constructor order is still `(color, alpha)`.
+""" ->
 abstract AlphaColor{C,T,N} <: Transparent{C,T,N}
+@doc """
+`ColorAlpha` is an abstract supertype for types like `RGBA`, where the
+alpha channel comes last in the internal storage order.
+""" ->
 abstract ColorAlpha{C,T,N} <: Transparent{C,T,N}
 
 # These are types we'll dispatch on
-typealias TransparentRGB{C<:AbstractRGB,T,N}   Transparent{C,T,N}
-typealias TransparentGray{C<:AbstractGray,T,N} Transparent{C,T,N}
-typealias PaintUfixed{T<:Ufixed,N}             Paint{T,N}
-typealias PaintU8{N}                           Paint{U8,N}
+typealias TransparentRGB{C<:AbstractRGB,T}   Transparent{C,T,4}
+typealias TransparentGray{C<:AbstractGray,T} Transparent{C,T,2}
+typealias PaintUfixed{T<:Ufixed,N}           Paint{T,N}
+typealias PaintU8{N}                         Paint{U8,N}
 
-# sRGB (standard Red-Green-Blue)
+@doc """
+`RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
+individual color channels range from 0 (black) to 1 (saturated). If
+you want "Integer" storage types (e.g., 255 for full color), use `U8(1)`
+instead (see FixedPointNumbers).
+""" ->
 immutable RGB{T<:Fractional} <: AbstractRGB{T}
     r::T # Red [0,1]
     g::T # Green [0,1]
     b::T # Blue [0,1]
 end
 
-# Little-endian RGB (useful for BGRA & Cairo)
+@doc """
+`BGR` is a variant of `RGB` with the opposite storage order.  Note
+that the constructor is still called in the order `BGR(r, g, b)`.
+This storage order is noteworthy because on little-endian machines,
+`BGRA` (with transparency) corresponds to the `UInt32` color format
+used by libraries such as Cairo and OpenGL.
+""" ->
 immutable BGR{T<:Fractional} <: AbstractRGB{T}
     b::T
     g::T
@@ -38,8 +104,14 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
 end
 BGR{T}(r::T, g::T, b::T) = BGR{T}(r, g, b)
 
-# 4-byte RGB values (with meaningless alpha channel)
-# These have nice memory-alignment properties and are returned by some readers
+@doc """
+`RGB1` is a variant of `RGB` which has a padding element inserted at
+the beginning. In some applications it may have useful
+memory-alignment properties.
+
+Like all other AbstractRGB objects, the constructor is still called
+`RGB1(r, g, b)`.
+""" ->
 immutable RGB1{T<:Fractional} <: AbstractRGB{T}
     alphadummy::T
     r::T
@@ -50,6 +122,14 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
 end
 RGB1{T}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
 
+@doc """
+`RGB4` is a variant of `RGB` which has a padding element inserted at
+the end. In some applications it may have useful
+memory-alignment properties.
+
+Like all other AbstractRGB objects, the constructor is still called
+`RGB4(r, g, b)`.
+""" ->
 immutable RGB4{T<:Fractional} <: AbstractRGB{T}
     r::T
     g::T
@@ -60,117 +140,132 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
 end
 RGB4{T}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
-# HSV (Hue-Saturation-Value)
+@doc "`HSV` is the Hue-Saturation-Value colorspace." ->
 immutable HSV{T<:FloatingPoint} <: Color{T}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
 
+@doc "`HSB` (Hue-Saturation-Brightness) is an alias for `HSV`." ->
 HSB(h, s, b) = HSV(h, s, b)
 
-# HSL (Hue-Lightness-Saturation)
+@doc "`HSL` is the Hue-Saturation-Lightness colorspace." ->
 immutable HSL{T<:FloatingPoint} <: Color{T}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
-# HSI (Hue-Saturation-Intensity)
+@doc "`HSI` is the Hue-Saturation-Intensity colorspace." ->
 immutable HSI{T<:FloatingPoint} <: Color{T}
     h::T
     s::T
     i::T
 end
 
-# XYZ (CIE 1931)
+@doc """
+`XYZ` is the CIE 1931 XYZ colorspace. It is particularly noteworthy
+because it is a linear colorspace, meaning that mathematical
+operations such as addition, subtraction, and scaling make
+"colorimetric sense" in this colorspace.
+""" ->
 immutable XYZ{T<:FloatingPoint} <: Color{T}
     x::T
     y::T
     z::T
 end
 
-# CIE 1931 xyY (chromaticity + luminance) space
+@doc "`xyY` is the CIE 1931 xyY (chromaticity + luminance) space" ->
 immutable xyY{T<:FloatingPoint} <: Color{T}
     x::T
     y::T
     Y::T
 end
 
-# Lab (CIELAB)
+@doc "`Lab` is the CIELAB colorspace." ->
 immutable Lab{T<:FloatingPoint} <: Color{T}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
-# LCHab (Luminance-Chroma-Hue, Polar-Lab)
+@doc "`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace" ->
 immutable LCHab{T<:FloatingPoint} <: Color{T}
     l::T # Luminance in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360]
 end
 
-# Luv (CIELUV)
+@doc "`Luv` is the CIELUV colorspace" ->
 immutable Luv{T<:FloatingPoint} <: Color{T}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
-# LCHuv (Luminance-Chroma-Hue, Polar-Luv)
+@doc "`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace" ->
 immutable LCHuv{T<:FloatingPoint} <: Color{T}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
 end
 
-# DIN99 (L99, a99, b99) - adaptation of CIELAB
+@doc "`DIN99` is the (L99, a99, b99) adaptation of CIELAB" ->
 immutable DIN99{T<:FloatingPoint} <: Color{T}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
-# DIN99d (L99d, a99d, b99d) - Improvement on DIN99
+@doc "`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99" ->
 immutable DIN99d{T<:FloatingPoint} <: Color{T}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
-# DIN99o (L99o, a99o, b99o) - adaptation of CIELAB
+@doc "`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB" ->
 immutable DIN99o{T<:FloatingPoint} <: Color{T}
     l::T # L99o
     a::T # a99o
     b::T # b99o
 end
 
-# LMS (Long Medium Short)
+@doc """
+`LMS` is the Long-Medium-Short colorspace based on activation of the
+three cone photoreceptors.
+""" ->
 immutable LMS{T<:FloatingPoint} <: Color{T}
     l::T # Long
     m::T # Medium
     s::T # Short
 end
 
-# YIQ (NTSC)
+@doc "`YIQ` is a color encoding, for example used in NTSC transmission." ->
 immutable YIQ{T<:FloatingPoint} <: Color{T}
     y::T
     i::T
     q::T
 end
 
-# Y'CbCr
+@doc "`YCbCr` is the Y'CbCr color encoding often used in digital photography or video" ->
 immutable YCbCr{T<:FloatingPoint} <: Color{T}
     y::T
     cb::T
     cr::T
 end
 
-# 24 bit RGB and 32 bit ARGB (used by Cairo)
-# It would be nice to make this a subtype of AbstractRGB, but it
-# doesn't have operations like c.r defined.
+@doc """
+`RGB24` uses a `UInt32` representation of color, 0xAARRGGBB, where
+R=red, G=green, B=blue and A is irrelevant. This format is often used
+by external libraries such as Cairo.
 
+`RGB24` colors do not have fields named `r`, `g`, `b`, but you can
+still extract the individual components with `red(c)`, `green(c)`,
+`blue(c)`.  You can construct them directly from a `UInt32`, or as
+`RGB(r, g, b)`.
+""" ->
 immutable RGB24 <: AbstractRGB{U8}
     color::UInt32
 end
@@ -179,6 +274,17 @@ _RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(@compat(UInt32(r))<<16 | @compat(UI
 RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 RGB24(r, g, b) = RGB24(@compat(U8(r)), @compat(U8(g)), @compat(U8(b)))
 
+@doc """
+`ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
+R=red, G=green, B=blue and A is the alpha channel. This format is
+often used by external libraries such as Cairo.  On a little-endian
+machine, this type has the exact same storage format as `BGRA{U8}`.
+
+`ARGB32` colors do not have fields named `alpha`, `r`, `g`, `b`, but
+you can still extract the individual components with `alpha(c)`,
+`red(c)`, `green(c)`, `blue(c)`.  You can construct them directly from
+a `UInt32`, or as `ARGB32(r, g, b, alpha)`.
+""" ->
 immutable ARGB32 <: AlphaColor{RGB24, U8, 4}
     color::UInt32
 end
@@ -187,11 +293,23 @@ _ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = ARGB32(@compat(UInt32(alph
 ARGB32(r::Ufixed8, g::Ufixed8, b::Ufixed8, alpha::Ufixed8 = U8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 ARGB32(r, g, b, alpha = 1) = ARGB32(@compat(U8(r)), @compat(U8(g)), @compat(U8(b)), @compat(U8(alpha)))
 
-# Grayscale
+@doc """
+`Gray` is a grayscale object. You can extract its value with `gray(c)`.
+""" ->
 immutable Gray{T<:Fractional} <: AbstractGray{T}
     val::T
 end
 
+@doc """
+`Gray24` uses a `UInt32` representation of color, 0xAAIIIIII, where
+I=intensity (grayscale value) and A is irrelevant. Each II pair is
+assumed to be the same.  This format is often used by external
+libraries such as Cairo.
+
+You can extract the single gray value with `gray(c)`.  You can
+construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
+`i` is interpreted on a scale from 0 (black) to 1 (white).
+"""->
 immutable Gray24 <: AbstractGray{U8}
     color::UInt32
 end
@@ -200,6 +318,17 @@ _Gray24(val::UInt8) = (g = @compat(UInt32(val)); Gray24(g<<16 | g<<8 | g))
 Gray24(val::Ufixed8) = _Gray24(reinterpret(val))
 Gray24(val) = Gray24(@compat(U8(val)))
 
+@doc """
+`AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
+I=intensity (grayscale value) and A=alpha. Each II pair is
+assumed to be the same.  This format is often used by external
+libraries such as Cairo.
+
+You can extract the single gray value with `gray(c)` and the alpha as
+`alpha(c)`.  You can construct them directly from a `UInt32`, or as
+`AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
+scale from 0 (black) to 1 (white).
+"""->
 immutable AGray32 <: AlphaColor{Gray24, U8}
     color::UInt32
 end
@@ -212,6 +341,9 @@ AGray32(val, alpha = 1) = AGray32(@compat(U8(val)), @compat(U8(alpha)))
 #   - more constructors for colors
 #   - transparent paint typealiases (e.g., ARGB), exports, and constructors
 #   - coloralpha(::Color) and alphacolor(::Color) traits for corresponding types
+
+# Note: with the exceptions of `alphacolor` and `coloralpha`, all
+# traits in the rest of this file are intended just for internal use
 
 const colortypes = filter(x->!x.abstract, union(subtypes(Color), subtypes(AbstractRGB)))
 const parametric = filter(x->!isempty(x.parameters), colortypes)
@@ -343,3 +475,13 @@ alphacolor{C<:RGB1}(::Type{C}) = ARGB
 alphacolor{C<:RGB4}(::Type{C}) = ARGB
 coloralpha{C<:RGB1}(::Type{C}) = RGBA
 coloralpha{C<:RGB4}(::Type{C}) = RGBA
+
+@doc """
+`alphacolor(RGB)` returns `ARGB`, i.e., the corresponding transparent
+paint type with storage order (alpha, color).
+""" -> alphacolor
+
+@doc """
+`coloralpha(RGB)` returns `RGBA`, i.e., the corresponding transparent
+paint type with storage order (color, alpha).
+""" -> coloralpha

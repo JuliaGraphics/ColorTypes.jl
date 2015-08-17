@@ -23,9 +23,9 @@ Here is the type hierarchy used in ColorTypes:
 
 ![Types](images/types.png "Types")
 
-- `Transparent` indicates an object with alpha-channel information;
-  `AbstractColor` means that it has no alpha-channel.  `Paint` is the
-  general term used for any object exported by this package.
+- `Paint` is the general term used for any object exported by this
+  package.  `Transparent` indicates an object with alpha-channel
+  information; `AbstractColor` means that it has no alpha-channel.
 
 - `Color` is a 3-component color (like RGB = red, green, blue);
   `AbstractGray` is a 1-component "color" (e.g., grayscale).
@@ -307,3 +307,39 @@ immutable YCbCr{T} <: Color{T}
     cr::T
 end
 ```
+
+## Traits (utility functions for instances and types)
+
+One of the nicest things about this package is that it provides a rich
+set of trait-functions for working with color types:
+
+- `eltype(c)` extracts the underlying element type, e.g., `Float32`
+
+- `length(c)` extracts the number of components (including `alpha`, if present)
+
+- `alphacolor(c)` and `coloralpha(c)` convert a `Color` to an object
+  with transparency (either `ARGB` or `RGBA`, respectively).
+
+- `colortype(c)` extracts the color-only type of the object (e.g.,
+  `RGB{U8}` from an object of type `ARGB{U8}`).
+
+- `basecolortype(c)` and `basepainttype(c)` extract type information
+  and discard the element type.
+
+- `ccolor(Pdest, Psrc)` helps pick a concrete element type for methods
+  where the output may be left unstated, e.g., `convert(RGB, c)`
+  rather than `convert(RGB{U8}, c)`.
+
+All of these methods are individually documented; just type `?ccolor`
+at the REPL.
+
+### Getters
+
+- `red`, `green`, `blue` extract channels from `AbstractRGB` types;
+  `gray` extracts the intensity from a grayscale object
+
+- `alpha` extracts the alpha channel from any `Paint` object
+  (returning 1 if there is no alpha channel)
+
+- `comp1`, `comp2`, and `comp3` extract color components in the order
+  expected by the constructor
