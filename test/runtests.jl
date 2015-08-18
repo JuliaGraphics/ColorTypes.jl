@@ -145,6 +145,8 @@ ac2 = convert(ARGB32, c)
 @test alpha(ac2) == U8(1)
 @test convert(RGB24,  0xff020304).color == 0xff020304
 @test convert(ARGB32, 0x01020304).color == 0x01020304
+ac3 = convert(RGBA, ac)
+@test convert(RGB24, ac3) == c
 
 for C in subtypes(AbstractRGB)
     rgb = convert(C, c)
