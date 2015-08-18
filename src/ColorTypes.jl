@@ -20,7 +20,7 @@ import Base: ==, convert, eltype, length, show, showcompact, one, zero
 export Fractional, U8
 export Paint
 export AbstractColor, Color, AbstractRGB, AbstractGray
-export Transparent, AlphaColor, ColorAlpha
+export Transparent, AlphaColor, ColorAlpha, TransparentGray
 
 export RGB, BGR, RGB1, RGB4
 export HSV, HSB, HSL, HSI
@@ -31,6 +31,7 @@ export YIQ, YCbCr
 export Gray
 
 export RGB24, ARGB32, Gray24, AGray32
+
 
 # Note: the parametric transparent Paints are exported
 # algorithmically, see `@make_alpha` in types.jl.
