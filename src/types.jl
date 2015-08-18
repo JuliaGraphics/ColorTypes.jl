@@ -301,6 +301,14 @@ immutable Gray{T<:Fractional} <: AbstractGray{T}
 end
 
 @doc """
+`GrayAlpha` is a grayscale object plus an alpha channel. You can extract its value with `gray(c)` and the alpha component with `alpha(c)`.
+""" ->
+immutable GrayAlpha{T <: Fractional} <: TransparentGray{Gray{T}, T}
+    val::T
+    alpha::T
+end
+
+@doc """
 `Gray24` uses a `UInt32` representation of color, 0xAAIIIIII, where
 I=intensity (grayscale value) and A is irrelevant. Each II pair is
 assumed to be the same.  This format is often used by external

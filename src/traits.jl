@@ -51,13 +51,13 @@ return true.
 """ ->
 comp1(c::AbstractRGB) = red(c)
 comp1{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = red(c)
-comp1(c::Union(AbstractColor,ColorAlpha)) = getfield(c, 1)
+comp1(c::Union(AbstractColor,ColorAlpha, TransparentGray)) = getfield(c, 1)
 comp1(c::AlphaColor) = getfield(c, 2)
 
 @doc "`comp2(c)` extracts the second constructor argument (see `comp1`)." ->
 comp2(c::AbstractRGB) = green(c)
 comp2{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = green(c)
-comp2(c::Union(AbstractColor,ColorAlpha)) = getfield(c, 2)
+comp2(c::Union(AbstractColor,ColorAlpha, TransparentGray)) = getfield(c, 2)
 comp2(c::AlphaColor) = getfield(c, 3)
 
 @doc "`comp3(c)` extracts the third constructor argument (see `comp1`)." ->
