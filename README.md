@@ -1,16 +1,16 @@
 # ColorTypes
 
-[![Build Status](https://travis-ci.org/SimonDanisch/ColorTypes.jl.svg?branch=master)](https://travis-ci.org/SimonDanisch/ColorTypes.jl)
-[![Coverage Status](https://coveralls.io/repos/SimonDanisch/ColorTypes.jl/badge.svg)](https://coveralls.io/r/SimonDanisch/ColorTypes.jl)
+[![Build Status](https://travis-ci.org/JuliaGraphics/ColorTypes.jl.svg?branch=master)](https://travis-ci.org/JuliaGraphics/ColorTypes.jl)
+[![Coverage Status](https://coveralls.io/repos/JuliaGraphics/ColorTypes.jl/badge.svg)](https://coveralls.io/r/JuliaGraphics/ColorTypes.jl)
 
 This "minimalistic" package serves as the foundation for working with
 colors in Julia.  It defines basic color types and their constructors,
 and sets up traits and `show` methods to make them easier to work
 with.
 
-Of related interest is the [Colors.jl]() package, which provides
+Of related interest is the [Colors.jl](https://github.com/JuliaGraphics/Colors.jl) package, which provides
 "colorimetry" and conversion functions for working with colors.  You
-may also be interested in the [ColorVectorSpace.jl]() package, which
+may also be interested in the [ColorVectorSpace.jl](https://github.com/JuliaGraphics/ColorVectorSpace.jl) package, which
 defines mathematical operations for certain color types.  Both of
 these packages are based on ColorTypes, which ensures that any color
 objects will be broadly usable.
