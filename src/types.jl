@@ -317,7 +317,7 @@ libraries such as Cairo.
 You can extract the single gray value with `gray(c)`.  You can
 construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
 `i` is interpreted on a scale from 0 (black) to 1 (white).
-"""->
+""" ->
 immutable Gray24 <: AbstractGray{U8}
     color::UInt32
 end
@@ -336,7 +336,7 @@ You can extract the single gray value with `gray(c)` and the alpha as
 `alpha(c)`.  You can construct them directly from a `UInt32`, or as
 `AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
 scale from 0 (black) to 1 (white).
-"""->
+""" ->
 immutable AGray32 <: AlphaColor{Gray24, U8}
     color::UInt32
 end
