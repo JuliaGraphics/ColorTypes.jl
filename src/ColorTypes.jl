@@ -28,7 +28,7 @@ export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv
 export DIN99, DIN99d, DIN99o
 export YIQ, YCbCr
 
-export Gray, GrayAlpha
+export Gray
 
 export RGB24, ARGB32, Gray24, AGray32
 
