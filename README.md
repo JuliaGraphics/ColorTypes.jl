@@ -168,7 +168,7 @@ A perceptually uniform colorpsace standardized by the CIE in 1976. See
 also LUV, the associated colorspace standardized the same year.
 
 ```julia
-immutable LAB{T} <: Color{T}
+immutable Lab{T} <: Color{T}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
@@ -274,7 +274,9 @@ immutable LMS{T} <: Color{T}
 end
 ```
 
-### RGB24
+Like `XYZ`, `LMS` is a linear color space.
+
+### RGB24 and ARGB32
 
 An RGB color represented as 8-bit values packed into a 32-bit integer.
 
@@ -283,6 +285,10 @@ immutable RGB24 <: Color{U8}
     color::UInt32
 end
 ```
+The storage order is `0xAARRGGBB`, where `RR` means the red channel,
+`GG` means the green, and `BB` means the blue.  `AA` is ignored for
+`RGB24`; there is also an `ARGB32`, for which that byte represents
+alpha.
 
 ### YIQ (NTSC)
 
@@ -308,6 +314,36 @@ immutable YCbCr{T} <: Color{T}
 end
 ```
 
+## Grayscale "colors"
+
+### Gray
+
+`Gray` is a simple wrapper around a number:
+```jl
+immutable Gray{T} <: AbstractGray{T}
+    val::T
+end
+```
+
+In many situations you don't need a `Gray` wrapper, but there are
+times when it can be helpful to clarify meaning or assist with
+dispatching to appropriate methods.  It is also present for
+consistency with the two corresponding grayscale-plus-transparency
+types, `AGray` and `GrayA`.
+
+### Gray24 and AGray32
+
+`Gray24` is a grayscale value encoded as a `UInt32`:
+```jl
+immutable Gray24 <: AbstractGray{U8}
+    color::UInt32
+end
+```
+
+The storage format is `0xAAIIIIII`, where each `II` pair (I=intensity)
+must be identical.  The `AA` is ignored, but in the corresponding
+`AGray32` type it encodes alpha.
+
 ## Traits (utility functions for instances and types)
 
 One of the nicest things about this package is that it provides a rich
@@ -330,8 +366,8 @@ set of trait-functions for working with color types:
   where the output may be left unstated, e.g., `convert(RGB, c)`
   rather than `convert(RGB{U8}, c)`.
 
-All of these methods are individually documented; just type `?ccolor`
-at the REPL.
+All of these methods are individually documented (typically with
+greater detail); just type `?ccolor` at the REPL.
 
 ### Getters
 

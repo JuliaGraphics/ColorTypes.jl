@@ -165,10 +165,9 @@ immutable HSI{T<:FloatingPoint} <: Color{T}
 end
 
 @doc """
-`XYZ` is the CIE 1931 XYZ colorspace. It is particularly noteworthy
-because it is a linear colorspace, meaning that mathematical
-operations such as addition, subtraction, and scaling make
-"colorimetric sense" in this colorspace.
+`XYZ` is the CIE 1931 XYZ colorspace. It is a linear colorspace,
+meaning that mathematical operations such as addition, subtraction,
+and scaling make "colorimetric sense" in this colorspace.
 """ ->
 immutable XYZ{T<:FloatingPoint} <: Color{T}
     x::T
@@ -234,7 +233,7 @@ end
 
 @doc """
 `LMS` is the Long-Medium-Short colorspace based on activation of the
-three cone photoreceptors.
+three cone photoreceptors.  Like `XYZ`, this is a linear color space.
 """ ->
 immutable LMS{T<:FloatingPoint} <: Color{T}
     l::T # Long
