@@ -1,0 +1,38 @@
+show(io::IO, c::Paint)              = _show(io, c)
+show(io::IO, c::PaintUfixed)        = show_ufixed(io, c)
+showcompact(io::IO, c::Paint)       = _showcompact(io, c)
+showcompact(io::IO, c::PaintUfixed) = show_ufixed(io, c)
+
+for N = 1:4
+    component = N >= 3 ? (:comp1, :comp2, :comp3, :alpha) : (:comp1, :alpha)
+    printargs = Array(Any, 2, N)
+    for i = 1:N
+        printargs[1,i] = :(show(io, $(component[i])(c)))
+        chr = i < N ? ',' : ')'
+        printargs[2,i] = :(print(io, $chr))
+    end
+    @eval begin
+        function _show{T}(io::IO, c::Paint{T,$N})
+            print(io, paint_string(typeof(c)), "{", T, "}(")
+            $(printargs[:]...)
+        end
+    end
+    for i = 1:N
+        printargs[1,i] = :(showcompact(io, $(component[i])(c)))
+    end
+    @eval begin
+        function _showcompact{T}(io::IO, c::Paint{T,$N})
+            print(io, paint_string(typeof(c)), "{", T, "}(")
+            $(printargs[:]...)
+        end
+        # Special handling for Ufixed types: don't print the giant type name
+        function show_ufixed{T,f}(io::IO, c::Paint{FixedPointNumbers.UfixedBase{T,f},$N})
+            print(io, paint_string(typeof(c)), "{Ufixed", f, "}(")
+            $(printargs[:]...)
+        end
+        function show_ufixed(io::IO, c::Paint{U8,$N})
+            print(io, paint_string(typeof(c)), "{U8}(")
+            $(printargs[:]...)
+        end
+    end
+end

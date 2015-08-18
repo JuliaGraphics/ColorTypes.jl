@@ -1,86 +1,80 @@
+VERSION >= v"0.4.0-dev+6521" && __precompile__()
+
 module ColorTypes
 
-using FixedSizeArrays
-using FixedPointNumbers
+using FixedPointNumbers, Compat
+if VERSION < v"0.4.0-dev"
+    using Docile
+end
+
+typealias Fractional Union(FloatingPoint, FixedPoint)
+typealias U8 Ufixed8
+
+if VERSION >= v"0.4.0-dev"
+    @doc "`U8` is an abbreviation for the Ufixed8 type from FixedPointNumbers" -> U8
+end
+
+import Base: ==, convert, eltype, length, show, showcompact, one, zero
+
+## Types
+export Fractional, U8
+export Paint
+export AbstractColor, Color, AbstractRGB, AbstractGray
+export Transparent, AlphaColor, ColorAlpha
+
+export RGB, BGR, RGB1, RGB4
+export HSV, HSB, HSL, HSI
+export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv
+export DIN99, DIN99d, DIN99o
+export YIQ, YCbCr
+
+export Gray
+
+export RGB24, ARGB32, Gray24, AGray32
+
+# Note: the parametric transparent Paints are exported
+# algorithmically, see `@make_alpha` in types.jl.
+
+
+## Functions
+export basecolortype, basepainttype, ccolor, color, colorfields, colortype, eltype_default
+export alphacolor, coloralpha
+export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 
 include("types.jl")
-
-#export RGBAU8       # typealias for RGBA ufixed 8 value
-#export rgba         # function for creating a rgba Float32 color
-#export rgbaU8       # function for creating a rgba Ufixed8 color
-
-#export tohsva       # Convert to HSVA
-#export torgba       # Converts to RGBA
-
-
-export Color    
-export AlphaColor
-export Color3
-export Gray
-export AbstractGray
-export Intensity
-export AbstractRGB
-export AbstractAlphaColor
-
-# Little-endian RGB (useful for BGRA & Cairo)
-export BGR
-export BGRA
-# Some readers return a byte for an alpha channel even if it's not meaningful
-export RGB1
-export RGB4
-export Gray
-export GrayAlpha
-export Gray24
-export AGray32
-# YIQ (NTSC)
-export YIQ
-# Y'CbCr
-export YCbCr
-# HSI
-export HSI
-# sRGB (standard Red-Green-Blue)
-export RGB
-export RGBA # Simple rgb alpha color
-
-# HSV (Hue-Saturation-Value)
-export HSV
-# HSL (Hue-Lightness-Saturation)
-export HSL
-export HLS
-# XYZ (CIE 1931)
-export XYZ
-# CIE 1931 xyY (chromaticity + luminance) space
-export xyY
-# Lab (CIELAB)
-export Lab
-typealias LAB Lab
-# LCHab (Luminance-Chroma-Hue, Polar-Lab)
-export LCHab
-# Luv (CIELUV)
-export Luv
-typealias LUV Luv
-# LCHuv (Luminance-Chroma-Hue, Polar-Luv)
-export LCHuv
-# DIN99 (L99, a99, b99) - adaptation of CIELAB
-export DIN99
-# DIN99d (L99d, a99d, b99d) - Improvement on DIN99
-export DIN99d
-# DIN99o (L99o, a99o, b99o) - adaptation of CIELAB
-export DIN99o
-# LMS (Long Medium Short)
-export LMS
-# 24 bit RGB and 32 bit ARGB (used by Cairo)
-# It would be nice to make this a subtype of AbstractRGB, but it doesn't have operations like c.r defined.
-export RGB24
-export ARGB32
-
-typealias RGBAU8 RGBA{Ufixed8}
-export RGBAU8
-rgba(r::Real, g::Real, b::Real, a::Real)   = RGBA{Float32}(r,g,b,a)
-rgbaU8(r::Real, g::Real, b::Real, a::Real) = RGBA{Ufixed8}(r,g,b,a)
-export rgba
-export rgbaU8
+include("traits.jl")
+include("conversions.jl")
+include("show.jl")
 
 end # module
 
+if VERSION < v"0.4.0-dev"
+    using Docile
+end
 
+@doc """
+ColorTypes summary (see individual types and functions for more detail):
+
+Main type hierarchy:
+```
+                             Paint
+             AbstractColor          Transparent
+          Color   AbstractGray     AlphaColor  ColorAlpha
+```
+
+Concrete types:
+- `RGB`, `BGR`, `RGB1`, `RGB4`, `RGB24` are all subtypes of `AbstractRGB`
+
+- `HSV`, `HSL`, `HSI`, `XYZ`, `xyY`, `Lab`, `LCHab`, `Luv`, `LCHuv`,
+  `DIN99`, `DIN99d`, `DIN99o`, `LMS`, `YIQ`, `YCbCR`
+
+- Alpha-channel analogs such as `ARGB` and `RGBA` for most of those
+  types (exceptions `RGB24`, which has `ARGB32`)
+
+- Grayscale types `Gray` and `Gray24`
+
+- Trait functions `eltype`, `length`, `alphacolor`, `coloralpha`,
+  `colortype`, `basecolortype`, `basepainttype`, `ccolor`
+
+- Getters `red`, `green`, `blue`, `alpha`, `gray`, `comp1`, `comp2`, `comp3`
+""" -> ColorTypes
