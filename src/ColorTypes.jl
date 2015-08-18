@@ -41,6 +41,7 @@ export RGB24, ARGB32, Gray24, AGray32
 export basecolortype, basepainttype, ccolor, color, colorfields, colortype, eltype_default
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
+export comp1, comp2, comp3
 
 include("types.jl")
 include("traits.jl")
