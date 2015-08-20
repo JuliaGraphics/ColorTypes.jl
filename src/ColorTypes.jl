@@ -37,7 +37,7 @@ export RGB24, ARGB32, Gray24, AGray32
 
 
 ## Functions
-export baseopaquetype, basecolortype, ccolor, opaquecolor, colorfields, opaquetype, eltype_default
+export baseopaquetype, basecolortype, ccolor, opaquecolor, opaquetype
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export comp1, comp2, comp3
