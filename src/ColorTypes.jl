@@ -18,9 +18,9 @@ import Base: ==, convert, eltype, length, show, showcompact, one, zero
 
 ## Types
 export Fractional, U8
-export Paint
-export AbstractColor, Color, AbstractRGB, AbstractGray
-export Transparent, AlphaColor, ColorAlpha, TransparentGray
+
+export Color
+export OpaqueColor, TransparentColor, AlphaColor, ColorAlpha, AbstractRGB
 
 export RGB, BGR, RGB1, RGB4
 export HSV, HSB, HSL, HSI
@@ -32,13 +32,12 @@ export Gray
 
 export RGB24, ARGB32, Gray24, AGray32
 
-
-# Note: the parametric transparent Paints are exported
+# Note: the parametric TransparentColorColors are exported
 # algorithmically, see `@make_alpha` in types.jl.
 
 
 ## Functions
-export basecolortype, basepainttype, ccolor, color, colorfields, colortype, eltype_default
+export baseopaquetype, basecolortype, ccolor, opaquecolor, colorfields, opaquetype, eltype_default
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export comp1, comp2, comp3
@@ -55,13 +54,13 @@ if VERSION < v"0.4.0-dev"
 end
 
 @doc """
-ColorTypes summary (see individual types and functions for more detail):
+ColorTypes summary:
 
 Main type hierarchy:
 ```
-                             Paint
-             AbstractColor          Transparent
-          Color   AbstractGray     AlphaColor  ColorAlpha
+                           Color
+             OpaqueColor             TransparentColor
+        AbstractRGB               AlphaColor  ColorAlpha
 ```
 
 Concrete types:
@@ -76,7 +75,9 @@ Concrete types:
 - Grayscale types `Gray` and `Gray24`
 
 - Trait functions `eltype`, `length`, `alphacolor`, `coloralpha`,
-  `colortype`, `basecolortype`, `basepainttype`, `ccolor`
+  `opaquetype`, `baseopaquetype`, `basecolortype`, `ccolor`
 
 - Getters `red`, `green`, `blue`, `alpha`, `gray`, `comp1`, `comp2`, `comp3`
+
+Use `?` to get more information about specific types or functions.
 """ -> ColorTypes
