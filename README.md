@@ -23,20 +23,20 @@ Here is the type hierarchy used in ColorTypes:
 
 ![Types](images/types.png "Types")
 
-- `Paint` is the general term used for any object exported by this
-  package.  `Transparent` indicates an object with alpha-channel
-  information; `AbstractColor` means that it has no alpha-channel.
+- `Color` is the general term used for any object exported by this
+  package.  `TransparentColor` indicates an object with alpha-channel
+  information; `OpaqueColor` means that it has no alpha-channel.
 
-- `Color` is a 3-component color (like RGB = red, green, blue);
-  `AbstractGray` is a 1-component "color" (e.g., grayscale).
+- `OpaqueColor{T,3}` is a 3-component color (like RGB = red, green, blue);
+  `OpaqueColor{T,1}` is a 1-component "color" (e.g., grayscale).
 
-- Most colors have both `AlphaColor` and `ColorAlpha` variants; for
-  example, `RGB` has both `ARGB` and `RGBA`.  These indicate different
-  underlying storage in memory: `AlphaColor` stores the alpha-channel
-  first, then the color, whereas `ColorAlpha` stores the color first,
-  then the alpha-channel.  Storage order can be particularly important
-  for interfacing with certain external libraries (e.g., OpenGL and
-  Cairo).
+- Most opaque colors have both `AlphaColor` and `ColorAlpha` variants;
+  for example, `RGB` has both `ARGB` and `RGBA`.  These indicate
+  different underlying storage in memory: `AlphaColor` stores the
+  alpha-channel first, then the color, whereas `ColorAlpha` stores the
+  color first, then the alpha-channel.  Storage order can be
+  particularly important for interfacing with certain external
+  libraries (e.g., OpenGL and Cairo).
 
 ## Colors
 
@@ -91,7 +91,7 @@ common projection of RGB to cylindrical coordinates.  This is also
 sometimes called "HSB" for Hue-Saturation-Brightness.
 
 ```julia
-immutable HSV{T} <: Color{T}
+immutable HSV{T} <: OpaqueColor{T,3}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
@@ -108,7 +108,7 @@ represented with most `FixedPoint` types.
 common projection of RGB to cylindrical coordinates.
 
 ```julia
-immutable HSL{T} <: Color{T}
+immutable HSL{T} <: OpaqueColor{T,3}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
@@ -121,7 +121,7 @@ Hue, saturation, intensity, a variation of HSL and HSV commonly used
 in computer vision.
 
 ```jl
-immutable HSI{T} <: Color{T}
+immutable HSI{T} <: OpaqueColor{T,3}
     h::T
     s::T
     i::T
@@ -136,7 +136,7 @@ color perception culminating in the CIE standard observer (see
 `Colors.jl`'s `cie_color_match` function).
 
 ```julia
-immutable XYZ{T} <: Color{T}
+immutable XYZ{T} <: OpaqueColor{T,3}
     x::T
     y::T
     z::T
@@ -155,7 +155,7 @@ specifically because the xy chromaticity space is invariant to the
 lightness of the patch.
 
 ```julia
-immutable xyY{T} <: Color{T}
+immutable xyY{T} <: OpaqueColor{T,3}
     x::T
     y::T
     Y::T
@@ -168,7 +168,7 @@ A perceptually uniform colorpsace standardized by the CIE in 1976. See
 also LUV, the associated colorspace standardized the same year.
 
 ```julia
-immutable Lab{T} <: Color{T}
+immutable Lab{T} <: OpaqueColor{T,3}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
@@ -181,7 +181,7 @@ A perceptually uniform colorpsace standardized by the CIE in 1976. See
 also LAB, a similar colorspace standardized the same year.
 
 ```julia
-immutable LUV{T} <: Color{T}
+immutable LUV{T} <: OpaqueColor{T,3}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
@@ -194,7 +194,7 @@ end
 The LAB colorspace reparameterized using cylindrical coordinates.
 
 ```julia
-immutable LCHab{T} <: Color{T}
+immutable LCHab{T} <: OpaqueColor{T,3}
     l::T # Luminance in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360]
@@ -207,7 +207,7 @@ end
 The LUV colorspace reparameterized using cylindrical coordinates.
 
 ```julia
-immutable LCHuv{T} <: Color{T}
+immutable LCHuv{T} <: OpaqueColor{T,3}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
@@ -220,7 +220,7 @@ end
 The DIN99 uniform colorspace as described in the DIN 6176 specification.
 
 ```julia
-immutable DIN99{T} <: Color{T}
+immutable DIN99{T} <: OpaqueColor{T,3}
     l::T # L99 (Lightness)
     a::T # a99 (Red/Green)
     b::T # b99 (Blue/Yellow)
@@ -235,7 +235,7 @@ space that adds a correction to the X tristimulus value in order to
 emulate the rotation term present in the DeltaE2000 equation.
 
 ```julia
-immutable DIN99d{T} <: Color{T}
+immutable DIN99d{T} <: OpaqueColor{T,3}
     l::T # L99d (Lightness)
     a::T # a99d (Reddish/Greenish)
     b::T # b99d (Bluish/Yellowish)
@@ -251,7 +251,7 @@ and the DeltaE2000 rotation term, DIN99o achieves comparable results
 by optimized `a*/b*` rotation and chroma compression terms.
 
 ```julia
-immutable DIN99o{T} <: Color{T}
+immutable DIN99o{T} <: OpaqueColor{T,3}
     l::T # L99o (Lightness)
     a::T # a99o (Red/Green)
     b::T # b99o (Blue/Yellow)
@@ -267,7 +267,7 @@ to LMS space have been defined. Here the
 adaptation matrix is used.
 
 ```
-immutable LMS{T} <: Color{T}
+immutable LMS{T} <: OpaqueColor{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
@@ -295,7 +295,7 @@ alpha.
 A color-encoding format used by the NTSC broadcast standard.
 
 ```julia
-immutable YIQ{T} <: Color{T}
+immutable YIQ{T} <: OpaqueColor{T,3}
     y::T
     i::T
     q::T
@@ -307,7 +307,7 @@ end
 A color-encoding format common in video and digital photography.
 
 ```jl
-immutable YCbCr{T} <: Color{T}
+immutable YCbCr{T} <: OpaqueColor{T,3}
     y::T
     cb::T
     cr::T
@@ -320,7 +320,7 @@ end
 
 `Gray` is a simple wrapper around a number:
 ```jl
-immutable Gray{T} <: AbstractGray{T}
+immutable Gray{T} <: OpaqueColor{T,1}
     val::T
 end
 ```
@@ -335,7 +335,7 @@ types, `AGray` and `GrayA`.
 
 `Gray24` is a grayscale value encoded as a `UInt32`:
 ```jl
-immutable Gray24 <: AbstractGray{U8}
+immutable Gray24 <: OpaqueColor{U8,1}
     color::UInt32
 end
 ```
@@ -356,13 +356,13 @@ set of trait-functions for working with color types:
 - `alphacolor(c)` and `coloralpha(c)` convert a `Color` to an object
   with transparency (either `ARGB` or `RGBA`, respectively).
 
-- `colortype(c)` extracts the color-only type of the object (e.g.,
+- `opaquetype(c)` extracts the opaque (color-only) type of the object (e.g.,
   `RGB{U8}` from an object of type `ARGB{U8}`).
 
-- `basecolortype(c)` and `basepainttype(c)` extract type information
+- `basecolortype(c)` and `baseopaquetype(c)` extract type information
   and discard the element type.
 
-- `ccolor(Pdest, Psrc)` helps pick a concrete element type for methods
+- `ccolor(Cdest, Csrc)` helps pick a concrete element type for methods
   where the output may be left unstated, e.g., `convert(RGB, c)`
   rather than `convert(RGB{U8}, c)`.
 
@@ -374,7 +374,7 @@ greater detail); just type `?ccolor` at the REPL.
 - `red`, `green`, `blue` extract channels from `AbstractRGB` types;
   `gray` extracts the intensity from a grayscale object
 
-- `alpha` extracts the alpha channel from any `Paint` object
+- `alpha` extracts the alpha channel from any `Color` object
   (returning 1 if there is no alpha channel)
 
 - `comp1`, `comp2`, and `comp3` extract color components in the order
