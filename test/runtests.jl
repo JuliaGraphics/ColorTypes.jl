@@ -11,7 +11,7 @@ else
     end
 end
 
-@test @infrd(eltype(Paint{U8})) == U8
+@test @infrd(eltype(OpaqueColor{U8})) == U8
 @test @infrd(eltype(RGB{Float32})) == Float32
 @test @infrd(eltype(RGBA{Float64})) == Float64
 # @test eltype(RGB) == TypeVar(:T, Fractional)
@@ -25,32 +25,32 @@ end
 @test length(ARGB32) == 4
 @test length(AGray{Float32}) == 2
 
-@test @infrd(colortype(RGB{U8})) == RGB{U8}
-@test @infrd(colortype(RGB)) == RGB
-@test @infrd(colortype(RGBA{Float32})) == RGB{Float32}
-@test @infrd(colortype(GrayA{U8})) == Gray{U8}
-@test @infrd(colortype(RGBA)) == RGB
-@test @infrd(colortype(RGB24) ) == RGB24
-@test @infrd(colortype(ARGB32)) == RGB24
-@test @infrd(colortype(Transparent{RGB})) == RGB
-@test @infrd(colortype(Transparent{RGB,Float64})) == RGB
-@test @infrd(colortype(Transparent{RGB{Float64},Float64})) == RGB{Float64}
-@test colortype(Transparent) <: AbstractColor
-@test AbstractColor <: colortype(Transparent)
-@test_throws MethodError colortype(Paint{U8})
+@test @infrd(opaquetype(RGB{U8})) == RGB{U8}
+@test @infrd(opaquetype(RGB)) == RGB
+@test @infrd(opaquetype(RGBA{Float32})) == RGB{Float32}
+@test @infrd(opaquetype(GrayA{U8})) == Gray{U8}
+@test @infrd(opaquetype(RGBA)) == RGB
+@test @infrd(opaquetype(RGB24) ) == RGB24
+@test @infrd(opaquetype(ARGB32)) == RGB24
+@test @infrd(opaquetype(TransparentColor{RGB})) == RGB
+@test @infrd(opaquetype(TransparentColor{RGB,Float64})) == RGB
+@test @infrd(opaquetype(TransparentColor{RGB{Float64},Float64})) == RGB{Float64}
+@test opaquetype(TransparentColor) <: OpaqueColor
+@test OpaqueColor <: opaquetype(TransparentColor)
+@test_throws MethodError opaquetype(Color{U8})
 
-@test @infrd(basecolortype(RGBA{Float32})) == RGB
-@test @infrd(basecolortype(ARGB{Float32})) == RGB
+@test @infrd(baseopaquetype(RGBA{Float32})) == RGB
+@test @infrd(baseopaquetype(ARGB{Float32})) == RGB
+@test @infrd(baseopaquetype(BGR{U8})      ) == BGR
+@test @infrd(baseopaquetype(HSV) ) == HSV
+@test @infrd(baseopaquetype(HSVA)) == HSV
+@test @infrd(baseopaquetype(TransparentColor{RGB{Float64},Float64})) == RGB
+
+@test @infrd(basecolortype(RGBA{Float32})) == RGBA
+@test @infrd(basecolortype(ARGB{Float32})) == ARGB
 @test @infrd(basecolortype(BGR{U8})      ) == BGR
 @test @infrd(basecolortype(HSV) ) == HSV
-@test @infrd(basecolortype(HSVA)) == HSV
-@test @infrd(basecolortype(Transparent{RGB{Float64},Float64})) == RGB
-
-@test @infrd(basepainttype(RGBA{Float32})) == RGBA
-@test @infrd(basepainttype(ARGB{Float32})) == ARGB
-@test @infrd(basepainttype(BGR{U8})      ) == BGR
-@test @infrd(basepainttype(HSV) ) == HSV
-@test @infrd(basepainttype(HSVA)) == HSVA
+@test @infrd(basecolortype(HSVA)) == HSVA
 
 @test @infrd(ccolor(RGB{Float32}, HSV{Float32})) == RGB{Float32}
 @test @infrd(ccolor(RGB{U8},      HSV{Float32})) == RGB{U8}
@@ -68,26 +68,26 @@ end
 
 @test length(ARGB(1.0,0.8,0.6,0.4)) == 4
 
-@test @infrd(colortype(RGB{U8}(1,0,0))) == RGB{U8}
-@test @infrd(colortype(ARGB(1.0,0.8,0.6,0.4))) == RGB{Float64}
-@test @infrd(colortype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB{Float32}
+@test @infrd(opaquetype(RGB{U8}(1,0,0))) == RGB{U8}
+@test @infrd(opaquetype(ARGB(1.0,0.8,0.6,0.4))) == RGB{Float64}
+@test @infrd(opaquetype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB{Float32}
+
+@test @infrd(baseopaquetype(RGB{U8}(1,0,0))) == RGB
+@test @infrd(baseopaquetype(ARGB(1.0,0.8,0.6,0.4))) == RGB
+@test @infrd(baseopaquetype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB
 
 @test @infrd(basecolortype(RGB{U8}(1,0,0))) == RGB
-@test @infrd(basecolortype(ARGB(1.0,0.8,0.6,0.4))) == RGB
-@test @infrd(basecolortype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB
-
-@test @infrd(basepainttype(RGB{U8}(1,0,0))) == RGB
-@test @infrd(basepainttype(ARGB(1.0,0.8,0.6,0.4))) == ARGB
-@test @infrd(basepainttype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
+@test @infrd(basecolortype(ARGB(1.0,0.8,0.6,0.4))) == ARGB
+@test @infrd(basecolortype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
 
 # Constructors
-for C in ColorTypes.parametric
+for C in ColorTypes.parametric3
     @test eltype(C{Float32}) == Float32
     et = (C <: AbstractRGB) ? U8 : Float32
     @test eltype(C(1,0,0)) == et
-    @test colortype(C(1,0,0)) == C{et}
-    @test colortype(C) == C
-    @test colortype(C{Float32}) == C{Float32}
+    @test opaquetype(C(1,0,0)) == C{et}
+    @test opaquetype(C) == C
+    @test opaquetype(C{Float32}) == C{Float32}
     @test eltype(C{Float32}(1,0,0)) == Float32
 end
 
@@ -103,15 +103,15 @@ for C in subtypes(AbstractRGB)
 end
 
 # Transparency
-for C in setdiff(ColorTypes.parametric, [RGB1,RGB4])
+for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
     for A in (alphacolor(C), coloralpha(C))
         @test eltype(A{Float32}) == Float32
-        @test colortype(A) == C
-        @test colortype(A{Float32}) == C{Float32}
+        @test opaquetype(A) == C
+        @test opaquetype(A{Float32}) == C{Float32}
         @test eltype(A(1,0.8,0.6,0.4)) == Float64
         c = A{Float64}(1,0.8,0.6,0.4)
-        @test colortype(c) == C{Float64}
-        cc = color(c)
+        @test opaquetype(c) == C{Float64}
+        cc = opaquecolor(c)
         @test cc == C{Float64}(1,0.8,0.6)
         if VERSION >= v"0.4.0-dev"
             @test A(cc) == A{Float64}(1,0.8,0.6,1)
@@ -138,8 +138,8 @@ c = convert(RGB24, ac)
 @test blue(c)  == blue(ac)
 ac2 = convert(ARGB32, c)
 @test ac2.color == (c.color | 0xff000000)
-@test color(c) == c
-@test color(ac) == c
+@test opaquecolor(c) == c
+@test opaquecolor(ac) == c
 @test alpha(c) == U8(1)
 @test alpha(ac) == Ufixed8(ac.color>>24, 0)
 @test alpha(ac2) == U8(1)
