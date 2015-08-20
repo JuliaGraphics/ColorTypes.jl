@@ -1,6 +1,6 @@
 The ColorTypes.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2015: Simon Danisch.
+> Copyright (c) 2015: Timothy E. Holy and Simon Danisch.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
