@@ -1,8 +1,14 @@
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
 
-convert{C<:Color}(::Type{C}, p::Color) = _convert(ccolor(C, typeof(p)), baseopaquetype(C), baseopaquetype(p), p)
-convert{C<:TransparentColor}(::Type{C}, p::OpaqueColor, alpha) = _convert(ccolor(C, typeof(p)), baseopaquetype(C), baseopaquetype(p), p, alpha)
+convert{C<:Color}(::Type{C}, c::Color) = cconvert(ccolor(C, typeof(c)), c)
+cconvert{C}(::Type{C}, c::C) = c
+cconvert{C}(::Type{C}, c)    = _convert(C, baseopaquetype(C), baseopaquetype(c), c)
+convert{C<:TransparentColor}(::Type{C}, c::OpaqueColor, alpha) = cconvert(ccolor(C, typeof(c)), c, alpha)
+cconvert{C<:OpaqueColor,T,N}(::Type{AlphaColor{C,T,N}}, c::C, alpha) = alphacolor(C)(c, alpha)
+cconvert{C<:OpaqueColor,T,N}(::Type{ColorAlpha{C,T,N}}, c::C, alpha) = coloralpha(C)(c, alpha)
+cconvert{C<:TransparentColor}(::Type{C}, c::OpaqueColor, alpha) =_convert(C, baseopaquetype(C), baseopaquetype(c), c, alpha)
+
 
 # Fallback definitions that print nice error messages
 _convert{C}(::Type{C}, ::Any, ::Any, p) = error("No conversion of ", p, " to ", C, " has been defined")
@@ -52,5 +58,7 @@ convert{T}(::Type{AGray{T}}, x::Real)    = AGray{T}(x)
 convert{T}(::Type{GrayA{T}}, x::Real)    = GrayA{T}(x)
 
 # Generate the transparent analog of a color
-alphacolor{C<:OpaqueColor}(c::C) = alphacolor(C)(c)
-coloralpha{C<:OpaqueColor}(c::C) = coloralpha(C)(c)
+alphacolor{C<:OpaqueColor     }(c::C) = alphacolor(C)(c)
+alphacolor{C<:TransparentColor}(c::C) = alphacolor(baseopaquetype(C))(opaquetype(c), alpha(c))
+coloralpha{C<:OpaqueColor     }(c::C) = coloralpha(C)(c)
+coloralpha{C<:TransparentColor}(c::C) = coloralpha(baseopaquetype(C))(opaquetype(c), alpha(c))

@@ -170,7 +170,7 @@ basecolortype(c::Color) = basecolortype(typeof(c))
 
 color_string{C<:Color}(::Type{C}) = string(C.name.name)
 
-"""
+@doc """
  `ccolor` ("concrete color") helps write flexible methods. The idea is
 that users may write `convert(HSV, c)` or even `convert(Array{HSV},
 A)` without specifying the element type explicitly (e.g.,
@@ -188,7 +188,46 @@ Example:
     convert{C<:Color}(::Type{C}, p::Color) = cnvt(ccolor(C,typeof(p)), p)
 
 where `cnvt` is the function that performs explicit conversion.
-"""
+""" ->
+ccolor{   Csrc<:Color}(::Type{Color   }, ::Type{Csrc}) = Csrc
+ccolor{T, Csrc<:Color}(::Type{Color{T}}, ::Type{Csrc}) = basecolortype(Csrc){T}
+ccolor{   Csrc<:Color}(::Type{OpaqueColor   }, ::Type{Csrc}) = opaquetype(Csrc)
+ccolor{T, Csrc<:Color}(::Type{OpaqueColor{T}}, ::Type{Csrc}) = baseopaquetype(Csrc){T}
+
+ccolor{Csrc<:OpaqueColor}(::Type{TransparentColor}, ::Type{Csrc}) =
+          error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
+ccolor{C<:OpaqueColor,    Csrc<:OpaqueColor}(
+       ::Type{TransparentColor{C    }}, ::Type{Csrc}) =
+           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
+ccolor{C<:OpaqueColor,T,  Csrc<:OpaqueColor}(
+       ::Type{TransparentColor{C,T  }}, ::Type{Csrc}) =
+           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
+ccolor{C<:OpaqueColor,T,N,Csrc<:OpaqueColor}(
+       ::Type{TransparentColor{C,T,N}}, ::Type{Csrc}) =
+           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
+
+ccolor{Csrc<:TransparentColor}(::Type{TransparentColor}, ::Type{Csrc}) = Csrc
+
+ccolor{Csrc<:Color}(::Type{AlphaColor}, ::Type{Csrc}) = alphacolor(Csrc)
+ccolor{C<:OpaqueColor,    Csrc<:Color}(
+       ::Type{AlphaColor{C    }}, ::Type{Csrc}) = ccolor(alphacolor(C), Csrc)
+ccolor{C<:OpaqueColor,T,  Csrc<:Color}(
+       ::Type{AlphaColor{C,T  }}, ::Type{Csrc}) = ccolor(alphacolor(C){T}, Csrc)
+ccolor{C<:OpaqueColor,T,N,Csrc<:Color}(
+       ::Type{AlphaColor{C,T,N}}, ::Type{Csrc}) = ccolor(alphacolor(C){T}, Csrc)
+
+ccolor{Csrc<:Color}(::Type{ColorAlpha}, ::Type{Csrc}) = coloralpha(Csrc)
+ccolor{C<:OpaqueColor,    Csrc<:Color}(
+       ::Type{ColorAlpha{C    }}, ::Type{Csrc}) = ccolor(coloralpha(C), Csrc)
+ccolor{C<:OpaqueColor,T,  Csrc<:Color}(
+       ::Type{ColorAlpha{C,T  }}, ::Type{Csrc}) = ccolor(coloralpha(C){T}, Csrc)
+ccolor{C<:OpaqueColor,T,N,Csrc<:Color}(
+       ::Type{ColorAlpha{C,T,N}}, ::Type{Csrc}) = ccolor(coloralpha(C){T}, Csrc)
+
+ccolor{  Csrc<:AbstractRGB}(::Type{AbstractRGB},    ::Type{Csrc}) = Csrc
+ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = basecolortype(Csrc){T}
+
+# Concrete types
 ccolor{Cdest<:Color,Csrc<:Color}(::Type{Cdest}, ::Type{Csrc}) = basecolortype(Cdest){pick_eltype(opaquetype(Cdest), eltype(Cdest), eltype(Csrc))}
 ccolor{Csrc<:Color}(::Type{RGB24},   ::Type{Csrc}) = RGB24
 ccolor{Csrc<:Color}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
@@ -202,6 +241,8 @@ pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = pick_eltype_co
 # When T2 <: FixedPoint, choosed based on whether color type supports it
 pick_eltype_compat{T1            ,T2}(::Any, ::Type{T1}, ::Type{T2}) = T1
 pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
+
+
 
 ### Equality
 ==(c1::AbstractRGB, c2::AbstractRGB) = red(c1) == red(c2) && green(c1) == green(c2) && blue(c1) == blue(c2)

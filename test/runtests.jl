@@ -133,6 +133,25 @@ ac = ARGB32(rand(UInt32))
 @test convert(ARGB32, ac) == ac
 c = convert(RGB24, ac)
 @test convert(RGB24, c) == c
+
+crgb   = convert(RGB, c)
+acargb = convert(ARGB, ac)
+@test convert(Color,       crgb) === crgb
+@test convert(Color{U8},   crgb) === crgb
+@test convert(Color{Float32},       crgb) === convert(RGB{Float32}, crgb)
+@test convert(OpaqueColor,          crgb) === crgb
+@test convert(OpaqueColor{U8},      crgb) === crgb
+@test convert(OpaqueColor{Float32}, crgb) === convert(RGB{Float32}, crgb)
+@test_throws ErrorException convert(TransparentColor, crgb)
+@test convert(AlphaColor, crgb) === alphacolor(crgb)
+@test convert(ColorAlpha, crgb) === coloralpha(crgb)
+
+@test convert(Color, acargb) === acargb
+@test convert(Color{U8},   acargb) === acargb
+@test_throws MethodError convert(Color{U8,3}, acargb)
+@test convert(TransparentColor,             acargb) == acargb
+@test convert(OpaqueColor,                  acargb) == crgb
+
 @test red(c)   == red(ac)
 @test green(c) == green(ac)
 @test blue(c)  == blue(ac)
@@ -151,6 +170,8 @@ ac3 = convert(RGBA, ac)
 for C in subtypes(AbstractRGB)
     rgb = convert(C, c)
     C == RGB24 && continue
+    @test convert(AbstractRGB, c) == c
+    @test convert(AbstractRGB{Float64}, rgb) === convert(C{Float64}, c)
     argb = convert(alphacolor(C), ac)
     @test rgb.r == red(c)
     @test rgb.g == green(c)
