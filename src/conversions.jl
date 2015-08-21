@@ -11,31 +11,29 @@ cconvert{C<:TransparentColor}(::Type{C}, c::OpaqueColor, alpha) =_convert(C, bas
 
 
 # Fallback definitions that print nice error messages
-_convert{C}(::Type{C}, ::Any, ::Any, p) = error("No conversion of ", p, " to ", C, " has been defined")
-_convert{C}(::Type{C}, ::Any, ::Any, p, alpha) = error("No conversion of (", p, ",alpha=$alpha) to ", C, " has been defined")
+_convert{C}(::Type{C}, ::Any, ::Any, c) = error("No conversion of ", c, " to ", C, " has been defined")
+_convert{C}(::Type{C}, ::Any, ::Any, c, alpha) = error("No conversion of (", c, ",alpha=$alpha) to ", C, " has been defined")
 
 # Implementations for when the base color type is not changing
-_convert{Cout<:OpaqueColor,Ccmp<:OpaqueColor}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c::Cout) = c
-_convert{Cout<:OpaqueColor,Ccmp<:OpaqueColor}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) = Cout(comp1(c), comp2(c), comp3(c))
-_convert{A<:TransparentColor,Ccmp<:OpaqueColor}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c) = A(comp1(c), comp2(c), comp3(c), alpha(c))
+# These might trip/add transparency, however
+_convert{Cout<:Color3,Ccmp<:Color3}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) = Cout(comp1(c), comp2(c), comp3(c))
+_convert{A<:Transparent3,Ccmp<:Color3}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c) = A(comp1(c), comp2(c), comp3(c), alpha(c))
+_convert{Cout<:AbstractGray,Ccmp<:AbstractGray}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) = Cout(gray(c))
+_convert{A<:TransparentGray,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c) = A(gray(c), alpha(c))
 
 # With user-supplied alpha
-_convert{A<:TransparentColor,Ccmp<:OpaqueColor}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(comp1(c), comp2(c), comp3(c), alpha)
+_convert{A<:Transparent3,Ccmp<:Color3}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(comp1(c), comp2(c), comp3(c), alpha)
 
 # Any AbstractRGB types can be interconverted
-# (these next 2 are just for ambiguity resolution)
-_convert{Cout<:OpaqueColor,C1<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C1}, c::Cout) = c
-_convert{Cout<:OpaqueColor,C1<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C1}, c) = Cout(red(c), green(c), blue(c))
-_convert{A<:TransparentColor,C1<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C1}, c) = A(red(c), green(c), blue(c), alpha(c))
-
-_convert{Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c::Union(AbstractRGB,TransparentRGB)) = Cout(red(c), green(c), blue(c))
-_convert{A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C2}, c) = A(red(c), green(c), blue(c), alpha(c))
+# (the first 2 are just for ambiguity resolution)
+typealias AnyRGB Union(AbstractRGB,TransparentRGB)
+_convert{Cout<:AbstractRGB,C1<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C1}, c::AnyRGB) = Cout(red(c), green(c), blue(c))
+_convert{A<:TransparentRGB,C1<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C1}, c::AnyRGB) = A(red(c), green(c), blue(c), alpha(c))
+_convert{Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c::AnyRGB) = Cout(red(c), green(c), blue(c))
+_convert{A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C2}, c::AnyRGB) = A(red(c), green(c), blue(c), alpha(c))
 
 # Grayscale
-_convert{Cout<:AbstractGray,Ccmp<:AbstractGray}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c::Cout) = c
-_convert{Cout<:AbstractGray,Ccmp<:AbstractGray}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) = Cout(gray(c))
 _convert{Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) = Cout(gray(c))
-_convert{A<:TransparentGray,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c) = A(gray(c), alpha(c))
 _convert{A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{A}, ::Type{C1}, ::Type{C2}, c) = A(gray(c), alpha(c))
 _convert{A<:TransparentGray,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(gray(c), alpha)
 

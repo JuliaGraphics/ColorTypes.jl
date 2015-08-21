@@ -66,8 +66,10 @@ abstract ColorAlpha{C,T,N} <: TransparentColor{C,T,N}
 
 # These are types we'll dispatch on. Not exported.
 typealias AbstractGray{T}                    OpaqueColor{T,1}
-typealias TransparentRGB{C<:AbstractRGB,T}   TransparentColor{C,T,4}
+typealias Color3{T}                          OpaqueColor{T,3}
 typealias TransparentGray{C<:AbstractGray,T} TransparentColor{C,T,2}
+typealias Transparent3{C<:Color3,T}          TransparentColor{C,T,4}
+typealias TransparentRGB{C<:AbstractRGB,T}   TransparentColor{C,T,4}
 typealias ColorUfixed{T<:Ufixed,N}           Color{T,N}
 
 @doc """
