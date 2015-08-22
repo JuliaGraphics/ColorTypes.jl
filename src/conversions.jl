@@ -1,13 +1,13 @@
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
 
-convert{C<:Color}(::Type{C}, c::Color) = cconvert(ccolor(C, typeof(c)), c)
+convert{C<:Colorant}(::Type{C}, c::Colorant) = cconvert(ccolor(C, typeof(c)), c)
 cconvert{C}(::Type{C}, c::C) = c
-cconvert{C}(::Type{C}, c)    = _convert(C, baseopaquetype(C), baseopaquetype(c), c)
-convert{C<:TransparentColor}(::Type{C}, c::OpaqueColor, alpha) = cconvert(ccolor(C, typeof(c)), c, alpha)
-cconvert{C<:OpaqueColor,T,N}(::Type{AlphaColor{C,T,N}}, c::C, alpha) = alphacolor(C)(c, alpha)
-cconvert{C<:OpaqueColor,T,N}(::Type{ColorAlpha{C,T,N}}, c::C, alpha) = coloralpha(C)(c, alpha)
-cconvert{C<:TransparentColor}(::Type{C}, c::OpaqueColor, alpha) =_convert(C, baseopaquetype(C), baseopaquetype(c), c, alpha)
+cconvert{C}(::Type{C}, c)    = _convert(C, base_color_type(C), base_color_type(c), c)
+convert{C<:TransparentColor}(::Type{C}, c::Color, alpha) = cconvert(ccolor(C, typeof(c)), c, alpha)
+cconvert{C<:Color,T,N}(::Type{AlphaColor{C,T,N}}, c::C, alpha) = alphacolor(C)(c, alpha)
+cconvert{C<:Color,T,N}(::Type{ColorAlpha{C,T,N}}, c::C, alpha) = coloralpha(C)(c, alpha)
+cconvert{C<:TransparentColor}(::Type{C}, c::Color, alpha) =_convert(C, base_color_type(C), base_color_type(c), c, alpha)
 
 
 # Fallback definitions that print nice error messages
@@ -56,7 +56,7 @@ convert{T}(::Type{AGray{T}}, x::Real)    = AGray{T}(x)
 convert{T}(::Type{GrayA{T}}, x::Real)    = GrayA{T}(x)
 
 # Generate the transparent analog of a color
-alphacolor{C<:OpaqueColor     }(c::C) = alphacolor(C)(c)
-alphacolor{C<:TransparentColor}(c::C) = alphacolor(baseopaquetype(C))(opaquetype(c), alpha(c))
-coloralpha{C<:OpaqueColor     }(c::C) = coloralpha(C)(c)
-coloralpha{C<:TransparentColor}(c::C) = coloralpha(baseopaquetype(C))(opaquetype(c), alpha(c))
+alphacolor{C<:Color     }(c::C) = alphacolor(C)(c)
+alphacolor{C<:TransparentColor}(c::C) = alphacolor(base_color_type(C))(color_type(c), alpha(c))
+coloralpha{C<:Color     }(c::C) = coloralpha(C)(c)
+coloralpha{C<:TransparentColor}(c::C) = coloralpha(base_color_type(C))(color_type(c), alpha(c))

@@ -5,7 +5,7 @@
 without an alpha channel, it will always return 1.
 """ ->
 alpha(c::TransparentColor) = c.alpha
-alpha(c::OpaqueColor) = one(eltype(c))
+alpha(c::Color)   = one(eltype(c))
 alpha(c::RGB24)   = Ufixed8(1)
 alpha(c::ARGB32)  = Ufixed8((c.color & 0xff000000)>>24, 0)
 alpha(c::AGray32) = Ufixed8((c.color & 0xff000000)>>24, 0)
@@ -43,7 +43,7 @@ channel, this is just the first field, but for types like `BGR` that
 reverse the internal storage order this provides the value that you'd
 use to reconstruct the color.
 
-Specifically, for any `OpaqueColor{T,3}`,
+Specifically, for any `Color{T,3}`,
 
     c == typeof(c)(comp1(c), comp2(c), comp3(c))
 
@@ -51,124 +51,124 @@ returns true.
 """ ->
 comp1(c::AbstractRGB) = red(c)
 comp1{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = red(c)
-comp1(c::Union(OpaqueColor,ColorAlpha)) = getfield(c, 1)
+comp1(c::Union(Color,ColorAlpha)) = getfield(c, 1)
 comp1(c::AlphaColor) = getfield(c, 2)
 
 @doc "`comp2(c)` extracts the second constructor argument (see `comp1`)." ->
 comp2(c::AbstractRGB) = green(c)
 comp2{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = green(c)
-comp2(c::Union(OpaqueColor,ColorAlpha)) = getfield(c, 2)
+comp2(c::Union(Color,ColorAlpha)) = getfield(c, 2)
 comp2(c::AlphaColor) = getfield(c, 3)
 
 @doc "`comp3(c)` extracts the third constructor argument (see `comp1`)." ->
 comp3(c::AbstractRGB) = blue(c)
 comp3{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = blue(c)
-comp3(c::Union(OpaqueColor,ColorAlpha)) = getfield(c, 3)
+comp3(c::Union(Color,ColorAlpha)) = getfield(c, 3)
 comp3(c::AlphaColor) = getfield(c, 4)
 
-@doc "`opaquecolor(c)` extracts the opaque color component from a Color (e.g., omits the alpha channel, if present)." ->
-opaquecolor(c::OpaqueColor) = c
-opaquecolor{T}(c::Color{T,4}) = opaquetype(c)(comp1(c), comp2(c), comp3(c))
-opaquecolor{T}(c::Color{T,2}) = opaquetype(c)(comp1(c))
+@doc "`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)." ->
+color(c::Color) = c
+color{C,T}(c::TransparentColor{C,T,4}) = C(comp1(c), comp2(c), comp3(c))
+color{C,T}(c::TransparentColor{C,T,2}) = C(comp1(c))
 
 # Generate the transparent analog of a color
-alphacolor{C<:OpaqueColor}(c::C) = alphacolor(C)(c)
-coloralpha{C<:OpaqueColor}(c::C) = coloralpha(C)(c)
+alphacolor{C<:Color}(c::C) = alphacolor(C)(c)
+coloralpha{C<:Color}(c::C) = coloralpha(C)(c)
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
 # function in general
 
-# recurse up the type hierarchy until you get to Color{T,N} for
+# recurse up the type hierarchy until you get to Colorant{T,N} for
 # specific T,N.
-to_top{T,N}(::Type{Color{T,N}}) = Color{T,N}
-to_top{C<:Color}(::Type{C}) = to_top(super(C))
+to_top{T,N}(::Type{Colorant{T,N}}) = Colorant{T,N}
+to_top{C<:Colorant}(::Type{C}) = to_top(super(C))
 
-to_top(c::Color) = to_top(typeof(c))
+to_top(c::Colorant) = to_top(typeof(c))
 
 # eltype(RGB{Float32}) -> Float32
-eltype{T       }(::Type{Color{T}})   = T
-eltype{T,N     }(::Type{Color{T,N}}) = T
-eltype{C<:Color}(::Type{C}) = eltype(super(C))
+eltype{T          }(::Type{Colorant{T}})   = T
+eltype{T,N        }(::Type{Colorant{T,N}}) = T
+eltype{C<:Colorant}(::Type{C}) = eltype(super(C))
 
-eltype(c::Color) = eltype(typeof(c))
+eltype(c::Colorant) = eltype(typeof(c))
 
 # Return the number of components in the color
 # Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
-length{T,N}(::Type{Color{T,N}}) = N
-length{N}(::Type{Color{TypeVar(:T),N}}) = N   # julia #12596
-length{C<:Color}(::Type{C}) = length(super(C))
+length{T,N}(::Type{Colorant{T,N}}) = N
+length{N}(::Type{Colorant{TypeVar(:T),N}}) = N   # julia #12596
+length{C<:Colorant}(::Type{C}) = length(super(C))
 
-length(c::Color) = length(typeof(c))
+length(c::Colorant) = length(typeof(c))
 
 @doc """
-`opaquetype(c)` or `opaquetype(C)` (`c` being a color instance and `C`
-being the type) returns the type of the OpaqueColor object (without
-alpha channel).  This, and related functions like `baseopaquetype`,
-`basecolortype`, and `ccolor` are useful for manipulating types for
+`color_type(c)` or `color_type(C)` (`c` being a color instance and `C`
+being the type) returns the type of the Color object (without
+alpha channel).  This, and related functions like `base_color_type`,
+`base_colorant_type`, and `ccolor` are useful for manipulating types for
 writing generic code.
 
 For example,
 
-    opaquetype(RGB)          == RGB
-    opaquetype(RGB{Float32}) == RGB{Float32}
-    opaquetype(ARGB{U8})     == RGB{U8}
+    color_type(RGB)          == RGB
+    color_type(RGB{Float32}) == RGB{Float32}
+    color_type(ARGB{U8})     == RGB{U8}
 """ ->
-opaquetype{C<:OpaqueColor}(::Type{C}) = C
-opaquetype{C<:AlphaColor }(::Type{C}) = opaquetype(super(C))
-opaquetype{C<:ColorAlpha }(::Type{C}) = opaquetype(super(C))
-opaquetype{     }(::Type{TransparentColor})        = OpaqueColor
-opaquetype{C    }(::Type{TransparentColor{C}})     = C
-opaquetype{C,T  }(::Type{TransparentColor{C,T}})   = C
-opaquetype{C,T,N}(::Type{TransparentColor{C,T,N}}) = C
-opaquetype{C,N  }(::Type{TransparentColor{C,TypeVar(:T),N}}) = C
+color_type{C<:Color}(::Type{C}) = C
+color_type{C<:AlphaColor}(::Type{C}) = color_type(super(C))
+color_type{C<:ColorAlpha}(::Type{C}) = color_type(super(C))
+color_type{     }(::Type{TransparentColor})        = Color
+color_type{C    }(::Type{TransparentColor{C}})     = C
+color_type{C,T  }(::Type{TransparentColor{C,T}})   = C
+color_type{C,T,N}(::Type{TransparentColor{C,T,N}}) = C
+color_type{C,N  }(::Type{TransparentColor{C,TypeVar(:T),N}}) = C
 
-opaquetype(c::Color) = opaquetype(typeof(c))
+color_type(c::Colorant) = color_type(typeof(c))
 
 @doc """
-`baseopaquetype` is similar to `opaquetype`, except it "strips off" the
+`base_color_type` is similar to `color_type`, except it "strips off" the
 element type.  For example,
 
-    opaquetype(RGB{U8})     == RGB{U8}
-    baseopaquetype(RGB{U8}) == RGB
+    color_type(RGB{U8})     == RGB{U8}
+    base_color_type(RGB{U8}) == RGB
 
 This can be very handy if you want to switch element types. For example:
 
-    c64 = baseopaquetype(c){Float64}(color(c))
+    c64 = base_color_type(c){Float64}(color(c))
 
 converts `c` into a `Float64` representation (potentially discarding
 any alpha-channel information).
 """ ->
-baseopaquetype{C<:Color}(::Type{C}) = basecolortype(opaquetype(C))
+base_color_type{C<:Colorant}(::Type{C}) = base_colorant_type(color_type(C))
 
-baseopaquetype(c::Color) = baseopaquetype(typeof(c))
+base_color_type(c::Colorant) = base_color_type(typeof(c))
 
 if VERSION < v"0.4.0-dev"
-    basecolortype{C<:Color}(::Type{C}) = eval(C.name.name)  # slow, but oh well
+    base_colorant_type{C<:Colorant}(::Type{C}) = eval(C.name.name)  # slow, but oh well
 else
-    @eval @generated function basecolortype{C<:Color}(::Type{C})
+    @eval @generated function base_colorant_type{C<:Colorant}(::Type{C})
         name = C.name.name
         :($name)
     end
 end
 
 @doc """
-`basecolortype` is similar to `baseopaquetype`, but it preserves the
+`base_colorant_type` is similar to `base_color_type`, but it preserves the
 "alpha" portion of the type.
 
 For example,
 
-    baseopaquetype(ARGB{U8})  == RGB
-    basecolortype(ARGB{U8})  == ARGB
+    base_color_type(ARGB{U8})  == RGB
+    base_colorant_type(ARGB{U8})  == ARGB
 
 If you just want to switch element types, this is the safest default
 and the easiest to use:
 
-    c64 = basecolortype(c){Float64}(c)
+    c64 = base_colorant_type(c){Float64}(c)
 """ ->
-basecolortype(c::Color) = basecolortype(typeof(c))
+base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
-color_string{C<:Color}(::Type{C}) = string(C.name.name)
+colorant_string{C<:Colorant}(::Type{C}) = string(C.name.name)
 
 @doc """
  `ccolor` ("concrete color") helps write flexible methods. The idea is
@@ -185,54 +185,54 @@ Usage:
 
 Example:
 
-    convert{C<:Color}(::Type{C}, p::Color) = cnvt(ccolor(C,typeof(p)), p)
+    convert{C<:Colorant}(::Type{C}, p::Colorant) = cnvt(ccolor(C,typeof(p)), p)
 
 where `cnvt` is the function that performs explicit conversion.
 """ ->
-ccolor{   Csrc<:Color}(::Type{Color   }, ::Type{Csrc}) = Csrc
-ccolor{T, Csrc<:Color}(::Type{Color{T}}, ::Type{Csrc}) = basecolortype(Csrc){T}
-ccolor{   Csrc<:Color}(::Type{OpaqueColor   }, ::Type{Csrc}) = opaquetype(Csrc)
-ccolor{T, Csrc<:Color}(::Type{OpaqueColor{T}}, ::Type{Csrc}) = baseopaquetype(Csrc){T}
+ccolor{   Csrc<:Colorant}(::Type{Colorant   }, ::Type{Csrc}) = Csrc
+ccolor{T, Csrc<:Colorant}(::Type{Colorant{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
+ccolor{   Csrc<:Colorant}(::Type{Color   }, ::Type{Csrc}) = color_type(Csrc)
+ccolor{T, Csrc<:Colorant}(::Type{Color{T}}, ::Type{Csrc}) = base_color_type(Csrc){T}
 
-ccolor{Csrc<:OpaqueColor}(::Type{TransparentColor}, ::Type{Csrc}) =
+ccolor{Csrc<:Color}(::Type{TransparentColor}, ::Type{Csrc}) =
           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor{C<:OpaqueColor,    Csrc<:OpaqueColor}(
+ccolor{C<:Color,    Csrc<:Color}(
        ::Type{TransparentColor{C    }}, ::Type{Csrc}) =
            error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor{C<:OpaqueColor,T,  Csrc<:OpaqueColor}(
+ccolor{C<:Color,T,  Csrc<:Color}(
        ::Type{TransparentColor{C,T  }}, ::Type{Csrc}) =
            error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor{C<:OpaqueColor,T,N,Csrc<:OpaqueColor}(
+ccolor{C<:Color,T,N,Csrc<:Color}(
        ::Type{TransparentColor{C,T,N}}, ::Type{Csrc}) =
            error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
 
 ccolor{Csrc<:TransparentColor}(::Type{TransparentColor}, ::Type{Csrc}) = Csrc
 
-ccolor{Csrc<:Color}(::Type{AlphaColor}, ::Type{Csrc}) = alphacolor(Csrc)
-ccolor{C<:OpaqueColor,    Csrc<:Color}(
+ccolor{Csrc<:Colorant}(::Type{AlphaColor}, ::Type{Csrc}) = alphacolor(Csrc)
+ccolor{C<:Color,    Csrc<:Colorant}(
        ::Type{AlphaColor{C    }}, ::Type{Csrc}) = ccolor(alphacolor(C), Csrc)
-ccolor{C<:OpaqueColor,T,  Csrc<:Color}(
+ccolor{C<:Color,T,  Csrc<:Colorant}(
        ::Type{AlphaColor{C,T  }}, ::Type{Csrc}) = ccolor(alphacolor(C){T}, Csrc)
-ccolor{C<:OpaqueColor,T,N,Csrc<:Color}(
+ccolor{C<:Color,T,N,Csrc<:Colorant}(
        ::Type{AlphaColor{C,T,N}}, ::Type{Csrc}) = ccolor(alphacolor(C){T}, Csrc)
 
-ccolor{Csrc<:Color}(::Type{ColorAlpha}, ::Type{Csrc}) = coloralpha(Csrc)
-ccolor{C<:OpaqueColor,    Csrc<:Color}(
+ccolor{Csrc<:Colorant}(::Type{ColorAlpha}, ::Type{Csrc}) = coloralpha(Csrc)
+ccolor{C<:Color,    Csrc<:Colorant}(
        ::Type{ColorAlpha{C    }}, ::Type{Csrc}) = ccolor(coloralpha(C), Csrc)
-ccolor{C<:OpaqueColor,T,  Csrc<:Color}(
+ccolor{C<:Color,T,  Csrc<:Colorant}(
        ::Type{ColorAlpha{C,T  }}, ::Type{Csrc}) = ccolor(coloralpha(C){T}, Csrc)
-ccolor{C<:OpaqueColor,T,N,Csrc<:Color}(
+ccolor{C<:Color,T,N,Csrc<:Colorant}(
        ::Type{ColorAlpha{C,T,N}}, ::Type{Csrc}) = ccolor(coloralpha(C){T}, Csrc)
 
 ccolor{  Csrc<:AbstractRGB}(::Type{AbstractRGB},    ::Type{Csrc}) = Csrc
-ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = basecolortype(Csrc){T}
+ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
 
 # Concrete types
-ccolor{Cdest<:Color,Csrc<:Color}(::Type{Cdest}, ::Type{Csrc}) = basecolortype(Cdest){pick_eltype(opaquetype(Cdest), eltype(Cdest), eltype(Csrc))}
-ccolor{Csrc<:Color}(::Type{RGB24},   ::Type{Csrc}) = RGB24
-ccolor{Csrc<:Color}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
-ccolor{Csrc<:Color}(::Type{Gray24},  ::Type{Csrc}) = Gray24
-ccolor{Csrc<:Color}(::Type{AGray32}, ::Type{Csrc}) = AGray32
+ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = base_colorant_type(Cdest){pick_eltype(color_type(Cdest), eltype(Cdest), eltype(Csrc))}
+ccolor{Csrc<:Colorant}(::Type{RGB24},   ::Type{Csrc}) = RGB24
+ccolor{Csrc<:Colorant}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
+ccolor{Csrc<:Colorant}(::Type{Gray24},  ::Type{Csrc}) = Gray24
+ccolor{Csrc<:Colorant}(::Type{AGray32}, ::Type{Csrc}) = AGray32
 
 pick_eltype{C,T1<:Number,T2            }(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
 pick_eltype{C,T1<:Number,T2<:FixedPoint}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
