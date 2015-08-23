@@ -23,14 +23,14 @@ Here is the type hierarchy used in ColorTypes:
 
 ![Types](images/types.png "Types")
 
-- `Color` is the general term used for any object exported by this
-  package.  `TransparentColor` indicates an object with alpha-channel
-  information; `OpaqueColor` means that it has no alpha-channel.
+- `Colorant` is the general term used for any object exported by this
+  package.  True colors are called `Color`; `TransparentColor`
+  indicates an object that also has alpha-channel information.
 
-- `OpaqueColor{T,3}` is a 3-component color (like RGB = red, green, blue);
-  `OpaqueColor{T,1}` is a 1-component "color" (e.g., grayscale).
+- `Color{T,3}` is a 3-component color (like RGB = red, green, blue);
+  `Color{T,1}` is a 1-component color, i.e., grayscale).
 
-- Most opaque colors have both `AlphaColor` and `ColorAlpha` variants;
+- Most colors have both `AlphaColor` and `ColorAlpha` variants;
   for example, `RGB` has both `ARGB` and `RGBA`.  These indicate
   different underlying storage in memory: `AlphaColor` stores the
   alpha-channel first, then the color, whereas `ColorAlpha` stores the
@@ -40,7 +40,7 @@ Here is the type hierarchy used in ColorTypes:
 
 ## Colors
 
-### RGB (plus BGR, RGB1, and RGB4)
+### RGB plus BGR, RGB1, RGB4, and RGB24: the AbstractRGB group
 
 The [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
 
@@ -63,7 +63,7 @@ is represented as `0xff`.  This strategy ensures that `1` always means
 Ordinary integers should not be used, although the convenience
 constructor `RGB(1,0,0)` will create a value `RGB{U8}(1.0, 0.0, 0.0)`.
 
-The `BGR` type is defined as
+The analogous `BGR` type is defined as
 
 ```jl
 immutable BGR{T} <: AbstractRGB{T}
@@ -83,6 +83,23 @@ one extra ("invisible") padding element; when the element type is
 `U8`, these have favorable memory alignment for interfacing with
 libraries like OpenGL.
 
+Finally, one may represent an RGB color as 8-bit values packed into a
+32-bit integer:
+
+```julia
+immutable RGB24 <: AbstractRGB{U8}
+    color::UInt32
+end
+```
+
+The storage order is `0xAARRGGBB`, where `RR` means the red channel,
+`GG` means the green, and `BB` means the blue.  `AA` is ignored for
+`RGB24`; there is also an `ARGB32`, for which that byte represents
+alpha. Note that this type can also be constructed as
+`RGB24(0.8,0.5,0.2)`. However, since this type has no fields named
+`r`, `g`, `b`, it is better to extract values from `AbstractRGB`
+objects using `red(c)`, `green(c)`, `blue(c)`.
+
 
 ### HSV
 
@@ -91,8 +108,8 @@ common projection of RGB to cylindrical coordinates.  This is also
 sometimes called "HSB" for Hue-Saturation-Brightness.
 
 ```julia
-immutable HSV{T} <: OpaqueColor{T,3}
-    h::T # Hue in [0,360]
+immutable HSV{T} <: Color{T,3}
+    h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
@@ -108,8 +125,8 @@ represented with most `FixedPoint` types.
 common projection of RGB to cylindrical coordinates.
 
 ```julia
-immutable HSL{T} <: OpaqueColor{T,3}
-    h::T # Hue in [0,360]
+immutable HSL{T} <: Color{T,3}
+    h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
@@ -121,7 +138,7 @@ Hue, saturation, intensity, a variation of HSL and HSV commonly used
 in computer vision.
 
 ```jl
-immutable HSI{T} <: OpaqueColor{T,3}
+immutable HSI{T} <: Color{T,3}
     h::T
     s::T
     i::T
@@ -136,7 +153,7 @@ color perception culminating in the CIE standard observer (see
 `Colors.jl`'s `cie_color_match` function).
 
 ```julia
-immutable XYZ{T} <: OpaqueColor{T,3}
+immutable XYZ{T} <: Color{T,3}
     x::T
     y::T
     z::T
@@ -155,33 +172,33 @@ specifically because the xy chromaticity space is invariant to the
 lightness of the patch.
 
 ```julia
-immutable xyY{T} <: OpaqueColor{T,3}
+immutable xyY{T} <: Color{T,3}
     x::T
     y::T
     Y::T
 end
 ```
 
-### LAB
+### Lab
 
 A perceptually uniform colorpsace standardized by the CIE in 1976. See
 also LUV, the associated colorspace standardized the same year.
 
 ```julia
-immutable Lab{T} <: OpaqueColor{T,3}
+immutable Lab{T} <: Color{T,3}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 ```
 
-### LUV
+### Luv
 
 A perceptually uniform colorpsace standardized by the CIE in 1976. See
 also LAB, a similar colorspace standardized the same year.
 
 ```julia
-immutable LUV{T} <: OpaqueColor{T,3}
+immutable Luv{T} <: Color{T,3}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
@@ -194,10 +211,10 @@ end
 The LAB colorspace reparameterized using cylindrical coordinates.
 
 ```julia
-immutable LCHab{T} <: OpaqueColor{T,3}
+immutable LCHab{T} <: Color{T,3}
     l::T # Luminance in [0,100]
     c::T # Chroma
-    h::T # Hue in [0,360]
+    h::T # Hue in [0,360)
 end
 ```
 
@@ -207,7 +224,7 @@ end
 The LUV colorspace reparameterized using cylindrical coordinates.
 
 ```julia
-immutable LCHuv{T} <: OpaqueColor{T,3}
+immutable LCHuv{T} <: Color{T,3}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
@@ -220,7 +237,7 @@ end
 The DIN99 uniform colorspace as described in the DIN 6176 specification.
 
 ```julia
-immutable DIN99{T} <: OpaqueColor{T,3}
+immutable DIN99{T} <: Color{T,3}
     l::T # L99 (Lightness)
     a::T # a99 (Red/Green)
     b::T # b99 (Blue/Yellow)
@@ -235,7 +252,7 @@ space that adds a correction to the X tristimulus value in order to
 emulate the rotation term present in the DeltaE2000 equation.
 
 ```julia
-immutable DIN99d{T} <: OpaqueColor{T,3}
+immutable DIN99d{T} <: Color{T,3}
     l::T # L99d (Lightness)
     a::T # a99d (Reddish/Greenish)
     b::T # b99d (Bluish/Yellowish)
@@ -251,7 +268,7 @@ and the DeltaE2000 rotation term, DIN99o achieves comparable results
 by optimized `a*/b*` rotation and chroma compression terms.
 
 ```julia
-immutable DIN99o{T} <: OpaqueColor{T,3}
+immutable DIN99o{T} <: Color{T,3}
     l::T # L99o (Lightness)
     a::T # a99o (Red/Green)
     b::T # b99o (Blue/Yellow)
@@ -267,7 +284,7 @@ to LMS space have been defined. Here the
 adaptation matrix is used.
 
 ```
-immutable LMS{T} <: OpaqueColor{T,3}
+immutable LMS{T} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
@@ -276,26 +293,12 @@ end
 
 Like `XYZ`, `LMS` is a linear color space.
 
-### RGB24 and ARGB32
-
-An RGB color represented as 8-bit values packed into a 32-bit integer.
-
-```julia
-immutable RGB24 <: Color{U8}
-    color::UInt32
-end
-```
-The storage order is `0xAARRGGBB`, where `RR` means the red channel,
-`GG` means the green, and `BB` means the blue.  `AA` is ignored for
-`RGB24`; there is also an `ARGB32`, for which that byte represents
-alpha.
-
 ### YIQ (NTSC)
 
 A color-encoding format used by the NTSC broadcast standard.
 
 ```julia
-immutable YIQ{T} <: OpaqueColor{T,3}
+immutable YIQ{T} <: Color{T,3}
     y::T
     i::T
     q::T
@@ -307,7 +310,7 @@ end
 A color-encoding format common in video and digital photography.
 
 ```jl
-immutable YCbCr{T} <: OpaqueColor{T,3}
+immutable YCbCr{T} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -320,7 +323,7 @@ end
 
 `Gray` is a simple wrapper around a number:
 ```jl
-immutable Gray{T} <: OpaqueColor{T,1}
+immutable Gray{T} <: Color{T,1}
     val::T
 end
 ```
@@ -335,7 +338,7 @@ types, `AGray` and `GrayA`.
 
 `Gray24` is a grayscale value encoded as a `UInt32`:
 ```jl
-immutable Gray24 <: OpaqueColor{U8,1}
+immutable Gray24 <: Color{U8,1}
     color::UInt32
 end
 ```
@@ -356,11 +359,12 @@ set of trait-functions for working with color types:
 - `alphacolor(c)` and `coloralpha(c)` convert a `Color` to an object
   with transparency (either `ARGB` or `RGBA`, respectively).
 
-- `opaquetype(c)` extracts the opaque (color-only) type of the object (e.g.,
+- `color_type(c)` extracts the opaque (color-only) type of the object (e.g.,
   `RGB{U8}` from an object of type `ARGB{U8}`).
 
-- `basecolortype(c)` and `baseopaquetype(c)` extract type information
-  and discard the element type.
+- `base_color_type(c)` and `base_colorant_type(c)` extract type
+  information and discard the element type (e.g.,
+  `base_colorant_type(ARGB{U8})` yields `ARGB`)
 
 - `ccolor(Cdest, Csrc)` helps pick a concrete element type for methods
   where the output may be left unstated, e.g., `convert(RGB, c)`

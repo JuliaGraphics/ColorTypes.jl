@@ -1,7 +1,7 @@
-show(io::IO, c::Color)              = _show(io, c)
-show(io::IO, c::ColorUfixed)        = show_ufixed(io, c)
-showcompact(io::IO, c::Color)       = _showcompact(io, c)
-showcompact(io::IO, c::ColorUfixed) = show_ufixed(io, c)
+show(io::IO, c::Colorant)              = _show(io, c)
+show(io::IO, c::ColorantUfixed)        = show_ufixed(io, c)
+showcompact(io::IO, c::Colorant)       = _showcompact(io, c)
+showcompact(io::IO, c::ColorantUfixed) = show_ufixed(io, c)
 
 for N = 1:4
     component = N >= 3 ? (:comp1, :comp2, :comp3, :alpha) : (:comp1, :alpha)
@@ -12,8 +12,8 @@ for N = 1:4
         printargs[2,i] = :(print(io, $chr))
     end
     @eval begin
-        function _show{T}(io::IO, c::Color{T,$N})
-            print(io, color_string(typeof(c)), "{", T, "}(")
+        function _show{T}(io::IO, c::Colorant{T,$N})
+            print(io, colorant_string(typeof(c)), "{", T, "}(")
             $(printargs[:]...)
         end
     end
@@ -21,17 +21,17 @@ for N = 1:4
         printargs[1,i] = :(showcompact(io, $(component[i])(c)))
     end
     @eval begin
-        function _showcompact{T}(io::IO, c::Color{T,$N})
-            print(io, color_string(typeof(c)), "{", T, "}(")
+        function _showcompact{T}(io::IO, c::Colorant{T,$N})
+            print(io, colorant_string(typeof(c)), "{", T, "}(")
             $(printargs[:]...)
         end
         # Special handling for Ufixed types: don't print the giant type name
-        function show_ufixed{T,f}(io::IO, c::Color{FixedPointNumbers.UfixedBase{T,f},$N})
-            print(io, color_string(typeof(c)), "{Ufixed", f, "}(")
+        function show_ufixed{T,f}(io::IO, c::Colorant{FixedPointNumbers.UfixedBase{T,f},$N})
+            print(io, colorant_string(typeof(c)), "{Ufixed", f, "}(")
             $(printargs[:]...)
         end
-        function show_ufixed(io::IO, c::Color{U8,$N})
-            print(io, color_string(typeof(c)), "{U8}(")
+        function show_ufixed(io::IO, c::Colorant{U8,$N})
+            print(io, colorant_string(typeof(c)), "{U8}(")
             $(printargs[:]...)
         end
     end

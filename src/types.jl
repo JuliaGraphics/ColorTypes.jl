@@ -1,19 +1,19 @@
 @doc """
-`Color{T,N}` is the abstract super-type of all types in ColorTypes,
-and refers to both opaque colors and colors-with-transparency (alpha
+`Colorant{T,N}` is the abstract super-type of all types in ColorTypes,
+and refers to both (opaque) colors and colors-with-transparency (alpha
 channel) information.  `T` is the element type (extractable with
 `eltype`) and `N` is the number of *meaningful* entries (extractable
 with `length`), i.e., the number of arguments you would supply to the
 constructor.
 """ ->
-abstract Color{T,N}
+abstract Colorant{T,N}
 
-# OpaqueColors (without transparency)
+# Colors (without transparency)
 @doc """
-`OpaqueColor{T,N}` is the abstract supertype for a color (or
+`Color{T,N}` is the abstract supertype for a color (or
 grayscale) with no transparency.
 """ ->
-abstract OpaqueColor{T, N} <: Color{T,N}
+abstract Color{T, N} <: Colorant{T,N}
 
 @doc """
 `AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
@@ -23,7 +23,7 @@ assumptions about internal storage order, the number of fields, or the
 representation. One `AbstractRGB` color-type, `RGB24`, is not
 parametric and does not have fields named `r`, `g`, `b`.
 """ ->
-abstract AbstractRGB{T}      <: OpaqueColor{T,3}
+abstract AbstractRGB{T}      <: Color{T,3}
 
 
 # Types with transparency
@@ -31,8 +31,8 @@ abstract AbstractRGB{T}      <: OpaqueColor{T,3}
 `TransparentColor{C,T,N}` is the abstract type for any
 color-with-transparency.  The `C` parameter refers to the type of the
 pure color (without transparency) and can be extracted with
-`opaquetype`. `T` is the element type of both `C` and the `alpha`
-channel, and `N` has the same meaning as in `Color` (and is 1 larger
+`color_type`. `T` is the element type of both `C` and the `alpha`
+channel, and `N` has the same meaning as in `Colorant` (and is 1 larger
 than the corresponding color type).
 
 All transparent types should support two modes of construction:
@@ -40,8 +40,8 @@ All transparent types should support two modes of construction:
     P(color, alpha)
     P(component1, component2, component3, alpha) (assuming a 3-component color)
 
-For a `Color` `p`, the color component can be extracted with
-`color(p)`, and the alpha channel with `alpha(p)`. Note that types
+For a `Colorant` `c`, the color component can be extracted with
+`color(c)`, and the alpha channel with `alpha(c)`. Note that types
 such as `ARGB32` do not have a field named `alpha`.
 
 Most concrete types, like `RGB`, have both `ARGB` and `RGBA`
@@ -49,7 +49,7 @@ transparent analogs.  These two indicate different internal storage
 order (see `AlphaColor` and `ColorAlpha`, and the `alphacolor` and
 `coloralpha` functions).
 """ ->
-abstract TransparentColor{C<:OpaqueColor,T,N} <: Color{T,N}
+abstract TransparentColor{C<:Color,T,N} <: Colorant{T,N}
 
 @doc """
 `AlphaColor` is an abstract supertype for types like `ARGB`, where the
@@ -65,12 +65,12 @@ alpha channel comes last in the internal storage order.
 abstract ColorAlpha{C,T,N} <: TransparentColor{C,T,N}
 
 # These are types we'll dispatch on. Not exported.
-typealias AbstractGray{T}                    OpaqueColor{T,1}
-typealias Color3{T}                          OpaqueColor{T,3}
+typealias AbstractGray{T}                    Color{T,1}
+typealias Color3{T}                          Color{T,3}
 typealias TransparentGray{C<:AbstractGray,T} TransparentColor{C,T,2}
 typealias Transparent3{C<:Color3,T}          TransparentColor{C,T,4}
 typealias TransparentRGB{C<:AbstractRGB,T}   TransparentColor{C,T,4}
-typealias ColorUfixed{T<:Ufixed,N}           Color{T,N}
+typealias ColorantUfixed{T<:Ufixed,N}        Colorant{T,N}
 
 @doc """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
@@ -88,8 +88,8 @@ end
 `BGR` is a variant of `RGB` with the opposite storage order.  Note
 that the constructor is still called in the order `BGR(r, g, b)`.
 This storage order is noteworthy because on little-endian machines,
-`BGRA` (with transparency) corresponds to the `UInt32` color format
-used by libraries such as Cairo and OpenGL.
+`BGRA` (with transparency) can be `reinterpret`ed to the `UInt32`
+color format used by libraries such as Cairo and OpenGL.
 """ ->
 immutable BGR{T<:Fractional} <: AbstractRGB{T}
     b::T
@@ -137,8 +137,8 @@ end
 RGB4{T}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
 @doc "`HSV` is the Hue-Saturation-Value colorspace." ->
-immutable HSV{T<:FloatingPoint} <: OpaqueColor{T,3}
-    h::T # Hue in [0,360]
+immutable HSV{T<:FloatingPoint} <: Color{T,3}
+    h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
@@ -147,14 +147,14 @@ end
 HSB(h, s, b) = HSV(h, s, b)
 
 @doc "`HSL` is the Hue-Saturation-Lightness colorspace." ->
-immutable HSL{T<:FloatingPoint} <: OpaqueColor{T,3}
-    h::T # Hue in [0,360]
+immutable HSL{T<:FloatingPoint} <: Color{T,3}
+    h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
 @doc "`HSI` is the Hue-Saturation-Intensity colorspace." ->
-immutable HSI{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable HSI{T<:FloatingPoint} <: Color{T,3}
     h::T
     s::T
     i::T
@@ -165,63 +165,63 @@ end
 meaning that mathematical operations such as addition, subtraction,
 and scaling make "colorimetric sense" in this colorspace.
 """ ->
-immutable XYZ{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable XYZ{T<:FloatingPoint} <: Color{T,3}
     x::T
     y::T
     z::T
 end
 
 @doc "`xyY` is the CIE 1931 xyY (chromaticity + luminance) space" ->
-immutable xyY{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable xyY{T<:FloatingPoint} <: Color{T,3}
     x::T
     y::T
     Y::T
 end
 
 @doc "`Lab` is the CIELAB colorspace." ->
-immutable Lab{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable Lab{T<:FloatingPoint} <: Color{T,3}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
 @doc "`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace" ->
-immutable LCHab{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable LCHab{T<:FloatingPoint} <: Color{T,3}
     l::T # Luminance in [0,100]
     c::T # Chroma
-    h::T # Hue in [0,360]
+    h::T # Hue in [0,360)
 end
 
 @doc "`Luv` is the CIELUV colorspace" ->
-immutable Luv{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable Luv{T<:FloatingPoint} <: Color{T,3}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
 @doc "`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace" ->
-immutable LCHuv{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable LCHuv{T<:FloatingPoint} <: Color{T,3}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
 end
 
 @doc "`DIN99` is the (L99, a99, b99) adaptation of CIELAB" ->
-immutable DIN99{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable DIN99{T<:FloatingPoint} <: Color{T,3}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
 @doc "`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99" ->
-immutable DIN99d{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable DIN99d{T<:FloatingPoint} <: Color{T,3}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
 @doc "`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB" ->
-immutable DIN99o{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable DIN99o{T<:FloatingPoint} <: Color{T,3}
     l::T # L99o
     a::T # a99o
     b::T # b99o
@@ -231,21 +231,21 @@ end
 `LMS` is the Long-Medium-Short colorspace based on activation of the
 three cone photoreceptors.  Like `XYZ`, this is a linear color space.
 """ ->
-immutable LMS{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable LMS{T<:FloatingPoint} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
 end
 
 @doc "`YIQ` is a color encoding, for example used in NTSC transmission." ->
-immutable YIQ{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable YIQ{T<:FloatingPoint} <: Color{T,3}
     y::T
     i::T
     q::T
 end
 
 @doc "`YCbCr` is the Y'CbCr color encoding often used in digital photography or video" ->
-immutable YCbCr{T<:FloatingPoint} <: OpaqueColor{T,3}
+immutable YCbCr{T<:FloatingPoint} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -335,21 +335,21 @@ AGray32(val, alpha = 1) = AGray32(@compat(U8(val)), @compat(U8(alpha)))
 # Generated code:
 #   - more constructors for colors
 #   - TransparentColor definitions (e.g., ARGB), exports, and constructors
-#   - coloralpha(::OpaqueColor) and alphacolor(::OpaqueColor) traits for corresponding types
+#   - coloralpha(::Color) and alphacolor(::Color) traits for corresponding types
 
 # Note: with the exceptions of `alphacolor` and `coloralpha`, all
 # traits in the rest of this file are intended just for internal use
 
-const color3types = filter(x->(!x.abstract && length(fieldnames(x))>1), union(subtypes(OpaqueColor), subtypes(AbstractRGB)))
+const color3types = filter(x->(!x.abstract && length(fieldnames(x))>1), union(subtypes(Color), subtypes(AbstractRGB)))
 const parametric3 = filter(x->!isempty(x.parameters), color3types)
 
 # Provide the field names in the order expected by the constructor
-colorfields{C<:OpaqueColor}(::Type{C}) = fieldnames(C)
+colorfields{C<:Color}(::Type{C}) = fieldnames(C)
 colorfields{C<:RGB1}(::Type{C}) = (:r, :g, :b)
 colorfields{C<:RGB4}(::Type{C}) = (:r, :g, :b)
 colorfields{C<:BGR }(::Type{C}) = (:r, :g, :b)
-colorfields{P<:TransparentColor}(::Type{P}) = tuple(colorfields(opaquetype(P))..., :alpha)
-colorfields(c::Color) = colorfields(typeof(c))
+colorfields{P<:TransparentColor}(::Type{P}) = tuple(colorfields(color_type(P))..., :alpha)
+colorfields(c::Colorant) = colorfields(typeof(c))
 
 # Generate convenience constructors for a type
 macro make_constructors(C, fields, elty)
@@ -445,11 +445,11 @@ end
 
 eltype_default{C<:AbstractRGB  }(::Type{C}) = U8
 eltype_default{C<:AbstractGray }(::Type{C}) = U8
-eltype_default{C<:OpaqueColor  }(::Type{C}) = Float32
-eltype_default{P<:Color        }(::Type{P}) = eltype_default(opaquetype(P))
+eltype_default{C<:Color  }(::Type{C}) = Float32
+eltype_default{P<:Colorant        }(::Type{P}) = eltype_default(color_type(P))
 
 # Upper bound on element type for each color type
-eltype_ub{P<:Color        }(::Type{P}) = eltype_ub(eltype_default(P))
+eltype_ub{P<:Colorant        }(::Type{P}) = eltype_ub(eltype_default(P))
 eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
 eltype_ub{T<:FloatingPoint}(::Type{T}) = FloatingPoint
 
