@@ -14,6 +14,15 @@ cconvert{C<:TransparentColor}(::Type{C}, c::Color, alpha) =_convert(C, base_colo
 _convert{C}(::Type{C}, ::Any, ::Any, c) = error("No conversion of ", c, " to ", C, " has been defined")
 _convert{C}(::Type{C}, ::Any, ::Any, c, alpha) = error("No conversion of (", c, ",alpha=$alpha) to ", C, " has been defined")
 
+# Any AbstractRGB types can be interconverted
+# (the first 2 are just for ambiguity resolution)
+# Note: on julia 0.3 these have to be before the block below, or you
+# get a spurious ambiguity warning.
+_convert{Cout<:AbstractRGB,C1<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C1}, c) = Cout(red(c), green(c), blue(c))
+_convert{A<:TransparentRGB,C1<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C1}, c) = A(red(c), green(c), blue(c), alpha(c))
+_convert{Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) = Cout(red(c), green(c), blue(c))
+_convert{A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C2}, c) = A(red(c), green(c), blue(c), alpha(c))
+
 # Implementations for when the base color type is not changing
 # These might trip/add transparency, however
 _convert{Cout<:Color3,Ccmp<:Color3}(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) = Cout(comp1(c), comp2(c), comp3(c))
@@ -23,14 +32,6 @@ _convert{A<:TransparentGray,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{
 
 # With user-supplied alpha
 _convert{A<:Transparent3,Ccmp<:Color3}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(comp1(c), comp2(c), comp3(c), alpha)
-
-# Any AbstractRGB types can be interconverted
-# (the first 2 are just for ambiguity resolution)
-typealias AnyRGB Union(AbstractRGB,TransparentRGB)
-_convert{Cout<:AbstractRGB,C1<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C1}, c::AnyRGB) = Cout(red(c), green(c), blue(c))
-_convert{A<:TransparentRGB,C1<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C1}, c::AnyRGB) = A(red(c), green(c), blue(c), alpha(c))
-_convert{Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c::AnyRGB) = Cout(red(c), green(c), blue(c))
-_convert{A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractRGB}(::Type{A}, ::Type{C1}, ::Type{C2}, c::AnyRGB) = A(red(c), green(c), blue(c), alpha(c))
 
 # Grayscale
 _convert{Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) = Cout(gray(c))
