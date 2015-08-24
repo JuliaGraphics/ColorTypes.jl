@@ -383,3 +383,15 @@ greater detail); just type `?ccolor` at the REPL.
 
 - `comp1`, `comp2`, and `comp3` extract color components in the order
   expected by the constructor
+
+## Extending ColorTypes and Colors
+
+In most cases, adding a new color space is quite straightforward:
+
+- Add your new type to [`types.jl`](src/types.jl), following the model of the other color types;
+- Add the type to the list of exports in [`ColorTypes.jl`](src/ColorTypes.jl);
+- In the Colors package, add [conversions](https://github.com/JuliaGraphics/Colors.jl/blob/master/src/conversions.jl) to and from your new colorspace.
+
+In special cases, there may be other considerations:
+- For RGB-related types, 0 means "black" and 1 means "saturated." If your type has unusual numeric interpretation, you may need to add a new number type to [FixedPointNumbers](https://github.com/JeffBezanson/FixedPointNumbers.jl) and set up appropriate `eltype_default` and `eltype_ub` traits.
+- If your type has extra fields, check the "Generated code" section of `types.jl` carefully. You may need to define a `colorfields` function and/or call `@make_constructors` or `@make_alpha` manually.
