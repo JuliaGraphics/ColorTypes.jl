@@ -259,3 +259,7 @@ end
 
 zero{T}(::Type{Gray{T}}) = Gray{T}(zero(T))
  one{T}(::Type{Gray{T}}) = Gray{T}(one(T))
+
+Base.start(A::Colorant)                = 1
+Base.next(A::Colorant, state::Integer) = (A.(state), state+1)
+Base.done(A::Colorant, state::Integer) = length(A) < state
