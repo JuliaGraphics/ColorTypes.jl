@@ -146,13 +146,15 @@ base_color_type(c::Colorant) = base_color_type(typeof(c))
 if VERSION < v"0.4.0-dev"
     for CT in union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
         @eval base_colorant_type{C<:$CT}(::Type{C}) = $CT
-        @eval base_colorant_type{C<:AlphaColor{$CT}}(::Type{C}) = $(alphacolor(CT))
-        @eval base_colorant_type{C<:ColorAlpha{$CT}}(::Type{C}) = $(coloralpha(CT))
+        AC = alphacolor(CT)
+        @eval base_colorant_type{C<:$AC}(::Type{C}) = $AC
+        CA = coloralpha(CT)
+        @eval base_colorant_type{C<:$CA}(::Type{C}) = $CA
     end
     base_colorant_type{C<:RGB1}(::Type{C}) = RGB1
     base_colorant_type{C<:RGB4}(::Type{C}) = RGB4
-    # Fallback
-    base_colorant_type{C<:Colorant}(::Type{C}) = eval(C.name.name)  # slow, but oh well
+    # Fallback, in case we missed any. Slow, but oh well.
+    base_colorant_type{C<:Colorant}(::Type{C}) = eval(C.name.name)
 else
     @eval @generated function base_colorant_type{C<:Colorant}(::Type{C})
         name = C.name.name
