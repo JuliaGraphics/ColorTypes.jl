@@ -245,7 +245,7 @@ immutable YIQ{T<:FloatingPoint} <: Color{T,3}
 end
 
 @doc "`YCbCr` is the Y'CbCr color encoding often used in digital photography or video" ->
-immutable YCbCr{T<:FloatingPoint} <: Color{T,3}
+immutable YCbCr{T<:Fractional} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -445,6 +445,7 @@ end
 
 eltype_default{C<:AbstractRGB  }(::Type{C}) = U8
 eltype_default{C<:AbstractGray }(::Type{C}) = U8
+eltype_default{C<:YCbCr        }(::Type{C}) = U8
 eltype_default{C<:Color  }(::Type{C}) = Float32
 eltype_default{P<:Colorant        }(::Type{P}) = eltype_default(color_type(P))
 
