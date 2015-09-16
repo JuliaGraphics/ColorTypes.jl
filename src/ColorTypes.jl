@@ -7,7 +7,7 @@ if VERSION < v"0.4.0-dev"
     using Docile
 end
 
-typealias Fractional Union(FloatingPoint, FixedPoint)
+typealias Fractional Union(AbstractFloat, FixedPoint)
 typealias U8 Ufixed8
 
 if VERSION >= v"0.4.0-dev"

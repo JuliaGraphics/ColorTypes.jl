@@ -187,7 +187,7 @@ A)` without specifying the element type explicitly (e.g.,
 `convert(HSV{Float32}, c)`). `ccolor` implements the logic "choose the
 user's eltype if specified, otherwise retain the eltype of the source
 object." However, when the source object has FixedPoint element type,
-and the destination only supports FloatingPoint, we choose Float32.
+and the destination only supports AbstractFloat, we choose Float32.
 
 Usage:
 
@@ -259,8 +259,8 @@ pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
 
 for T in (RGB24, ARGB32, Gray24, AGray32)
     @eval begin
-        ==(x::Uint32, y::$T) = x == convert(Uint32, y)
-        ==(x::$T, y::Uint32) = ==(y, x)
+        ==(x::UInt32, y::$T) = x == convert(UInt32, y)
+        ==(x::$T, y::UInt32) = ==(y, x)
     end
 end
 ==(x::Gray, y::Gray) = x.val == y.val
