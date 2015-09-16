@@ -137,7 +137,7 @@ end
 RGB4{T}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
 @doc "`HSV` is the Hue-Saturation-Value colorspace." ->
-immutable HSV{T<:FloatingPoint} <: Color{T,3}
+immutable HSV{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
@@ -147,14 +147,14 @@ end
 HSB(h, s, b) = HSV(h, s, b)
 
 @doc "`HSL` is the Hue-Saturation-Lightness colorspace." ->
-immutable HSL{T<:FloatingPoint} <: Color{T,3}
+immutable HSL{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
 @doc "`HSI` is the Hue-Saturation-Intensity colorspace." ->
-immutable HSI{T<:FloatingPoint} <: Color{T,3}
+immutable HSI{T<:AbstractFloat} <: Color{T,3}
     h::T
     s::T
     i::T
@@ -165,63 +165,63 @@ end
 meaning that mathematical operations such as addition, subtraction,
 and scaling make "colorimetric sense" in this colorspace.
 """ ->
-immutable XYZ{T<:FloatingPoint} <: Color{T,3}
+immutable XYZ{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     z::T
 end
 
 @doc "`xyY` is the CIE 1931 xyY (chromaticity + luminance) space" ->
-immutable xyY{T<:FloatingPoint} <: Color{T,3}
+immutable xyY{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     Y::T
 end
 
 @doc "`Lab` is the CIELAB colorspace." ->
-immutable Lab{T<:FloatingPoint} <: Color{T,3}
+immutable Lab{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
 @doc "`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace" ->
-immutable LCHab{T<:FloatingPoint} <: Color{T,3}
+immutable LCHab{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360)
 end
 
 @doc "`Luv` is the CIELUV colorspace" ->
-immutable Luv{T<:FloatingPoint} <: Color{T,3}
+immutable Luv{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
 @doc "`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace" ->
-immutable LCHuv{T<:FloatingPoint} <: Color{T,3}
+immutable LCHuv{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
 end
 
 @doc "`DIN99` is the (L99, a99, b99) adaptation of CIELAB" ->
-immutable DIN99{T<:FloatingPoint} <: Color{T,3}
+immutable DIN99{T<:AbstractFloat} <: Color{T,3}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
 @doc "`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99" ->
-immutable DIN99d{T<:FloatingPoint} <: Color{T,3}
+immutable DIN99d{T<:AbstractFloat} <: Color{T,3}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
 @doc "`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB" ->
-immutable DIN99o{T<:FloatingPoint} <: Color{T,3}
+immutable DIN99o{T<:AbstractFloat} <: Color{T,3}
     l::T # L99o
     a::T # a99o
     b::T # b99o
@@ -231,21 +231,21 @@ end
 `LMS` is the Long-Medium-Short colorspace based on activation of the
 three cone photoreceptors.  Like `XYZ`, this is a linear color space.
 """ ->
-immutable LMS{T<:FloatingPoint} <: Color{T,3}
+immutable LMS{T<:AbstractFloat} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
 end
 
 @doc "`YIQ` is a color encoding, for example used in NTSC transmission." ->
-immutable YIQ{T<:FloatingPoint} <: Color{T,3}
+immutable YIQ{T<:AbstractFloat} <: Color{T,3}
     y::T
     i::T
     q::T
 end
 
 @doc "`YCbCr` is the Y'CbCr color encoding often used in digital photography or video" ->
-immutable YCbCr{T<:FloatingPoint} <: Color{T,3}
+immutable YCbCr{T<:AbstractFloat} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -451,7 +451,7 @@ eltype_default{P<:Colorant        }(::Type{P}) = eltype_default(color_type(P))
 # Upper bound on element type for each color type
 eltype_ub{P<:Colorant        }(::Type{P}) = eltype_ub(eltype_default(P))
 eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
-eltype_ub{T<:FloatingPoint}(::Type{T}) = FloatingPoint
+eltype_ub{T<:AbstractFloat}(::Type{T}) = AbstractFloat
 
 for C in union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
     fn  = Expr(:tuple, fieldnames(C)...)
