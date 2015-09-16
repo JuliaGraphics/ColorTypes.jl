@@ -83,7 +83,7 @@ end
 # Constructors
 for C in ColorTypes.parametric3
     @test eltype(C{Float32}) == Float32
-    et = (C <: AbstractRGB) ? U8 : Float32
+    et = (C <: AbstractRGB || C <: YCbCr) ? U8 : Float32
     @test eltype(C(1,0,0)) == et
     @test color_type(C(1,0,0)) == C{et}
     @test color_type(C) == C
