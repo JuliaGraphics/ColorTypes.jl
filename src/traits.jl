@@ -50,20 +50,20 @@ Specifically, for any `Color{T,3}`,
 returns true.
 """ ->
 comp1(c::AbstractRGB) = red(c)
-comp1{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = red(c)
-comp1(c::Union(Color,ColorAlpha)) = getfield(c, 1)
+@compat comp1{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = red(c)
+@compat comp1(c::Union{Color,ColorAlpha}) = getfield(c, 1)
 comp1(c::AlphaColor) = getfield(c, 2)
 
 @doc "`comp2(c)` extracts the second constructor argument (see `comp1`)." ->
 comp2(c::AbstractRGB) = green(c)
-comp2{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = green(c)
-comp2(c::Union(Color,ColorAlpha)) = getfield(c, 2)
+@compat comp2{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = green(c)
+@compat comp2(c::Union{Color,ColorAlpha}) = getfield(c, 2)
 comp2(c::AlphaColor) = getfield(c, 3)
 
 @doc "`comp3(c)` extracts the third constructor argument (see `comp1`)." ->
 comp3(c::AbstractRGB) = blue(c)
-comp3{C<:AbstractRGB}(c::Union(AlphaColor{C},ColorAlpha{C})) = blue(c)
-comp3(c::Union(Color,ColorAlpha)) = getfield(c, 3)
+@compat comp3{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = blue(c)
+@compat comp3(c::Union{Color,ColorAlpha}) = getfield(c, 3)
 comp3(c::AlphaColor) = getfield(c, 4)
 
 @doc "`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)." ->
