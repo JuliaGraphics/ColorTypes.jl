@@ -355,8 +355,6 @@ colorfields(c::Colorant) = colorfields(typeof(c))
 macro make_constructors(C, fields, elty)
     # elty = default element type when supplied with Integer arguments
     fields = fields.args
-    Cstr = string(C)
-    Cesc = esc(C)
     Tfields = Expr[:($f::T) for f in fields]
     zfields = zeros(Int, length(fields))
     esc(quote
@@ -368,22 +366,18 @@ macro make_constructors(C, fields, elty)
 end
 
 # Generate transparent versions
-macro make_alpha(C, fields, constrfields, ub, elty)
+macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     # ub = upper-bound on T in C{T}
     # elty = default element type when supplied with Integer arguments
     fields = fields.args
     constrfields = constrfields.args
     N = length(fields)+1
-    Cstr = string(C)
-    Cesc = esc(C)
     Tfields       = Expr[:($f::T)    for f in fields]
     Tconstrfields = Expr[:($f::T)    for f in constrfields]
     realfields    = Expr[:($f::Real) for f in constrfields]
     cfields       = Expr[:(c.$f)     for f in constrfields]
     cinnerfields  = Expr[:(c.$f)     for f in fields]
     zfields       = zeros(Int, length(fields))
-    acol = symbol(string("A",Cstr))
-    cola = symbol(string(Cstr,"A"))
     Tconstr = Expr(:<:, :T, ub)
     # Handling limitations of 0.3
     exportexpr = Expr(:export, acol, cola)
@@ -453,14 +447,35 @@ eltype_ub{P<:Colorant        }(::Type{P}) = eltype_ub(eltype_default(P))
 eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
 eltype_ub{T<:AbstractFloat}(::Type{T}) = AbstractFloat
 
-for C in union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
+ctypes = union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
+
+# the arg list for C below should be identical to ctypes above.  it is
+# explicit as an experiment to allow easier searching of types.
+for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
+                        (DIN99o, :ADIN99o, :DIN99oA),
+                        (DIN99, :ADIN99, :DIN99A),
+                        (HSI, :AHSI, :HSIA),
+                        (HSL, :AHSL, :HSLA),
+                        (HSV, :AHSV, :HSVA),
+                        (LCHab, :ALCHab, :LCHabA),
+                        (LCHuv, :ALCHuv, :LCHuvA),
+                        (LMS, :ALMS, :LMSA),
+                        (Lab, :ALab, :LabA),
+                        (Luv, :ALuv, :LuvA),
+                        (XYZ, :AXYZ, :XYZA),
+                        (YCbCr, :AYCbCr, :YCbCrA),
+                        (YIQ, :AYIQ, :YIQA),
+                        (xyY, :AxyY, :xyYA),
+                        (BGR, :ABGR, :BGRA),
+                        (RGB, :ARGB, :RGBA),
+                        (Gray, :AGray, :GrayA)]
     fn  = Expr(:tuple, fieldnames(C)...)
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
     Csym = C.name.name
     @eval @make_constructors $Csym $fn $elty
-    @eval @make_alpha $Csym $fn $cfn $ub $elty
+    @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
 
 # RGB1 and RGB4 require special handling because of the alphadummy field
