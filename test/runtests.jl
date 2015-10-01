@@ -212,3 +212,9 @@ show(iob, c)
 @test takebuf_string(iob) == "Gray{Float64}(0.8)"
 show(iob, AGray(0.8))
 @test takebuf_string(iob) == "AGray{Float64}(0.8,1.0)"
+
+# if the test below fails, please extend the list of types at the call to
+# make_alpha in types.jl (this is the price of making that list explicit)
+@test Set(ColorTypes.ctypes) == 
+Set([DIN99d, DIN99o, DIN99, HSI, HSL, HSV, LCHab, LCHuv,
+     LMS, Lab, Luv, XYZ, YCbCr, YIQ, xyY, BGR, RGB, Gray])
