@@ -1,18 +1,13 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__()
+__precompile__()
 
 module ColorTypes
 
-using FixedPointNumbers, Compat
-if VERSION < v"0.4.0-dev"
-    using Docile
-end
+using FixedPointNumbers
 
-typealias Fractional @compat Union{AbstractFloat, FixedPoint}
-typealias U8 Ufixed8
+typealias Fractional Union{AbstractFloat, FixedPoint}
+typealias U8 UFixed8
 
-if VERSION >= v"0.4.0-dev"
-    @doc "`U8` is an abbreviation for the Ufixed8 type from FixedPointNumbers" -> U8
-end
+"`U8` is an abbreviation for the UFixed8 type from FixedPointNumbers" U8
 
 import Base: ==, convert, eltype, length, show, showcompact, one, zero
 
@@ -47,13 +42,7 @@ include("traits.jl")
 include("conversions.jl")
 include("show.jl")
 
-end # module
-
-if VERSION < v"0.4.0-dev"
-    using Docile, Compat
-end
-
-@doc """
+"""
 ColorTypes summary:
 
 Type hierarchy:
@@ -82,4 +71,6 @@ Concrete types:
 - Getters `red`, `green`, `blue`, `alpha`, `gray`, `comp1`, `comp2`, `comp3`
 
 Use `?` to get more information about specific types or functions.
-""" -> ColorTypes
+""" ColorTypes
+
+end # module

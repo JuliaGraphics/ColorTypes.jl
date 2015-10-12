@@ -1,42 +1,43 @@
 # Core traits and accessor functions
 
-@doc """
+"""
 `alpha(p)` extracts the alpha component of a color. For a color
 without an alpha channel, it will always return 1.
-""" ->
+"""
 alpha(c::TransparentColor) = c.alpha
 alpha(c::Color)   = one(eltype(c))
-alpha(c::RGB24)   = Ufixed8(1)
-alpha(c::ARGB32)  = Ufixed8((c.color & 0xff000000)>>24, 0)
-alpha(c::AGray32) = Ufixed8((c.color & 0xff000000)>>24, 0)
+alpha(c::RGB24)   = UFixed8(1)
+alpha(c::ARGB32)  = UFixed8((c.color & 0xff000000)>>24, 0)
+alpha(c::AGray32) = UFixed8((c.color & 0xff000000)>>24, 0)
 
-@doc "`red(c)` returns the red component of an `AbstractRGB` opaque or transparent color." ->
+"`red(c)` returns the red component of an `AbstractRGB` opaque or transparent color."
 red(c::AbstractRGB   ) = c.r
 red(c::TransparentRGB) = c.r
-red(c::RGB24)  = Ufixed8((c.color & 0x00ff0000)>>16, 0)
-red(c::ARGB32) = Ufixed8((c.color & 0x00ff0000)>>16, 0)
+red(c::RGB24)  = UFixed8((c.color & 0x00ff0000)>>16, 0)
+red(c::ARGB32) = UFixed8((c.color & 0x00ff0000)>>16, 0)
 
-@doc "`green(c)` returns the green component of an `AbstractRGB` opaque or transparent color." ->
+"`green(c)` returns the green component of an `AbstractRGB` opaque or transparent color."
 green(c::AbstractRGB   ) = c.g
 green(c::TransparentRGB) = c.g
-green(c::RGB24)  = Ufixed8((c.color & 0x0000ff00)>>8, 0)
-green(c::ARGB32) = Ufixed8((c.color & 0x0000ff00)>>8, 0)
+green(c::RGB24)  = UFixed8((c.color & 0x0000ff00)>>8, 0)
+green(c::ARGB32) = UFixed8((c.color & 0x0000ff00)>>8, 0)
 
-@doc "`blue(c)` returns the blue component of an `AbstractRGB` opaque or transparent color." ->
+"`blue(c)` returns the blue component of an `AbstractRGB` opaque or transparent color."
 blue(c::AbstractRGB   ) = c.b
 blue(c::TransparentRGB) = c.b
-blue(c::RGB24)  = Ufixed8(c.color & 0x000000ff, 0)
-blue(c::ARGB32) = Ufixed8(c.color & 0x000000ff, 0)
+blue(c::RGB24)  = UFixed8(c.color & 0x000000ff, 0)
+blue(c::ARGB32) = UFixed8(c.color & 0x000000ff, 0)
 
-@doc "`gray(c)` returns the gray component of a grayscale opaque or transparent color." ->
+"`gray(c)` returns the gray component of a grayscale opaque or transparent color."
 gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
-gray(c::Gray24)  = Ufixed8(c.color & 0x000000ff, 0)
-gray(c::AGray32) = Ufixed8(c.color & 0x000000ff, 0)
+gray(c::Gray24)  = UFixed8(c.color & 0x000000ff, 0)
+gray(c::AGray32) = UFixed8(c.color & 0x000000ff, 0)
+gray(x::Fractional) = x
 
 # Extract the first, second, and third arguments as you'd
 # pass them to the constructor
-@doc """
+"""
 `comp1(c)` extracts the first component you'd pass to the constructor
 of the corresponding object.  For most color types without an alpha
 channel, this is just the first field, but for types like `BGR` that
@@ -48,25 +49,25 @@ Specifically, for any `Color{T,3}`,
     c == typeof(c)(comp1(c), comp2(c), comp3(c))
 
 returns true.
-""" ->
+"""
 comp1(c::AbstractRGB) = red(c)
-@compat comp1{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = red(c)
-@compat comp1(c::Union{Color,ColorAlpha}) = getfield(c, 1)
+comp1{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = red(c)
+comp1(c::Union{Color,ColorAlpha}) = getfield(c, 1)
 comp1(c::AlphaColor) = getfield(c, 2)
 
-@doc "`comp2(c)` extracts the second constructor argument (see `comp1`)." ->
+"`comp2(c)` extracts the second constructor argument (see `comp1`)."
 comp2(c::AbstractRGB) = green(c)
-@compat comp2{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = green(c)
-@compat comp2(c::Union{Color,ColorAlpha}) = getfield(c, 2)
+comp2{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = green(c)
+comp2(c::Union{Color,ColorAlpha}) = getfield(c, 2)
 comp2(c::AlphaColor) = getfield(c, 3)
 
-@doc "`comp3(c)` extracts the third constructor argument (see `comp1`)." ->
+"`comp3(c)` extracts the third constructor argument (see `comp1`)."
 comp3(c::AbstractRGB) = blue(c)
-@compat comp3{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = blue(c)
-@compat comp3(c::Union{Color,ColorAlpha}) = getfield(c, 3)
+comp3{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = blue(c)
+comp3(c::Union{Color,ColorAlpha}) = getfield(c, 3)
 comp3(c::AlphaColor) = getfield(c, 4)
 
-@doc "`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)." ->
+"`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)."
 color(c::Color) = c
 color{C,T}(c::TransparentColor{C,T,4}) = C(comp1(c), comp2(c), comp3(c))
 color{C,T}(c::TransparentColor{C,T,2}) = C(comp1(c))
@@ -101,7 +102,7 @@ length{C<:Colorant}(::Type{C}) = length(super(C))
 
 length(c::Colorant) = length(typeof(c))
 
-@doc """
+"""
 `color_type(c)` or `color_type(C)` (`c` being a color instance and `C`
 being the type) returns the type of the Color object (without
 alpha channel).  This, and related functions like `base_color_type`,
@@ -113,7 +114,7 @@ For example,
     color_type(RGB)          == RGB
     color_type(RGB{Float32}) == RGB{Float32}
     color_type(ARGB{U8})     == RGB{U8}
-""" ->
+"""
 color_type{C<:Color}(::Type{C}) = C
 color_type{C<:AlphaColor}(::Type{C}) = color_type(super(C))
 color_type{C<:ColorAlpha}(::Type{C}) = color_type(super(C))
@@ -125,7 +126,7 @@ color_type{C,N  }(::Type{TransparentColor{C,TypeVar(:T),N}}) = C
 
 color_type(c::Colorant) = color_type(typeof(c))
 
-@doc """
+"""
 `base_color_type` is similar to `color_type`, except it "strips off" the
 element type.  For example,
 
@@ -138,31 +139,17 @@ This can be very handy if you want to switch element types. For example:
 
 converts `c` into a `Float64` representation (potentially discarding
 any alpha-channel information).
-""" ->
+"""
 base_color_type{C<:Colorant}(::Type{C}) = base_colorant_type(color_type(C))
 
 base_color_type(c::Colorant) = base_color_type(typeof(c))
 
-if VERSION < v"0.4.0-dev"
-    for CT in union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
-        @eval base_colorant_type{C<:$CT}(::Type{C}) = $CT
-        AC = alphacolor(CT)
-        @eval base_colorant_type{C<:$AC}(::Type{C}) = $AC
-        CA = coloralpha(CT)
-        @eval base_colorant_type{C<:$CA}(::Type{C}) = $CA
-    end
-    base_colorant_type{C<:RGB1}(::Type{C}) = RGB1
-    base_colorant_type{C<:RGB4}(::Type{C}) = RGB4
-    # Fallback, in case we missed any. Slow, but oh well.
-    base_colorant_type{C<:Colorant}(::Type{C}) = eval(C.name.name)
-else
-    @eval @generated function base_colorant_type{C<:Colorant}(::Type{C})
-        name = C.name.name
-        :($name)
-    end
+@generated function base_colorant_type{C<:Colorant}(::Type{C})
+    name = C.name.name
+    :($name)
 end
 
-@doc """
+"""
 `base_colorant_type` is similar to `base_color_type`, but it preserves the
 "alpha" portion of the type.
 
@@ -175,12 +162,12 @@ If you just want to switch element types, this is the safest default
 and the easiest to use:
 
     c64 = base_colorant_type(c){Float64}(c)
-""" ->
+"""
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
 colorant_string{C<:Colorant}(::Type{C}) = string(C.name.name)
 
-@doc """
+"""
  `ccolor` ("concrete color") helps write flexible methods. The idea is
 that users may write `convert(HSV, c)` or even `convert(Array{HSV},
 A)` without specifying the element type explicitly (e.g.,
@@ -198,7 +185,7 @@ Example:
     convert{C<:Colorant}(::Type{C}, p::Colorant) = cnvt(ccolor(C,typeof(p)), p)
 
 where `cnvt` is the function that performs explicit conversion.
-""" ->
+"""
 ccolor{   Csrc<:Colorant}(::Type{Colorant   }, ::Type{Csrc}) = Csrc
 ccolor{T, Csrc<:Colorant}(::Type{Colorant{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
 ccolor{   Csrc<:Colorant}(::Type{Color   }, ::Type{Csrc}) = color_type(Csrc)
