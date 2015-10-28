@@ -1,33 +1,33 @@
-@doc """
+"""
 `Colorant{T,N}` is the abstract super-type of all types in ColorTypes,
 and refers to both (opaque) colors and colors-with-transparency (alpha
 channel) information.  `T` is the element type (extractable with
 `eltype`) and `N` is the number of *meaningful* entries (extractable
 with `length`), i.e., the number of arguments you would supply to the
 constructor.
-""" ->
+"""
 abstract Colorant{T,N}
 
 # Colors (without transparency)
-@doc """
+"""
 `Color{T,N}` is the abstract supertype for a color (or
 grayscale) with no transparency.
-""" ->
+"""
 abstract Color{T, N} <: Colorant{T,N}
 
-@doc """
+"""
 `AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
 can be constructed as `C(r, g, b)` and for which the elements can be
 extracted as `red(c)`, `green(c)`, `blue(c)`. You should *not* make
 assumptions about internal storage order, the number of fields, or the
 representation. One `AbstractRGB` color-type, `RGB24`, is not
 parametric and does not have fields named `r`, `g`, `b`.
-""" ->
+"""
 abstract AbstractRGB{T}      <: Color{T,3}
 
 
 # Types with transparency
-@doc """
+"""
 `TransparentColor{C,T,N}` is the abstract type for any
 color-with-transparency.  The `C` parameter refers to the type of the
 pure color (without transparency) and can be extracted with
@@ -48,20 +48,20 @@ Most concrete types, like `RGB`, have both `ARGB` and `RGBA`
 transparent analogs.  These two indicate different internal storage
 order (see `AlphaColor` and `ColorAlpha`, and the `alphacolor` and
 `coloralpha` functions).
-""" ->
+"""
 abstract TransparentColor{C<:Color,T,N} <: Colorant{T,N}
 
-@doc """
+"""
 `AlphaColor` is an abstract supertype for types like `ARGB`, where the
 alpha channel comes first in the internal storage order. **Note** that
 the constructor order is still `(color, alpha)`.
-""" ->
+"""
 abstract AlphaColor{C,T,N} <: TransparentColor{C,T,N}
 
-@doc """
+"""
 `ColorAlpha` is an abstract supertype for types like `RGBA`, where the
 alpha channel comes last in the internal storage order.
-""" ->
+"""
 abstract ColorAlpha{C,T,N} <: TransparentColor{C,T,N}
 
 # These are types we'll dispatch on. Not exported.
@@ -70,27 +70,27 @@ typealias Color3{T}                          Color{T,3}
 typealias TransparentGray{C<:AbstractGray,T} TransparentColor{C,T,2}
 typealias Transparent3{C<:Color3,T}          TransparentColor{C,T,4}
 typealias TransparentRGB{C<:AbstractRGB,T}   TransparentColor{C,T,4}
-typealias ColorantUfixed{T<:Ufixed,N}        Colorant{T,N}
+typealias ColorantUFixed{T<:UFixed,N}        Colorant{T,N}
 
-@doc """
+"""
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
 individual color channels range from 0 (black) to 1 (saturated). If
 you want "Integer" storage types (e.g., 255 for full color), use `U8(1)`
 instead (see FixedPointNumbers).
-""" ->
+"""
 immutable RGB{T<:Fractional} <: AbstractRGB{T}
     r::T # Red [0,1]
     g::T # Green [0,1]
     b::T # Blue [0,1]
 end
 
-@doc """
+"""
 `BGR` is a variant of `RGB` with the opposite storage order.  Note
 that the constructor is still called in the order `BGR(r, g, b)`.
 This storage order is noteworthy because on little-endian machines,
 `BGRA` (with transparency) can be `reinterpret`ed to the `UInt32`
 color format used by libraries such as Cairo and OpenGL.
-""" ->
+"""
 immutable BGR{T<:Fractional} <: AbstractRGB{T}
     b::T
     g::T
@@ -100,14 +100,14 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
 end
 BGR{T}(r::T, g::T, b::T) = BGR{T}(r, g, b)
 
-@doc """
+"""
 `RGB1` is a variant of `RGB` which has a padding element inserted at
 the beginning. In some applications it may have useful
 memory-alignment properties.
 
 Like all other AbstractRGB objects, the constructor is still called
 `RGB1(r, g, b)`.
-""" ->
+"""
 immutable RGB1{T<:Fractional} <: AbstractRGB{T}
     alphadummy::T
     r::T
@@ -118,14 +118,14 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
 end
 RGB1{T}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
 
-@doc """
+"""
 `RGB4` is a variant of `RGB` which has a padding element inserted at
 the end. In some applications it may have useful
 memory-alignment properties.
 
 Like all other AbstractRGB objects, the constructor is still called
 `RGB4(r, g, b)`.
-""" ->
+"""
 immutable RGB4{T<:Fractional} <: AbstractRGB{T}
     r::T
     g::T
@@ -136,122 +136,122 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
 end
 RGB4{T}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
-@doc "`HSV` is the Hue-Saturation-Value colorspace." ->
+"`HSV` is the Hue-Saturation-Value colorspace."
 immutable HSV{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
 
-@doc "`HSB` (Hue-Saturation-Brightness) is an alias for `HSV`." ->
+"`HSB` (Hue-Saturation-Brightness) is an alias for `HSV`."
 HSB(h, s, b) = HSV(h, s, b)
 
-@doc "`HSL` is the Hue-Saturation-Lightness colorspace." ->
+"`HSL` is the Hue-Saturation-Lightness colorspace."
 immutable HSL{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
-@doc "`HSI` is the Hue-Saturation-Intensity colorspace." ->
+"`HSI` is the Hue-Saturation-Intensity colorspace."
 immutable HSI{T<:AbstractFloat} <: Color{T,3}
     h::T
     s::T
     i::T
 end
 
-@doc """
+"""
 `XYZ` is the CIE 1931 XYZ colorspace. It is a linear colorspace,
 meaning that mathematical operations such as addition, subtraction,
 and scaling make "colorimetric sense" in this colorspace.
-""" ->
+"""
 immutable XYZ{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     z::T
 end
 
-@doc "`xyY` is the CIE 1931 xyY (chromaticity + luminance) space" ->
+"`xyY` is the CIE 1931 xyY (chromaticity + luminance) space"
 immutable xyY{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     Y::T
 end
 
-@doc "`Lab` is the CIELAB colorspace." ->
+"`Lab` is the CIELAB colorspace."
 immutable Lab{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
-@doc "`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace" ->
+"`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace"
 immutable LCHab{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360)
 end
 
-@doc "`Luv` is the CIELUV colorspace" ->
+"`Luv` is the CIELUV colorspace"
 immutable Luv{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
-@doc "`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace" ->
+"`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace"
 immutable LCHuv{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
 end
 
-@doc "`DIN99` is the (L99, a99, b99) adaptation of CIELAB" ->
+"`DIN99` is the (L99, a99, b99) adaptation of CIELAB"
 immutable DIN99{T<:AbstractFloat} <: Color{T,3}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
-@doc "`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99" ->
+"`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99"
 immutable DIN99d{T<:AbstractFloat} <: Color{T,3}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
-@doc "`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB" ->
+"`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB"
 immutable DIN99o{T<:AbstractFloat} <: Color{T,3}
     l::T # L99o
     a::T # a99o
     b::T # b99o
 end
 
-@doc """
+"""
 `LMS` is the Long-Medium-Short colorspace based on activation of the
 three cone photoreceptors.  Like `XYZ`, this is a linear color space.
-""" ->
+"""
 immutable LMS{T<:AbstractFloat} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
 end
 
-@doc "`YIQ` is a color encoding, for example used in NTSC transmission." ->
+"`YIQ` is a color encoding, for example used in NTSC transmission."
 immutable YIQ{T<:AbstractFloat} <: Color{T,3}
     y::T
     i::T
     q::T
 end
 
-@doc "`YCbCr` is the Y'CbCr color encoding often used in digital photography or video" ->
+"`YCbCr` is the Y'CbCr color encoding often used in digital photography or video"
 immutable YCbCr{T<:AbstractFloat} <: Color{T,3}
     y::T
     cb::T
     cr::T
 end
 
-@doc """
+"""
 `RGB24` uses a `UInt32` representation of color, 0xAARRGGBB, where
 R=red, G=green, B=blue and A is irrelevant. This format is often used
 by external libraries such as Cairo.
@@ -260,16 +260,16 @@ by external libraries such as Cairo.
 still extract the individual components with `red(c)`, `green(c)`,
 `blue(c)`.  You can construct them directly from a `UInt32`, or as
 `RGB(r, g, b)`.
-""" ->
+"""
 immutable RGB24 <: AbstractRGB{U8}
     color::UInt32
 end
 RGB24() = RGB24(0)
-_RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(@compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
-RGB24(r::Ufixed8, g::Ufixed8, b::Ufixed8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
-RGB24(r, g, b) = RGB24(@compat(U8(r)), @compat(U8(g)), @compat(U8(b)))
+_RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
+RGB24(r::UFixed8, g::UFixed8, b::UFixed8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
+RGB24(r, g, b) = RGB24(U8(r), U8(g), U8(b))
 
-@doc """
+"""
 `ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
 R=red, G=green, B=blue and A is the alpha channel. This format is
 often used by external libraries such as Cairo.  On a little-endian
@@ -279,23 +279,23 @@ machine, this type has the exact same storage format as `BGRA{U8}`.
 you can still extract the individual components with `alpha(c)`,
 `red(c)`, `green(c)`, `blue(c)`.  You can construct them directly from
 a `UInt32`, or as `ARGB32(r, g, b, alpha)`.
-""" ->
+"""
 immutable ARGB32 <: AlphaColor{RGB24, U8, 4}
     color::UInt32
 end
-ARGB32() = ARGB32(@compat(UInt32(0xff))<<24)
-_ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = ARGB32(@compat(UInt32(alpha))<<24 | @compat(UInt32(r))<<16 | @compat(UInt32(g))<<8 | @compat(UInt32(b)))
-ARGB32(r::Ufixed8, g::Ufixed8, b::Ufixed8, alpha::Ufixed8 = U8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
-ARGB32(r, g, b, alpha = 1) = ARGB32(@compat(U8(r)), @compat(U8(g)), @compat(U8(b)), @compat(U8(alpha)))
+ARGB32() = ARGB32(UInt32(0xff)<<24)
+_ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = ARGB32(UInt32(alpha)<<24 | UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
+ARGB32(r::UFixed8, g::UFixed8, b::UFixed8, alpha::UFixed8 = U8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
+ARGB32(r, g, b, alpha = 1) = ARGB32(U8(r), U8(g), U8(b), U8(alpha))
 
-@doc """
+"""
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
-""" ->
+"""
 immutable Gray{T<:Fractional} <: AbstractGray{T}
     val::T
 end
 
-@doc """
+"""
 `Gray24` uses a `UInt32` representation of color, 0xAAIIIIII, where
 I=intensity (grayscale value) and A is irrelevant. Each II pair is
 assumed to be the same.  This format is often used by external
@@ -304,16 +304,16 @@ libraries such as Cairo.
 You can extract the single gray value with `gray(c)`.  You can
 construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
 `i` is interpreted on a scale from 0 (black) to 1 (white).
-""" ->
+"""
 immutable Gray24 <: AbstractGray{U8}
     color::UInt32
 end
 Gray24() = Gray24(0)
-_Gray24(val::UInt8) = (g = @compat(UInt32(val)); Gray24(g<<16 | g<<8 | g))
-Gray24(val::Ufixed8) = _Gray24(reinterpret(val))
-Gray24(val) = Gray24(@compat(U8(val)))
+_Gray24(val::UInt8) = (g = UInt32(val); Gray24(g<<16 | g<<8 | g))
+Gray24(val::UFixed8) = _Gray24(reinterpret(val))
+Gray24(val) = Gray24(U8(val))
 
-@doc """
+"""
 `AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
 I=intensity (grayscale value) and A=alpha. Each II pair is
 assumed to be the same.  This format is often used by external
@@ -323,14 +323,14 @@ You can extract the single gray value with `gray(c)` and the alpha as
 `alpha(c)`.  You can construct them directly from a `UInt32`, or as
 `AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
 scale from 0 (black) to 1 (white).
-""" ->
+"""
 immutable AGray32 <: AlphaColor{Gray24, U8}
     color::UInt32
 end
 AGray32() = AGray32(0)
-_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = @compat(UInt32(val)); AGray32(@compat(UInt32(alpha))<<24 | g<<16 | g<<8 | g))
-AGray32(val::Ufixed8, alpha::Ufixed8 = Ufixed8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
-AGray32(val, alpha = 1) = AGray32(@compat(U8(val)), @compat(U8(alpha)))
+_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); AGray32(UInt32(alpha)<<24 | g<<16 | g<<8 | g))
+AGray32(val::UFixed8, alpha::UFixed8 = UFixed8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
+AGray32(val, alpha = 1) = AGray32(U8(val), U8(alpha))
 
 # Generated code:
 #   - more constructors for colors
@@ -379,15 +379,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     cinnerfields  = Expr[:(c.$f)     for f in fields]
     zfields       = zeros(Int, length(fields))
     Tconstr = Expr(:<:, :T, ub)
-    # Handling limitations of 0.3
     exportexpr = Expr(:export, acol, cola)
-    Tcfields = Expr[:(convert(T, c.$f)) for f in constrfields]
-    extradefs = VERSION >= v"0.4.0-dev" ? nothing : quote
-        $acol(c::$C) = $acol($(cfields...))
-        $acol(c::$C, alpha) = $acol($(cfields...), convert(eltype(c), alpha))
-        $cola(c::$C) = $cola($(cfields...))
-        $cola(c::$C, alpha) = $cola($(cfields...), convert(eltype(c), alpha))
-    end
     esc(quote
         immutable $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
             alpha::T
@@ -433,7 +425,6 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             $cola{T}(p...)
         end
         $cola() = $cola{$elty}($(zfields...))
-        $extradefs
     end)
 end
 
@@ -449,8 +440,7 @@ eltype_ub{T<:AbstractFloat}(::Type{T}) = AbstractFloat
 
 ctypes = union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
 
-# the arg list for C below should be identical to ctypes above.  it is
-# explicit as an experiment to allow easier searching of types.
+# the arg list for C below should be identical to ctypes above.
 for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
                         (DIN99o, :ADIN99o, :DIN99oA),
                         (DIN99, :ADIN99, :DIN99A),
@@ -486,12 +476,12 @@ alphacolor{C<:RGB4}(::Type{C}) = ARGB
 coloralpha{C<:RGB1}(::Type{C}) = RGBA
 coloralpha{C<:RGB4}(::Type{C}) = RGBA
 
-@doc """
+"""
 `alphacolor(RGB)` returns `ARGB`, i.e., the corresponding transparent
 color type with storage order (alpha, color).
-""" -> alphacolor
+""" alphacolor
 
-@doc """
+"""
 `coloralpha(RGB)` returns `RGBA`, i.e., the corresponding transparent
 color type with storage order (color, alpha).
-""" -> coloralpha
+""" coloralpha
