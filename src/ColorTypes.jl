@@ -37,6 +37,11 @@ export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export comp1, comp2, comp3
 
+if VERSION < v"0.5.0-dev+1946"
+    const supertype = super
+    export supertype
+end
+
 include("types.jl")
 include("traits.jl")
 include("conversions.jl")
