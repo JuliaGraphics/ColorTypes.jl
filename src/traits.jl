@@ -83,14 +83,14 @@ coloralpha{C<:Color}(c::C) = coloralpha(C)(c)
 # recurse up the type hierarchy until you get to Colorant{T,N} for
 # specific T,N.
 to_top{T,N}(::Type{Colorant{T,N}}) = Colorant{T,N}
-to_top{C<:Colorant}(::Type{C}) = to_top(super(C))
+to_top{C<:Colorant}(::Type{C}) = to_top(supertype(C))
 
 to_top(c::Colorant) = to_top(typeof(c))
 
 # eltype(RGB{Float32}) -> Float32
 eltype{T          }(::Type{Colorant{T}})   = T
 eltype{T,N        }(::Type{Colorant{T,N}}) = T
-eltype{C<:Colorant}(::Type{C}) = eltype(super(C))
+eltype{C<:Colorant}(::Type{C}) = eltype(supertype(C))
 
 eltype(c::Colorant) = eltype(typeof(c))
 
@@ -98,7 +98,7 @@ eltype(c::Colorant) = eltype(typeof(c))
 # Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
 length{T,N}(::Type{Colorant{T,N}}) = N
 length{N}(::Type{Colorant{TypeVar(:T),N}}) = N   # julia #12596
-length{C<:Colorant}(::Type{C}) = length(super(C))
+length{C<:Colorant}(::Type{C}) = length(supertype(C))
 
 length(c::Colorant) = length(typeof(c))
 
@@ -116,8 +116,8 @@ For example,
     color_type(ARGB{U8})     == RGB{U8}
 """
 color_type{C<:Color}(::Type{C}) = C
-color_type{C<:AlphaColor}(::Type{C}) = color_type(super(C))
-color_type{C<:ColorAlpha}(::Type{C}) = color_type(super(C))
+color_type{C<:AlphaColor}(::Type{C}) = color_type(supertype(C))
+color_type{C<:ColorAlpha}(::Type{C}) = color_type(supertype(C))
 color_type{     }(::Type{TransparentColor})        = Color
 color_type{C    }(::Type{TransparentColor{C}})     = C
 color_type{C,T  }(::Type{TransparentColor{C,T}})   = C
