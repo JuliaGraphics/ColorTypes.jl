@@ -181,7 +181,7 @@ end
 
 ### Lab
 
-A perceptually uniform colorpsace standardized by the CIE in 1976. See
+A perceptually uniform colorspace standardized by the CIE in 1976. See
 also LUV, the associated colorspace standardized the same year.
 
 ```julia
@@ -194,7 +194,7 @@ end
 
 ### Luv
 
-A perceptually uniform colorpsace standardized by the CIE in 1976. See
+A perceptually uniform colorspace standardized by the CIE in 1976. See
 also LAB, a similar colorspace standardized the same year.
 
 ```julia
