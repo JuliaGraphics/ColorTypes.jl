@@ -72,10 +72,6 @@ color(c::Color) = c
 color{C,T}(c::TransparentColor{C,T,4}) = C(comp1(c), comp2(c), comp3(c))
 color{C,T}(c::TransparentColor{C,T,2}) = C(comp1(c))
 
-# Generate the transparent analog of a color
-alphacolor{C<:Color}(c::C) = alphacolor(C)(c)
-coloralpha{C<:Color}(c::C) = coloralpha(C)(c)
-
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
 # function in general
