@@ -411,6 +411,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $acol{T}(p...)
         end
+        $acol(c::Color, alpha::Real) = convert($acol, c, alpha)
         $acol() = $acol{$elty}($(zfields...))
 
         $cola{T<:Integer}($(Tconstrfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
@@ -424,6 +425,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $cola{T}(p...)
         end
+        $cola(c::Color, alpha::Real) = convert($cola, c, alpha)
         $cola() = $cola{$elty}($(zfields...))
     end)
 end
