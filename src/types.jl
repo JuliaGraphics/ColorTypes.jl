@@ -307,9 +307,11 @@ construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
 """
 immutable Gray24 <: AbstractGray{U8}
     color::UInt32
+
+    Gray24(c::UInt32, _) = new(c)
 end
 Gray24() = Gray24(0)
-_Gray24(val::UInt8) = (g = UInt32(val); Gray24(g<<16 | g<<8 | g))
+_Gray24(val::UInt8) = (g = UInt32(val); Gray24(g<<16 | g<<8 | g, 0))
 Gray24(val::UFixed8) = _Gray24(reinterpret(val))
 Gray24(val) = Gray24(U8(val))
 
@@ -326,9 +328,11 @@ scale from 0 (black) to 1 (white).
 """
 immutable AGray32 <: AlphaColor{Gray24, U8}
     color::UInt32
+
+    AGray32(c::UInt32, dummy1, dummy2) = new(c)
 end
 AGray32() = AGray32(0)
-_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); AGray32(UInt32(alpha)<<24 | g<<16 | g<<8 | g))
+_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); AGray32(UInt32(alpha)<<24 | g<<16 | g<<8 | g, 0, 0))
 AGray32(val::UFixed8, alpha::UFixed8 = UFixed8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
 AGray32(val, alpha = 1) = AGray32(U8(val), U8(alpha))
 
