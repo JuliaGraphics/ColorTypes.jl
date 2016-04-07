@@ -33,7 +33,7 @@ gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
 gray(c::Gray24)  = UFixed8(c.color & 0x000000ff, 0)
 gray(c::AGray32) = UFixed8(c.color & 0x000000ff, 0)
-gray(x::Fractional) = x
+gray(x::Union{Fractional,Bool}) = x
 
 # Extract the first, second, and third arguments as you'd
 # pass them to the constructor
@@ -139,6 +139,7 @@ any alpha-channel information).
 base_color_type{C<:Colorant}(::Type{C}) = base_colorant_type(color_type(C))
 
 base_color_type(c::Colorant) = base_color_type(typeof(c))
+base_color_type(x::Number)   = Gray
 
 @generated function base_colorant_type{C<:Colorant}(::Type{C})
     name = C.name.name
@@ -222,6 +223,7 @@ ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = base_coloran
 
 # Concrete types
 ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = base_colorant_type(Cdest){pick_eltype(color_type(Cdest), eltype(Cdest), eltype(Csrc))}
+ccolor{Cdest<:AbstractGray,T<:Union{Bool,Fractional}}(::Type{Cdest}, ::Type{T}) = base_colorant_type(Cdest){pick_eltype(color_type(Cdest), eltype(Cdest), T)}
 ccolor{Csrc<:Colorant}(::Type{RGB24},   ::Type{Csrc}) = RGB24
 ccolor{Csrc<:Colorant}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
 ccolor{Csrc<:Colorant}(::Type{Gray24},  ::Type{Csrc}) = Gray24

@@ -49,6 +49,9 @@ using Base.Test
 @test @inferred(ccolor(ARGB{U8},      HSV{Float32})) == ARGB{U8}
 @test @inferred(ccolor(ARGB,          HSV{Float32})) == ARGB{Float32}
 
+@test @inferred(ccolor(Gray{U8}, Bool)) === Gray{U8}
+@test @inferred(ccolor(Gray,     Bool)) === Gray{Bool}
+
 # Traits for instances (and their constructors)
 @test @inferred(eltype(RGB{U8}(1,0,0))) == U8
 @test @inferred(eltype(RGB(1.0,0,0))) == Float64
@@ -95,6 +98,13 @@ end
 c = Gray(0.8)
 @test gray(c) == 0.8
 @test gray(0.8) == 0.8
+c = convert(Gray, 0.8)
+@test c === Gray{Float64}(0.8)
+
+c = convert(Gray, true)
+@test c === Gray{Bool}(true)
+@test gray(c) === true
+@test gray(false) === false
 
 # Transparency
 for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
