@@ -52,6 +52,9 @@ using Base.Test
 @test @inferred(ccolor(Gray{U8}, Bool)) === Gray{U8}
 @test @inferred(ccolor(Gray,     Bool)) === Gray{Bool}
 
+@test @inferred(ccolor(RGB,  RGB))  === RGB
+@test @inferred(ccolor(Gray, Gray)) === Gray
+
 # Traits for instances (and their constructors)
 @test @inferred(eltype(RGB{U8}(1,0,0))) == U8
 @test @inferred(eltype(RGB(1.0,0,0))) == Float64
@@ -152,9 +155,9 @@ acargb = convert(ARGB, ac)
 
 @test convert(Colorant, acargb) === acargb
 @test convert(Colorant{U8},   acargb) === acargb
-@test_throws MethodError convert(Colorant{U8,3}, acargb)
-@test convert(TransparentColor,             acargb) == acargb
-@test convert(Color,                  acargb) == crgb
+@test convert(Colorant{U8,3}, acargb) === crgb
+@test convert(TransparentColor, acargb) == acargb
+@test convert(Color, acargb) == crgb
 
 @test red(c)   == red(ac)
 @test green(c) == green(ac)
