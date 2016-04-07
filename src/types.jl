@@ -291,7 +291,7 @@ ARGB32(r, g, b, alpha = 1) = ARGB32(U8(r), U8(g), U8(b), U8(alpha))
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
 """
-immutable Gray{T<:Fractional} <: AbstractGray{T}
+immutable Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
 end
 

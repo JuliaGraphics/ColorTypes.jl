@@ -33,7 +33,7 @@ gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
 gray(c::Gray24)  = UFixed8(c.color & 0x000000ff, 0)
 gray(c::AGray32) = UFixed8(c.color & 0x000000ff, 0)
-gray(x::Fractional) = x
+gray(x::Union{Fractional,Bool}) = x
 
 # Extract the first, second, and third arguments as you'd
 # pass them to the constructor
@@ -139,6 +139,7 @@ any alpha-channel information).
 base_color_type{C<:Colorant}(::Type{C}) = base_colorant_type(color_type(C))
 
 base_color_type(c::Colorant) = base_color_type(typeof(c))
+base_color_type(x::Number)   = Gray
 
 @generated function base_colorant_type{C<:Colorant}(::Type{C})
     name = C.name.name
@@ -184,6 +185,8 @@ where `cnvt` is the function that performs explicit conversion.
 """
 ccolor{   Csrc<:Colorant}(::Type{Colorant   }, ::Type{Csrc}) = Csrc
 ccolor{T, Csrc<:Colorant}(::Type{Colorant{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
+ccolor{T, Csrc<:Color3  }(::Type{Colorant{T,3}}, ::Type{Csrc}) = Csrc
+ccolor{T, Csrc<:Transparent3}(::Type{Colorant{T,3}}, ::Type{Csrc}) = base_color_type(Csrc)
 ccolor{   Csrc<:Colorant}(::Type{Color   }, ::Type{Csrc}) = color_type(Csrc)
 ccolor{T, Csrc<:Colorant}(::Type{Color{T}}, ::Type{Csrc}) = base_color_type(Csrc){T}
 
@@ -220,17 +223,23 @@ ccolor{C<:Color,T,N,Csrc<:Colorant}(
 ccolor{  Csrc<:AbstractRGB}(::Type{AbstractRGB},    ::Type{Csrc}) = Csrc
 ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
 
-# Concrete types
-ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = base_colorant_type(Cdest){pick_eltype(color_type(Cdest), eltype(Cdest), eltype(Csrc))}
+# Generic concrete types
+ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = _ccolor(Cdest, Csrc, pick_eltype(Cdest, eltype(Cdest), eltype(Csrc)))
+ccolor{Cdest<:AbstractGray,T<:Union{Bool,Fractional}}(::Type{Cdest}, ::Type{T}) = _ccolor(Cdest, Gray{T}, pick_eltype(Cdest, eltype(Cdest), T))
+_ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = base_colorant_type(Cdest){T}
+_ccolor{Cdest,Csrc}(          ::Type{Cdest}, ::Type{Csrc}, ::Any)     = Cdest
+
+# Specific concrete types
 ccolor{Csrc<:Colorant}(::Type{RGB24},   ::Type{Csrc}) = RGB24
 ccolor{Csrc<:Colorant}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
 ccolor{Csrc<:Colorant}(::Type{Gray24},  ::Type{Csrc}) = Gray24
 ccolor{Csrc<:Colorant}(::Type{AGray32}, ::Type{Csrc}) = AGray32
 
-pick_eltype{C,T1<:Number,T2            }(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype{C,T1<:Number,T2<:Number    }(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
 pick_eltype{C,T1<:Number,T2<:FixedPoint}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
-pick_eltype{C,T2            }(::Type{C}, ::Any, ::Type{T2})     = T2
+pick_eltype{C,T2<:Number    }(::Type{C}, ::Any, ::Type{T2})     = T2
 pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = pick_eltype_compat(C, eltype_default(C), T2)
+pick_eltype{C               }(::Type{C}, ::Any, ::Any)          = eltype(C)
 # When T2 <: FixedPoint, choosed based on whether color type supports it
 pick_eltype_compat{T1            ,T2}(::Any, ::Type{T1}, ::Type{T2}) = T1
 pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2

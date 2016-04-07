@@ -1,14 +1,13 @@
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
 
-convert{C<:Colorant}(::Type{C}, c::Colorant) = cconvert(ccolor(C, typeof(c)), c)
+convert{C<:Colorant}(::Type{C}, c) = cconvert(ccolor(C, typeof(c)), c)
 cconvert{C}(::Type{C}, c::C) = c
 cconvert{C}(::Type{C}, c)    = _convert(C, base_color_type(C), base_color_type(c), c)
 convert{C<:TransparentColor}(::Type{C}, c::Color, alpha) = cconvert(ccolor(C, typeof(c)), c, alpha)
 cconvert{C<:Color,T,N}(::Type{AlphaColor{C,T,N}}, c::C, alpha) = alphacolor(C)(c, alpha)
 cconvert{C<:Color,T,N}(::Type{ColorAlpha{C,T,N}}, c::C, alpha) = coloralpha(C)(c, alpha)
 cconvert{C<:TransparentColor}(::Type{C}, c::Color, alpha) =_convert(C, base_color_type(C), base_color_type(c), c, alpha)
-
 
 # Fallback definitions that print nice error messages
 _convert{C}(::Type{C}, ::Any, ::Any, c) = error("No conversion of ", c, " to ", C, " has been defined")
