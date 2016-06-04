@@ -248,6 +248,21 @@ pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
 
 ### Equality
 ==(c1::AbstractRGB, c2::AbstractRGB) = red(c1) == red(c2) && green(c1) == green(c2) && blue(c1) == blue(c2)
+==(c1::HSV, c2::HSV) = c1.h == c2.h && c1.s == c2.s && c1.v == c2.v
+==(c1::HSI, c2::HSI) = c1.h == c2.h && c1.s == c2.s && c1.i == c2.i
+==(c1::HSL, c2::HSL) = c1.h == c2.h && c1.s == c2.s && c1.l == c2.l
+==(c1::XYZ, c2::XYZ) = c1.x == c2.x && c1.y == c2.y && c1.z == c2.z
+==(c1::xyY, c2::xyY) = c1.x == c2.x && c1.y == c2.y && c1.Y == c2.Y
+==(c1::Lab, c2::Lab) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::Luv, c2::Luv) = c1.l == c2.l && c1.u == c2.u && c1.v == c2.v
+==(c1::LCHab, c2::LCHab) = c1.l == c2.l && c1.c == c2.c && c1.h == c2.h
+==(c1::LCHuv, c2::LCHuv) = c1.l == c2.l && c1.c == c2.c && c1.h == c2.h
+==(c1::DIN99, c2::DIN99) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::DIN99d, c2::DIN99d) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::DIN99o, c2::DIN99o) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::LMS, c2::LMS) = c1.l == c2.l && c1.m == c2.m && c1.s == c2.s
+==(c1::YIQ, c2::YIQ) = c1.y == c2.y && c1.i == c2.i && c1.q == c2.q
+==(c1::YCbCr, c2::YCbCr) = c1.y == c2.y && c1.cb == c2.cb && c1.cr == c2.cr
 
 for T in (RGB24, ARGB32, Gray24, AGray32)
     @eval begin
@@ -260,4 +275,4 @@ end
 ==(x::Gray, y::Number) = ==(y, x)
 
 zero{T}(::Type{Gray{T}}) = Gray{T}(zero(T))
- one{T}(::Type{Gray{T}}) = Gray{T}(one(T))
+one{T}(::Type{Gray{T}}) = Gray{T}(one(T))
