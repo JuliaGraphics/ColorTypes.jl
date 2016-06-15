@@ -6,13 +6,16 @@ using FixedPointNumbers
 
 typealias Fractional Union{AbstractFloat, FixedPoint}
 typealias U8 UFixed8
+typealias U16 UFixed16
 
 "`U8` is an abbreviation for the UFixed8 type from FixedPointNumbers" U8
+
+"`U16` is an abbreviation for the UFixed16 type from FixedPointNumbers" U16
 
 import Base: ==, convert, eltype, length, show, showcompact, one, zero
 
 ## Types
-export Fractional, U8
+export Fractional, U8, U16
 
 export Colorant
 export Color, TransparentColor, AlphaColor, ColorAlpha, AbstractRGB
