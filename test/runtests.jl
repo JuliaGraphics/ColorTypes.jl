@@ -77,6 +77,8 @@ using Base.Test
 @test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
 
 # Constructors
+@test eltype(Gray()) == U8
+@test Gray(Gray()) == Gray()  # no StackOverflowError
 for C in ColorTypes.parametric3
     @test eltype(C{Float32}) == Float32
     et = (C <: AbstractRGB) ? U8 : Float32
@@ -85,6 +87,7 @@ for C in ColorTypes.parametric3
     @test color_type(C) == C
     @test color_type(C{Float32}) == C{Float32}
     @test eltype(C{Float32}(1,0,0)) == Float32
+    @test C(C()) == C()  # no StackOverflowError
 end
 
 # Specifically test the AbstractRGB types
