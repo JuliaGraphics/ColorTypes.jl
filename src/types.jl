@@ -98,7 +98,7 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
 
     BGR(r::Real, g::Real, b::Real) = new(b, g, r)
 end
-BGR{T}(r::T, g::T, b::T) = BGR{T}(r, g, b)
+BGR{T<:Fractional}(r::T, g::T, b::T) = BGR{T}(r, g, b)
 
 """
 `RGB1` is a variant of `RGB` which has a padding element inserted at
@@ -116,7 +116,7 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
 
     RGB1(r::Real, g::Real, b::Real) = new(one(T), r, g, b)
 end
-RGB1{T}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
+RGB1{T<:Fractional}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
 
 """
 `RGB4` is a variant of `RGB` which has a padding element inserted at
@@ -134,7 +134,7 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
 
     RGB4(r::Real, g::Real, b::Real) = new(r, g, b, one(T))
 end
-RGB4{T}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
+RGB4{T<:Fractional}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
 "`HSV` is the Hue-Saturation-Value colorspace."
 immutable HSV{T<:AbstractFloat} <: Color{T,3}
@@ -360,11 +360,12 @@ macro make_constructors(C, fields, elty)
     # elty = default element type when supplied with Integer arguments
     fields = fields.args
     Tfields = Expr[:($f::T) for f in fields]
+    realfields = Expr[:($f::Real) for f in fields]
     zfields = zeros(Int, length(fields))
     esc(quote
         # More constructors for the non-alpha version
         $C{T<:Integer}($(Tfields...)) = $C{$elty}($(fields...))
-        $C($(fields...)) = $C(promote($(fields...))...)
+        $C($(realfields...)) = $C(promote($(fields...))...)
         $C() = $C{$elty}($(zfields...))
     end)
 end
