@@ -49,6 +49,7 @@ include("types.jl")
 include("traits.jl")
 include("conversions.jl")
 include("show.jl")
+include("operations.jl")
 
 """
 ColorTypes summary:

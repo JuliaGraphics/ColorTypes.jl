@@ -228,3 +228,14 @@ show(iob, AGray(0.8))
 @test Set(ColorTypes.ctypes) ==
 Set([DIN99d, DIN99o, DIN99, HSI, HSL, HSV, LCHab, LCHuv,
      LMS, Lab, Luv, XYZ, YCbCr, YIQ, xyY, BGR, RGB, Gray])
+
+## operations
+for T in (Gray{U8}, AGray{Float32}, GrayA{Float64},
+          RGB{U8}, ARGB{U16}, RGBA{Float32},
+          BGR{Float16}, RGB1{U8}, RGB4{Float64}, ABGR{U8})
+    a = rand(T)
+    @test isa(a, T)
+    a = rand(T, (3, 5))
+    @test isa(a, Array{T,2})
+    @test size(a) == (3,5)
+end
