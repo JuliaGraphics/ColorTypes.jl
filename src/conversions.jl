@@ -47,11 +47,11 @@ convert(::Type{RGB24},   x::Real) = RGB24(x)
 convert(::Type{ARGB32},  x::Real) = ARGB32(x)
 convert(::Type{Gray24},  x::Real) = Gray24(x)
 convert(::Type{AGray32}, x::Real) = AGray32(x)
-convert(::Type{ARGB32},  x::Real, alpha) = ARGB32(x, alpha)
 convert(::Type{AGray32}, x::Real, alpha) = AGray32(x, alpha)
 
 convert{T}(::Type{Gray{T}},  x::Real)    = Gray{T}(x)
 convert{T<:Real}(::Type{T},  x::Gray)    = convert(T, x.val)
+convert{T<:Real}(::Type{T},  x::Gray24)  = convert(T, gray(x))
 convert{T}(::Type{AGray{T}}, x::Real)    = AGray{T}(x)
 convert{T}(::Type{GrayA{T}}, x::Real)    = GrayA{T}(x)
 

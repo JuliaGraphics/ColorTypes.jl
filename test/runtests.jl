@@ -1,6 +1,7 @@
 using ColorTypes, FixedPointNumbers
 using Base.Test
 
+@test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.UFixed{UInt8,8},2}
 @test @inferred(eltype(Color{U8})) == U8
 @test @inferred(eltype(RGB{Float32})) == Float32
 @test @inferred(eltype(RGBA{Float64})) == Float64
@@ -41,6 +42,8 @@ using Base.Test
 @test @inferred(base_colorant_type(BGR{U8})      ) == BGR
 @test @inferred(base_colorant_type(HSV) ) == HSV
 @test @inferred(base_colorant_type(HSVA)) == HSVA
+
+@test @inferred(ccolor(Colorant{U8,3}, BGR{U8})) == BGR{U8}
 
 @test @inferred(ccolor(RGB{Float32}, HSV{Float32})) == RGB{Float32}
 @test @inferred(ccolor(RGB{U8},      HSV{Float32})) == RGB{U8}
@@ -107,12 +110,18 @@ c = Gray(0.8)
 c = convert(Gray, 0.8)
 @test c === Gray{Float64}(0.8)
 
+c = AGray(0.8)
+@test gray(c) == 0.8
+@test color(c) == Gray(0.8)
+
 c = convert(Gray, true)
 @test c === Gray{Bool}(true)
 @test gray(c) === true
 @test gray(false) === false
 
 # Transparency
+@test alphacolor(Gray24(.2), .8) == AGray32(.2,.8)
+@test alphacolor(RGB24(1,0,0), .8) == ARGB32(1,0,0,.8)
 @test alphacolor(RGB(1,0,0), .8) == ARGB{U8}(1,0,0,.8)
 @test coloralpha(RGB(1,0,0), .8) == RGBA{U8}(1,0,0,.8)
 @test alphacolor(RGBA(1,0,0,.8)) == ARGB{Float64}(1,0,0,.8)
@@ -159,8 +168,17 @@ acargb = convert(ARGB, ac)
 @test convert(Color{U8},      crgb) === crgb
 @test convert(Color{Float32}, crgb) === convert(RGB{Float32}, crgb)
 @test_throws ErrorException convert(TransparentColor, crgb)
+@test_throws ErrorException convert(TransparentColor{RGB{U8}}, crgb)
+@test_throws ErrorException convert(TransparentColor{RGB{U8},U8}, crgb)
+@test_throws ErrorException convert(TransparentColor{RGB{U8},U8,2}, crgb)
 @test convert(AlphaColor, crgb) === alphacolor(crgb)
+@test convert(AlphaColor{RGB{U8}}, crgb) === alphacolor(crgb)
+@test convert(AlphaColor{RGB{U8},U8}, crgb) === alphacolor(crgb)
+@test convert(AlphaColor{RGB{U8},U8,4}, crgb) === alphacolor(crgb)
 @test convert(ColorAlpha, crgb) === coloralpha(crgb)
+@test convert(ColorAlpha{RGB{U8}}, crgb) === coloralpha(crgb)
+@test convert(ColorAlpha{RGB{U8},U8}, crgb) === coloralpha(crgb)
+@test convert(ColorAlpha{RGB{U8},U8,4}, crgb) === coloralpha(crgb)
 
 @test convert(Colorant, acargb) === acargb
 @test convert(Colorant{U8},   acargb) === acargb
@@ -182,13 +200,19 @@ ac2 = convert(ARGB32, c)
 @test convert(ARGB32, 0x01020304).color == 0x01020304
 ac3 = convert(RGBA, ac)
 @test convert(RGB24, ac3) == c
+ac4 = AGray32(.2,.8)
+@test alpha(ac4) == .8
+@test gray(ac4) == .2
 
 for C in subtypes(AbstractRGB)
     rgb = convert(C, c)
     C == RGB24 && continue
+    @test ccolor(Gray24, C) == Gray24
+    @test ccolor(AGray32, C) == AGray32
     @test convert(AbstractRGB, c) == c
     @test convert(AbstractRGB{Float64}, rgb) === convert(C{Float64}, c)
     argb = convert(alphacolor(C), ac)
+    rgba = convert(coloralpha(C), ac)
     @test rgb.r == red(c)
     @test rgb.g == green(c)
     @test rgb.b == blue(c)
@@ -196,8 +220,16 @@ for C in subtypes(AbstractRGB)
     @test argb.r == red(ac)
     @test argb.g == green(ac)
     @test argb.b == blue(ac)
+    @test rgba.alpha == alpha(ac)
+    @test rgba.r == red(ac)
+    @test rgba.g == green(ac)
+    @test rgba.b == blue(ac)
 end
 
+@test convert(Float64, Gray(.3)) == .3
+@test typeof(convert(Float64, Gray(.3))) <: Float64
+@test convert(GrayA{U8}, .2) == GrayA{U8}(.2)
+@test convert(AGray{U8}, .2) == AGray{U8}(.2)
 @test Gray{U8}(0.37).val           == U8(0.37)
 @test convert(Gray{U8}, 0.37).val  == U8(0.37)
 @test Gray24(0x0duf8).color           == 0x000d0d0d
@@ -218,16 +250,24 @@ show(iob, c)
 c = RGBA{UFixed8}(0.32218,0.14983,0.87819,0.99241)
 show(iob, c)
 @test takebuf_string(iob) == "RGBA{U8}(0.322,0.149,0.878,0.992)"
+showcompact(iob, c)
+@test takebuf_string(iob) == "RGBA{U8}(0.322,0.149,0.878,0.992)"
 show(iob, cf)
 @test takebuf_string(iob) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
 showcompact(iob, cf)
 @test takebuf_string(iob) == "RGB{Float32}(0.32218,0.14983,0.87819)"
 
+@test one(Gray{U8}) == Gray{U8}(1)
+@test zero(Gray{U8}) == Gray{U8}(0)
+
 c = Gray(0.8)
+@test c == 0.8
 show(iob, c)
 @test takebuf_string(iob) == "Gray{Float64}(0.8)"
 show(iob, AGray(0.8))
 @test takebuf_string(iob) == "AGray{Float64}(0.8,1.0)"
+show(iob, AGray32(0.8))
+@test takebuf_string(iob) == "AGray32{U8}(0.8,1.0)"
 
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
@@ -245,3 +285,29 @@ for T in (Gray{U8}, AGray{Float32}, GrayA{Float64},
     @test isa(a, Array{T,2})
     @test size(a) == (3,5)
 end
+
+# colorfields
+@test ColorTypes.colorfields(AGray32(.2)) == (:color,:alpha)
+@test ColorTypes.colorfields(Gray) == (:val,)
+@test ColorTypes.colorfields(RGB1) == (:r, :g, :b)
+@test ColorTypes.colorfields(RGB4) == (:r, :g, :b)
+@test ColorTypes.colorfields(BGR) == (:r, :g, :b)
+
+# UInt32 comparison
+@test Gray24() == 0x00000000
+@test Gray24(.2) == 0x00333333
+@test Gray24(0xdd) == 0x00232323
+@test convert(UInt32, Gray24(0xdd)) == 0x00232323
+@test AGray32() == 0xff000000
+@test AGray32(.2) == 0xff333333
+@test convert(AGray32, .2, 0.) == 0x00333333
+@test AGray32(0xdd) == 0xff232323
+@test convert(UInt32, AGray32(0xdd)) == 0xff232323
+@test RGB24() == 0x00000000
+@test RGB24(0x00232323) == 0x00232323
+@test convert(UInt32, RGB24(0x00232323)) == 0x00232323
+@test ARGB32() == 0xff000000
+@test ARGB32(0xff232323) == 0xff232323
+@test ARGB32(1,.2,.3) == 0xffff334c
+@test convert(UInt32, ARGB32(1,.2,.3)) == 0xffff334c
+
