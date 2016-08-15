@@ -144,7 +144,7 @@ immutable HSV{T<:AbstractFloat} <: Color{T,3}
 end
 
 "`HSB` (Hue-Saturation-Brightness) is an alias for `HSV`."
-HSB(h, s, b) = HSV(h, s, b)
+typealias HSB HSV
 
 "`HSL` is the Hue-Saturation-Lightness colorspace."
 immutable HSL{T<:AbstractFloat} <: Color{T,3}
@@ -287,6 +287,7 @@ ARGB32() = ARGB32(UInt32(0xff)<<24)
 _ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = ARGB32(UInt32(alpha)<<24 | UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
 ARGB32(r::UFixed8, g::UFixed8, b::UFixed8, alpha::UFixed8 = U8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 ARGB32(r, g, b, alpha = 1) = ARGB32(U8(r), U8(g), U8(b), U8(alpha))
+ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c), alpha)
 
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
@@ -326,7 +327,7 @@ You can extract the single gray value with `gray(c)` and the alpha as
 `AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
 scale from 0 (black) to 1 (white).
 """
-immutable AGray32 <: AlphaColor{Gray24, U8}
+immutable AGray32 <: AlphaColor{Gray24, U8, 2}
     color::UInt32
 
     AGray32(c::UInt32, dummy1, dummy2) = new(c)
@@ -348,7 +349,7 @@ const color3types = filter(x->(!x.abstract && length(fieldnames(x))>1), union(su
 const parametric3 = filter(x->!isempty(x.parameters), color3types)
 
 # Provide the field names in the order expected by the constructor
-colorfields{C<:Color}(::Type{C}) = fieldnames(C)
+colorfields{C<:Color}(::Type{C}) = (fieldnames(C)...)
 colorfields{C<:RGB1}(::Type{C}) = (:r, :g, :b)
 colorfields{C<:RGB4}(::Type{C}) = (:r, :g, :b)
 colorfields{C<:BGR }(::Type{C}) = (:r, :g, :b)
@@ -478,6 +479,8 @@ end
 # RGB1 and RGB4 require special handling because of the alphadummy field
 @make_constructors RGB1 (r,g,b) U8
 @make_constructors RGB4 (r,g,b) U8
+alphacolor{C<:Gray24}(::Type{C}) = AGray32
+alphacolor{C<:RGB24}(::Type{C}) = ARGB32
 alphacolor{C<:RGB1}(::Type{C}) = ARGB
 alphacolor{C<:RGB4}(::Type{C}) = ARGB
 coloralpha{C<:RGB1}(::Type{C}) = RGBA
