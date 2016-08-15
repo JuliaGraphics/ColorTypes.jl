@@ -113,6 +113,8 @@ c = convert(Gray, true)
 @test gray(false) === false
 
 # Transparency
+@test alphacolor(RGB(1,0,0), .8) == ARGB{U8}(1,0,0,.8)
+@test coloralpha(RGB(1,0,0), .8) == RGBA{U8}(1,0,0,.8)
 for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
     for A in (alphacolor(C), coloralpha(C))
         @test eltype(A{Float32}) == Float32

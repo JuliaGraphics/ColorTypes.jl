@@ -57,6 +57,8 @@ convert{T}(::Type{GrayA{T}}, x::Real)    = GrayA{T}(x)
 
 # Generate the transparent analog of a color
 alphacolor{C<:Color     }(c::C) = alphacolor(C)(c)
+alphacolor{C<:Color     }(c::C,a) = alphacolor(C)(c,a)
 alphacolor{C<:TransparentColor}(c::C) = alphacolor(base_color_type(C))(color_type(c), alpha(c))
 coloralpha{C<:Color     }(c::C) = coloralpha(C)(c)
+coloralpha{C<:Color     }(c::C,a) = coloralpha(C)(c,a)
 coloralpha{C<:TransparentColor}(c::C) = coloralpha(base_color_type(C))(color_type(c), alpha(c))
