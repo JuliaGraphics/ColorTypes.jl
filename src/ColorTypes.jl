@@ -3,6 +3,13 @@ __precompile__()
 module ColorTypes
 
 using FixedPointNumbers
+if VERSION >= v"0.5.0-dev+755"
+    using Base.@pure
+else
+    macro pure(ex)
+        esc(ex)
+    end
+end
 
 typealias Fractional Union{AbstractFloat, FixedPoint}
 typealias U8 UFixed8
