@@ -295,13 +295,13 @@ end
 # UInt32 comparison
 @test Gray24() == 0x00000000
 @test Gray24(.2) == 0x00333333
-@test Gray24(0xdd) == 0x00232323
-@test convert(UInt32, Gray24(0xdd)) === 0x00232323
+@test Gray24(0x23uf8) == 0x00232323
+@test convert(UInt32, Gray24(0x23uf8)) === 0x00232323
 @test AGray32() == 0xff000000
 @test AGray32(.2) == 0xff333333
 @test convert(AGray32, .2, 0.) == 0x00333333
-@test AGray32(0xdd) == 0xff232323
-@test convert(UInt32, AGray32(0xdd)) === 0xff232323
+@test AGray32(0x23uf8) == 0xff232323
+@test convert(UInt32, AGray32(0x23uf8)) === 0xff232323
 @test RGB24() == 0x00000000
 @test RGB24(0x00232323) == 0x00232323
 @test convert(UInt32, RGB24(0x00232323)) === 0x00232323
@@ -309,4 +309,3 @@ end
 @test ARGB32(0xff232323) == 0xff232323
 @test ARGB32(1,.2,.3) == 0xffff334c
 @test convert(UInt32, ARGB32(1,.2,.3)) === 0xffff334c
-
