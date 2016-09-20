@@ -1,6 +1,16 @@
 using ColorTypes, FixedPointNumbers
 using Base.Test
 
+if VERSION >= v"0.5.0-dev+2396"
+    macro inferred5(ex)
+        Expr(:macrocall, Symbol("@inferred"), esc(ex))
+    end
+else
+    macro inferred5(ex)
+        esc(ex)
+    end
+end
+
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.UFixed{UInt8,8},2}
 @test @inferred(eltype(Color{U8})) == U8
 @test @inferred(eltype(RGB{Float32})) == Float32
@@ -309,3 +319,16 @@ end
 @test ARGB32(0xff232323) == 0xff232323
 @test ARGB32(1,.2,.3) == 0xffff334c
 @test convert(UInt32, ARGB32(1,.2,.3)) === 0xffff334c
+
+@test @inferred5(mapc(sqrt, Gray{U8}(0.04))) == Gray(sqrt(U8(0.04)))
+@test @inferred5(mapc(sqrt, AGray{U8}(0.04, 0.4))) == AGray(sqrt(U8(0.04)), sqrt(U8(0.4)))
+@test @inferred5(mapc(sqrt, GrayA{U8}(0.04, 0.4))) == GrayA(sqrt(U8(0.04)), sqrt(U8(0.4)))
+@test @inferred5(mapc(x->2x, RGB{U8}(0.04,0.2,0.3))) == RGB(map(x->2*U8(x), (0.04,0.2,0.3))...)
+@test @inferred5(mapc(sqrt, RGBA{U8}(0.04,0.2,0.3,0.7))) == RGBA(map(x->sqrt(U8(x)), (0.04,0.2,0.3,0.7))...)
+@test @inferred5(mapc(x->1.5f0x, RGBA{U8}(0.04,0.2,0.3,0.4))) == RGBA(map(x->1.5f0*U8(x), (0.04,0.2,0.3,0.4))...)
+
+@test @inferred5(mapc(max, Gray{U8}(0.2), Gray{U8}(0.3))) == Gray{U8}(0.3)
+@test @inferred5(mapc(-, AGray{Float32}(0.3), AGray{Float32}(0.2))) == AGray{Float32}(0.3f0-0.2f0,0.0)
+@test @inferred5(mapc(min, RGB{U8}(0.2,0.8,0.7), RGB{U8}(0.5,0.2,0.99))) == RGB{U8}(0.2,0.2,0.7)
+@test @inferred5(mapc(+, RGBA{U8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) == RGBA(0.5f0+U8(0.2),0.2f0+U8(0.8),0.99f0+U8(0.7),0.5f0+U8(0.3))
+@test_throws ArgumentError mapc(min, RGB{U8}(0.2,0.8,0.7), BGR{U8}(0.5,0.2,0.99))
