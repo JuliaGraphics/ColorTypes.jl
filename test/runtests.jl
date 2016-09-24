@@ -90,6 +90,25 @@ end
 @test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
 
 # Constructors
+for val in (0.2, 0.2f0, U8(0.2), UFixed12(0.2), UFixed16(0.2),
+            Gray{U8}(0.2), Gray{UFixed12}(0.2), Gray24(0.2))
+    @test isa(Gray(val), Gray)
+    @test Gray{U8}(val) === Gray{U8}(0.2)
+    @test Gray{UFixed16}(val) === Gray{UFixed16}(0.2)
+    @test Gray24(val) === Gray24(0.2)
+    @test AGray32(val) === AGray32(0.2, 1)
+    @test AGray32(val, 0.8) === AGray32(0.2, 0.8)
+end
+for val in (1.2, 1.2f0, UFixed12(1.2), Gray{UFixed12}(1.2), 2)
+    !isa(val, Int) && @test isa(Gray(val), Gray)
+    @test_throws ArgumentError Gray{U8}(val)
+    @test_throws ArgumentError Gray{UFixed16}(val)
+    @test_throws ArgumentError Gray24(val) == Gray24(0.2)
+    @test_throws ArgumentError GrayA{U8}(val)
+    @test_throws ArgumentError AGray{U8}(val)
+    @test_throws ArgumentError AGray32(val)
+    @test_throws ArgumentError AGray32(val, 0.8)
+end
 @test eltype(Gray()) == U8
 @test Gray(Gray()) == Gray()  # no StackOverflowError
 for C in ColorTypes.parametric3
@@ -112,6 +131,73 @@ for C in subtypes(AbstractRGB)
     @test red(c)   == c.r == 1
     @test green(c) == c.g == 0.5
     @test blue(c)  == c.b == 0
+end
+# Check various input types and values
+for C in subtypes(AbstractRGB)
+    for val1 in (0.2, 0.2f0, U8(0.2), UFixed12(0.2), UFixed16(0.2))
+        for val2 in (0.2, 0.2f0, U8(0.2), UFixed12(0.2), UFixed16(0.2))
+            c = C(val1,val2,val1)
+            @test isa(c, C)
+            @test isa(alphacolor(C)(val1,val2,val1), alphacolor(C))
+            @test isa(alphacolor(C)(val1,val2,val1,0.2), alphacolor(C))
+            @test alphacolor(C)(c) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 1))
+            @test alphacolor(C)(c, 0.2) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 0.2))
+            if C !== RGB24
+                @test isa(coloralpha(C)(val1,val2,val1), coloralpha(C))
+                @test isa(coloralpha(C)(val1,val2,val1,0.2), coloralpha(C))
+                @test C{U8}(val1,val2,val1) === C{U8}(0.2,0.2,0.2)
+                @test C{UFixed16}(val1,val2,val1) === C{UFixed16}(0.2,0.2,0.2)
+                @test alphacolor(C){U8}(val1,val2,val1) === alphacolor(C){U8}(0.2,0.2,0.2,1)
+                @test alphacolor(C){U8}(val1,val2,val1,0.2) === alphacolor(C){U8}(0.2,0.2,0.2,0.2)
+                @test coloralpha(C){U8}(val1,val2,val1) === coloralpha(C){U8}(0.2,0.2,0.2,1)
+                @test coloralpha(C){U8}(val1,val2,val1,0.2) === coloralpha(C){U8}(0.2,0.2,0.2,0.2)
+                @test coloralpha(C)(c) === coloralpha(C){eltype(c)}(val1,val2,val1,1)
+                @test coloralpha(C)(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
+            end
+        end
+    end
+    @test isa(C(1,0,1), C)
+    @test C() === C(0,0,0)
+    @test isa(alphacolor(C)(1,0,1), alphacolor(C))
+    @test alphacolor(C)() === alphacolor(C)(0,0,0,1)
+    if C != RGB24
+        @test C(1,0,1) === C{U8}(1,0,1)
+        @test alphacolor(C)(1,0,1) === alphacolor(C){U8}(1,0,1,1)
+        @test alphacolor(C)(1,0,1,0.2) === alphacolor(C){Float64}(1,0,1,0.2)
+        @test coloralpha(C)(1,0,1) === coloralpha(C){U8}(1,0,1,1)
+        @test coloralpha(C)(1,0,1,0.2) === coloralpha(C){Float64}(1,0,1,0.2)
+        @test coloralpha(C)() === coloralpha(C)(0,0,0,1)
+    end
+    for val in (1.2, 1.2f0, UFixed12(1.2), 2)
+        if C !== RGB24
+            @test_throws ArgumentError C{U8}(val,val,val)
+            @test_throws ArgumentError C{UFixed16}(val,val,val)
+            @test_throws ArgumentError alphacolor(C){U8}(val,val,val)
+            @test_throws ArgumentError coloralpha(C){U8}(val,val,val)
+            if val != 2
+                @test isa(C(val,val,val), C)
+                c = C(val,val,val)
+                @test_throws ArgumentError alphacolor(C){U8}(c)
+                @test_throws ArgumentError coloralpha(C){U8}(c)
+                if C != RGB1 && C != RGB4
+                    @test_throws ArgumentError alphacolor(C){U8}(c, 0.2)
+                    @test_throws ArgumentError coloralpha(C){U8}(c, 0.2)
+                end
+            end
+        end
+        if C == RGB24 || isa(val, Int)
+            @test_throws ArgumentError C(val,val,val)
+            @test_throws ArgumentError alphacolor(C)(val,val,val)
+        end
+    end
+end
+if VERSION >= v"0.5.0"
+    ret = @test_throws ArgumentError RGB(255, 17, 48)
+    @test contains(ret.value.msg, "255,17,48")
+    @test contains(ret.value.msg, "0-255")
+    ret = @test_throws ArgumentError RGB(256, 17, 48)
+    @test contains(ret.value.msg, "256,17,48")
+    @test !contains(ret.value.msg, "0-255")
 end
 
 c = Gray(0.8)
