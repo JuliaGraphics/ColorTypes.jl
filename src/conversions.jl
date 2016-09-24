@@ -1,3 +1,6 @@
+Base.promote_rule{T1<:AbstractGray,T2<:AbstractGray}(::Type{T1}, ::Type{T2}) = Gray{promote_type(eltype(T1), eltype(T2))}
+Base.promote_rule{T1<:AbstractRGB,T2<:AbstractRGB}(::Type{T1}, ::Type{T2}) = RGB{promote_type(eltype(T1), eltype(T2))}
+
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
 

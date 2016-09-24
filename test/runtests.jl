@@ -334,6 +334,11 @@ end
 @test AGray32(0x0duf8, 0x80uf8).color    == 0x800d0d0d
 @test convert(Gray{UFixed16}, Gray24(0x0duf8)) == Gray{UFixed16}(0.05098)
 
+@test promote(Gray{U8}(0.2), Gray24(0.3)) === (Gray{U8}(0.2), Gray{U8}(0.3))
+@test promote(Gray(0.2f0), Gray24(0.3)) === (Gray{Float32}(0.2), Gray{Float32}(U8(0.3)))
+@test promote(RGB{U8}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{U8}(0.2,0.3,0.4), RGB{U8}(0.3,0.8,0.1))
+@test promote(RGB{Float32}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{Float32}(0.2,0.3,0.4), RGB{Float32}(U8(0.3),U8(0.8),U8(0.1)))
+
 iob = IOBuffer()
 cf = RGB{Float32}(0.32218,0.14983,0.87819)
 c  = convert(RGB{U8}, cf)
