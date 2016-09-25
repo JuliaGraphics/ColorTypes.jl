@@ -82,7 +82,19 @@ immutable RGB{T<:Fractional} <: AbstractRGB{T}
     r::T # Red [0,1]
     g::T # Green [0,1]
     b::T # Blue [0,1]
+
+    RGB(r::T, g::T, b::T) = new(r, g, b)
+    # T might be a UFixed, and so some inputs will result in an
+    # error. Try to make it a nice error.
+    function RGB(r::Real, g::Real, b::Real)
+        checkval(T, r, g, b)
+        new(_rem(r,T), _rem(g,T), _rem(b,T))
+    end
 end
+# For types that support Fractional, we need this to avoid a
+# StackOverflow. For color types that only support AbstractFloat, this
+# is handled by @make_constructors.
+RGB{T<:Fractional}(r::T, g::T, b::T) = RGB{T}(r, g, b)
 
 """
 `BGR` is a variant of `RGB` with the opposite storage order.  Note
@@ -96,7 +108,11 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
     g::T
     r::T
 
-    BGR(r::Real, g::Real, b::Real) = new(b, g, r)
+    BGR(r::T, g::T, b::T) = new(b, g, r)
+    function BGR(r::Real, g::Real, b::Real)
+        checkval(T, r, g, b)
+        new(_rem(b,T), _rem(g,T), _rem(r,T))
+    end
 end
 BGR{T<:Fractional}(r::T, g::T, b::T) = BGR{T}(r, g, b)
 
@@ -114,7 +130,11 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
     g::T
     b::T
 
-    RGB1(r::Real, g::Real, b::Real) = new(one(T), r, g, b)
+    RGB1(r::T, g::T, b::T) = new(one(T), r, g, b)
+    function RGB1(r::Real, g::Real, b::Real)
+        checkval(T, r, g, b)
+        new(one(T), _rem(r,T), _rem(g,T), _rem(b,T))
+    end
 end
 RGB1{T<:Fractional}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
 
@@ -132,7 +152,11 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
     b::T
     alphadummy::T
 
-    RGB4(r::Real, g::Real, b::Real) = new(r, g, b, one(T))
+    RGB4(r::T, g::T, b::T) = new(r, g, b, one(T))
+    function RGB4(r::Real, g::Real, b::Real)
+        checkval(T, r, g, b)
+        new(_rem(r,T), _rem(g,T), _rem(b,T), one(T))
+    end
 end
 RGB4{T<:Fractional}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
@@ -267,7 +291,10 @@ end
 RGB24() = RGB24(0)
 _RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
 RGB24(r::UFixed8, g::UFixed8, b::UFixed8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
-RGB24(r, g, b) = RGB24(U8(r), U8(g), U8(b))
+function RGB24(r, g, b)
+    checkval(U8, r, g, b)
+    RGB24(_rem(r,U8), _rem(g,U8), _rem(b,U8))
+end
 
 """
 `ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
@@ -294,7 +321,14 @@ ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c
 """
 immutable Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
+
+    Gray(val::T) = new(val)
+    function Gray(val::Real)
+        checkval(T, val)
+        new(_rem(val,T))
+    end
 end
+Gray{T<:Union{Fractional,Bool}}(val::T) = Gray{T}(val)
 
 """
 `Gray24` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -314,7 +348,10 @@ end
 Gray24() = Gray24(0)
 _Gray24(val::UInt8) = (g = UInt32(val); Gray24(g<<16 | g<<8 | g, 0))
 Gray24(val::UFixed8) = _Gray24(reinterpret(val))
-Gray24(val) = Gray24(U8(val))
+function Gray24(val::Real)
+    checkval(U8, val)
+    Gray24(val%U8)
+end
 
 """
 `AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -335,7 +372,15 @@ end
 AGray32() = AGray32(0)
 _AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); AGray32(UInt32(alpha)<<24 | g<<16 | g<<8 | g, 0, 0))
 AGray32(val::UFixed8, alpha::UFixed8 = UFixed8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
-AGray32(val, alpha = 1) = AGray32(U8(val), U8(alpha))
+function AGray32(val::Real, alpha = 1)
+    checkval(U8, val, alpha)
+    AGray32(val%U8, alpha%U8)
+end
+function AGray32(g::Gray24, alpha = 1)
+    checkval(U8, alpha)
+    AGray32(UInt32(reinterpret(_rem(alpha,U8)))<<24 | g.color, 0, 0)
+end
+AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 
 # Generated code:
 #   - more constructors for colors
@@ -383,6 +428,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     realfields    = Expr[:($f::Real) for f in constrfields]
     cfields       = Expr[:(c.$f)     for f in constrfields]
     cinnerfields  = Expr[:(c.$f)     for f in fields]
+    remfields     = Expr[:(_rem($f,T)) for f in fields]
     zfields       = zeros(Int, length(fields))
     Tconstr = Expr(:<:, :T, ub)
     exportexpr = Expr(:export, acol, cola)
@@ -391,15 +437,23 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             alpha::T
             $(Tfields...)
 
-            $acol($(realfields...), alpha::Real=one(T)) = new(alpha, $(fields...))
-            $acol(c::$C, alpha::Real=one(T)) = new(alpha, $(cinnerfields...))
+            $acol($(Tconstrfields...), alpha::T=one(T)) = new(alpha, $(fields...))
+            function $acol($(realfields...), alpha::Real=one(T))
+                checkval(T, $(fields...), alpha)
+                new(_rem(alpha,T), $(remfields...))
+            end
+            $acol(c::$C, alpha::Real=one(T)) = $acol{T}($(cfields...), alpha)
         end
         immutable $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
             $(Tfields...)
             alpha::T
 
-            $cola($(realfields...), alpha::Real=one(T)) = new($(fields...), alpha)
-            $cola(c::$C, alpha::Real=one(T)) = new($(cinnerfields...), alpha)
+            $cola($(Tconstrfields...), alpha::T=one(T)) = new($(fields...), alpha)
+            function $cola($(realfields...), alpha::Real=one(T))
+                checkval(T, $(fields...), alpha)
+                new($(remfields...), _rem(alpha,T))
+            end
+            $cola(c::$C, alpha::Real=one(T)) = $cola{T}($(cfields...), alpha)
         end
         $exportexpr
         alphacolor{C<:$C}(::Type{C}) = $acol
@@ -407,6 +461,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
 
         # More constructors for the alpha versions
         $acol{T<:Integer}($(Tconstrfields...), alpha::T=1) = $acol{$elty}($(fields...), alpha)
+        $acol(c::$C, alpha=one(eltype(c))) = $acol{eltype(c)}(c, alpha)
         function $acol($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
@@ -417,10 +472,11 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $acol{T}(p...)
         end
-        $acol(c::Color, alpha::Real) = convert($acol, c, alpha)
+        $acol(c::Color, alpha::Real) = $acol($C(c), alpha)
         $acol() = $acol{$elty}($(zfields...))
 
         $cola{T<:Integer}($(Tconstrfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
+        $cola(c::$C, alpha=one(eltype(c))) = $cola{eltype(c)}(c, alpha)
         function $cola($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
@@ -431,7 +487,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             T = typeof(p[1])
             $cola{T}(p...)
         end
-        $cola(c::Color, alpha::Real) = convert($cola, c, alpha)
+        $cola(c::Color, alpha::Real) = $cola($C(c), alpha)
         $cola() = $cola{$elty}($(zfields...))
     end)
 end
@@ -477,8 +533,8 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
 end
 
 # RGB1 and RGB4 require special handling because of the alphadummy field
-@make_constructors RGB1 (r,g,b) U8
-@make_constructors RGB4 (r,g,b) U8
+@eval @make_constructors RGB1 (r,g,b) $U8
+@eval @make_constructors RGB4 (r,g,b) $U8
 alphacolor{C<:Gray24}(::Type{C}) = AGray32
 alphacolor{C<:RGB24}(::Type{C}) = ARGB32
 alphacolor{C<:RGB1}(::Type{C}) = ARGB
@@ -495,3 +551,79 @@ color type with storage order (alpha, color).
 `coloralpha(RGB)` returns `RGBA`, i.e., the corresponding transparent
 color type with storage order (color, alpha).
 """ coloralpha
+
+### Validating the inputs for UFixed constructors
+
+# Throw helpful errors in case of trouble. The inlining here is
+# carefully designed to reduce the impact on runtime performance, and
+# we also avoid splatting.
+
+@inline function isok{T<:UFixed}(::Type{T}, x)
+    Δ = eps(T)/2 # as long as the number rounds to a valid number, that's OK
+    (-Δ <= x) & (x < typemax(T)+Δ)
+end
+
+@inline checkval{T<:UFixed}(::Type{T}, a) = isok(T, a) || throw_colorerror(T, a)
+
+@inline function checkval{T<:UFixed}(::Type{T}, a, b)
+    isok(T, a) & isok(T, b) || throw_colorerror(T, a, b)
+end
+@inline function checkval{T<:UFixed}(::Type{T}, a, b, c)
+    isok(T, a) & isok(T, b) & isok(T, c) || throw_colorerror(T, a, b, c)
+end
+@inline function checkval{T<:UFixed}(::Type{T}, a, b, c, d)
+    isok(T, a) & isok(T, b) & isok(T, c) & isok(T, d) || throw_colorerror(T, a, b, c, d)
+end
+checkval{T}(::Type{T}, a) = nothing
+checkval{T}(::Type{T}, a, b) = nothing
+checkval{T}(::Type{T}, a, b, c) = nothing
+checkval{T}(::Type{T}, a, b, c, d) = nothing
+
+@noinline throw_colorerror{T}(::Type{T}, g) = throw_colorerror(T, (g,))
+@noinline throw_colorerror{T}(::Type{T}, g, a) = throw_colorerror(T, (g,a))
+@noinline throw_colorerror{T}(::Type{T}, r, g, b) = throw_colorerror(T, (r, g, b))
+@noinline throw_colorerror{T}(::Type{T}, r, g, b, a) = throw_colorerror(T, (r, g, b, a))
+
+function throw_colorerror_{T<:UFixed}(::Type{T}, values)
+    io = IOBuffer()
+    showcompact(io, typemin(T)); Tmin = takebuf_string(io)
+    showcompact(io, typemax(T)); Tmax = takebuf_string(io)
+    bitstring = sizeof(T) == 1 ? "an 8-bit" : "a $(8*sizeof(T))-bit"
+    throw(ArgumentError("""
+element type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $Tmin to $Tmax,
+  but the values $values do not lie within this range.
+  See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
+end
+
+function throw_colorerror(::Type{UFixed8}, values::Tuple{Vararg{Integer}})
+    # Let's try to read the user's mind
+    if all(x->0<=x<=255, values)
+        if length(values) == 1
+            vstr = "$(values[1]) is an integer"
+            Tstr = "Gray"
+        else
+            vstr = "$values are integers"
+            if length(values) == 2
+                Tstr = "AGray"
+            elseif length(values) == 3
+                Tstr = "RGB"
+            else
+                Tstr = "RGBA"
+            end
+        end
+        args = join(map(v->"$v/255", values), ',')
+        throw(ArgumentError("""
+$vstr in the range 0-255, but integer inputs are encoded with the UFixed8
+  type, an 8-bit type representing 256 discrete values between 0 and 1.
+  Consider dividing your input values by 255, for example: $Tstr{UFixed8}($args)
+  See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
+    end
+    throw_colorerror_(UFixed8, values)
+end
+
+function throw_colorerror{T<:UFixed}(::Type{T}, values::Tuple)
+    throw_colorerror_(T, values)
+end
+
+_rem{T<:UFixed}(x,::Type{T}) = x % T
+_rem{T}(x, ::Type{T})        = x
