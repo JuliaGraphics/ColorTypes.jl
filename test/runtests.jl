@@ -11,6 +11,10 @@ else
     end
 end
 
+if VERSION >= v"0.5.0"
+    @test isempty(detect_ambiguities(ColorTypes, Base, Core))
+end
+
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.UFixed{UInt8,8},2}
 @test @inferred(eltype(Color{U8})) == U8
 @test @inferred(eltype(RGB{Float32})) == Float32
