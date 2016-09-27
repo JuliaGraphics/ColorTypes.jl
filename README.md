@@ -384,6 +384,11 @@ greater detail); just type `?ccolor` at the REPL.
 - `comp1`, `comp2`, and `comp3` extract color components in the order
   expected by the constructor
 
+### Functions
+
+- `mapc(f, c)` executes the function `f` on each color channel of `c`,
+  returning a new color in the same colorspace.
+
 ## Extending ColorTypes and Colors
 
 In most cases, adding a new color space is quite straightforward:
