@@ -248,7 +248,9 @@ pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
 
 
 ### Equality
-==(c1::AbstractRGB, c2::AbstractRGB) = red(c1) == red(c2) && green(c1) == green(c2) && blue(c1) == blue(c2)
+function ==(c1::AbstractRGB, c2::AbstractRGB)
+    red(c1) == red(c2) && green(c1) == green(c2) && blue(c1) == blue(c2)
+end
 ==(c1::HSV, c2::HSV) = c1.h == c2.h && c1.s == c2.s && c1.v == c2.v
 ==(c1::HSI, c2::HSI) = c1.h == c2.h && c1.s == c2.s && c1.i == c2.i
 ==(c1::HSL, c2::HSL) = c1.h == c2.h && c1.s == c2.s && c1.l == c2.l
@@ -274,6 +276,11 @@ end
 ==(x::Gray, y::Gray) = x.val == y.val
 ==(x::Number, y::Gray) = x == y.val
 ==(x::Gray, y::Number) = ==(y, x)
+
+function ==(x::TransparentColor, y::TransparentColor)
+    color(x) == color(y) && alpha(x) == alpha(y)
+end
+
 
 zero{T}(::Type{Gray{T}}) = Gray{T}(zero(T))
 one{T}(::Type{Gray{T}}) = Gray{T}(one(T))
