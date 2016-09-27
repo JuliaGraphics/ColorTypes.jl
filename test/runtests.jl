@@ -426,6 +426,7 @@ end
 @test @inferred5(mapc(-, AGray{Float32}(0.3), AGray{Float32}(0.2))) == AGray{Float32}(0.3f0-0.2f0,0.0)
 @test @inferred5(mapc(min, RGB{U8}(0.2,0.8,0.7), RGB{U8}(0.5,0.2,0.99))) == RGB{U8}(0.2,0.2,0.7)
 @test @inferred5(mapc(+, RGBA{U8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) == RGBA(0.5f0+U8(0.2),0.2f0+U8(0.8),0.99f0+U8(0.7),0.5f0+U8(0.3))
+@test @inferred5(mapc(+, HSVA(0.1,0.8,0.3,0.5), HSVA(0.5,0.5,0.5,0.3))) == HSVA(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.3)
 @test_throws ArgumentError mapc(min, RGB{U8}(0.2,0.8,0.7), BGR{U8}(0.5,0.2,0.99))
 
 
