@@ -49,7 +49,7 @@ mapc(f, x, y) = _mapc(_same_colorspace(x,y), f, x, y)
 _mapc{C<:AbstractGray}(::Type{C}, f, x, y) = C(f(gray(x), gray(y)))
 _mapc{C<:TransparentGray}(::Type{C}, f, x, y) = C(f(gray(x), gray(y)), f(alpha(x), alpha(y)))
 _mapc{C<:Color3}(::Type{C}, f, x, y) = C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)))
-_mapc{C<:TransparentRGB }(::Type{C}, f, x, y) = C(f(red(x), red(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(alpha(x), alpha(y)))
+_mapc{C<:Transparent3}(::Type{C}, f, x, y) = C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(alpha(x), alpha(y)))
 
 _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type(x),
                                                               base_colorant_type(y))
