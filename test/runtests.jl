@@ -427,3 +427,8 @@ end
 @test @inferred5(mapc(min, RGB{U8}(0.2,0.8,0.7), RGB{U8}(0.5,0.2,0.99))) == RGB{U8}(0.2,0.2,0.7)
 @test @inferred5(mapc(+, RGBA{U8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) == RGBA(0.5f0+U8(0.2),0.2f0+U8(0.8),0.99f0+U8(0.7),0.5f0+U8(0.3))
 @test_throws ArgumentError mapc(min, RGB{U8}(0.2,0.8,0.7), BGR{U8}(0.5,0.2,0.99))
+
+
+# issue #52
+@test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
+@test RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5) == RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5)
