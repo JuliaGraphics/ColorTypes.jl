@@ -287,14 +287,33 @@ still extract the individual components with `red(c)`, `green(c)`,
 """
 immutable RGB24 <: AbstractRGB{U8}
     color::UInt32
+
+    RGB24(col::UInt32, ::Type{Val{true}}) = new(col)
 end
-RGB24() = RGB24(0)
-_RGB24(r::UInt8, g::UInt8, b::UInt8) = RGB24(UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
+# The Val{true} constructor solves a consistency problem, one that's
+# most obvious for Gray24: Gray24(x) interprets x as a value between 0
+# and 1; since a UInt32 can have value 0 or 1 (among other
+# possibilities), having Gray24(x::UInt32) mean something entirely
+# different (interpreting the UInt32 as a bit pattern rather than a
+# value) would be inconsistent, confusing, and error-prone. Because we
+# can construct an RGB24 from a grayscale value (just repeating the
+# value for all 3 color channels), the same problem extends to all the
+# "24/32" color types.
+
+# However, some constructors "build" RGB24s as a UInt32 bit pattern,
+# so we need some way of turning a UInt32 directly into an RGB24.
+# This is the role of the Val{true} constructor. This is an internal
+# implementation detail, and user code should not use it directly:
+# use reinterpret(RGB24, x::UInt32) instead. (The Val{true}
+# constructor is used to implement reinterpret, see traits.jl.)
+RGB24() = reinterpret(RGB24, UInt32(0))
+_RGB24(r::UInt8, g::UInt8, b::UInt8) = reinterpret(RGB24, UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
 RGB24(r::UFixed8, g::UFixed8, b::UFixed8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 function RGB24(r, g, b)
     checkval(U8, r, g, b)
     RGB24(_rem(r,U8), _rem(g,U8), _rem(b,U8))
 end
+@deprecate RGB24(x::UInt32) reinterpret(RGB24, x)
 
 """
 `ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
@@ -309,12 +328,15 @@ a `UInt32`, or as `ARGB32(r, g, b, alpha)`.
 """
 immutable ARGB32 <: AlphaColor{RGB24, U8, 4}
     color::UInt32
+
+    ARGB32(col::UInt32, ::Type{Val{true}}) = new(col)
 end
-ARGB32() = ARGB32(UInt32(0xff)<<24)
-_ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = ARGB32(UInt32(alpha)<<24 | UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
+ARGB32() = reinterpret(ARGB32, UInt32(0xff)<<24)
+_ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = reinterpret(ARGB32, UInt32(alpha)<<24 | UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
 ARGB32(r::UFixed8, g::UFixed8, b::UFixed8, alpha::UFixed8 = U8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 ARGB32(r, g, b, alpha = 1) = ARGB32(U8(r), U8(g), U8(b), U8(alpha))
 ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c), alpha)
+@deprecate ARGB32(x::UInt32) reinterpret(ARGB32, x)
 
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
@@ -343,15 +365,16 @@ construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
 immutable Gray24 <: AbstractGray{U8}
     color::UInt32
 
-    Gray24(c::UInt32, _) = new(c)
+    Gray24(c::UInt32, ::Type{Val{true}}) = new(c)
 end
-Gray24() = Gray24(0)
-_Gray24(val::UInt8) = (g = UInt32(val); Gray24(g<<16 | g<<8 | g, 0))
+Gray24() = reinterpret(Gray24, UInt32(0))
+_Gray24(val::UInt8) = (g = UInt32(val); reinterpret(Gray24, g<<16 | g<<8 | g))
 Gray24(val::UFixed8) = _Gray24(reinterpret(val))
 function Gray24(val::Real)
     checkval(U8, val)
     Gray24(val%U8)
 end
+@deprecate Gray24(x::UInt32) reinterpret(Gray24, x)
 
 """
 `AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -367,10 +390,10 @@ scale from 0 (black) to 1 (white).
 immutable AGray32 <: AlphaColor{Gray24, U8, 2}
     color::UInt32
 
-    AGray32(c::UInt32, dummy1, dummy2) = new(c)
+    AGray32(c::UInt32, ::Type{Val{true}}) = new(c)
 end
-AGray32() = AGray32(0)
-_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); AGray32(UInt32(alpha)<<24 | g<<16 | g<<8 | g, 0, 0))
+AGray32() = reinterpret(AGray32, 0xff000000)
+_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); reinterpret(AGray32, UInt32(alpha)<<24 | g<<16 | g<<8 | g))
 AGray32(val::UFixed8, alpha::UFixed8 = UFixed8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
 function AGray32(val::Real, alpha = 1)
     checkval(U8, val, alpha)
@@ -378,9 +401,10 @@ function AGray32(val::Real, alpha = 1)
 end
 function AGray32(g::Gray24, alpha = 1)
     checkval(U8, alpha)
-    AGray32(UInt32(reinterpret(_rem(alpha,U8)))<<24 | g.color, 0, 0)
+    reinterpret(AGray32, UInt32(reinterpret(_rem(alpha,U8)))<<24 | g.color)
 end
 AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
+@deprecate AGray32(x::UInt32) reinterpret(AGray32, x)
 
 # Generated code:
 #   - more constructors for colors

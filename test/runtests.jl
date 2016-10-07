@@ -146,6 +146,7 @@ for C in subtypes(AbstractRGB)
             @test isa(alphacolor(C)(val1,val2,val1,0.2), alphacolor(C))
             @test alphacolor(C)(c) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 1))
             @test alphacolor(C)(c, 0.2) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 0.2))
+            @test alphacolor(c, 0.2) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 0.2))
             if C !== RGB24
                 @test isa(coloralpha(C)(val1,val2,val1), coloralpha(C))
                 @test isa(coloralpha(C)(val1,val2,val1,0.2), coloralpha(C))
@@ -157,6 +158,7 @@ for C in subtypes(AbstractRGB)
                 @test coloralpha(C){U8}(val1,val2,val1,0.2) === coloralpha(C){U8}(0.2,0.2,0.2,0.2)
                 @test coloralpha(C)(c) === coloralpha(C){eltype(c)}(val1,val2,val1,1)
                 @test coloralpha(C)(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
+                @test coloralpha(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
             end
         end
     end
@@ -210,6 +212,9 @@ c = Gray(0.8)
 c = convert(Gray, 0.8)
 @test c === Gray{Float64}(0.8)
 
+ac = convert(AGray, c)
+@test ac === AGray{Float64}(0.8, 1.0)
+
 c = AGray(0.8)
 @test gray(c) == 0.8
 @test color(c) == Gray(0.8)
@@ -254,7 +259,7 @@ for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
         @test convert(C{Float32}, c) == C{Float32}(1,0.8,0.6)
     end
 end
-ac = ARGB32(rand(UInt32))
+ac = reinterpret(ARGB32, rand(UInt32))
 @test convert(ARGB32, ac) == ac
 c = convert(RGB24, ac)
 @test convert(RGB24, c) == c
@@ -286,18 +291,30 @@ acargb = convert(ARGB, ac)
 @test convert(TransparentColor, acargb) == acargb
 @test convert(Color, acargb) == crgb
 
+h = U8(0.5)
+@test Gray24(0.5) == Gray24(h)
+@test convert(Gray24, 0.5) == Gray24(h)
+@test convert(AGray, Gray24(h)) === AGray{U8}(h, 1)
+@test convert(AGray, Gray24(h), 0.8)  === AGray{U8}(h, 0.8)
+@test convert(AGray, AGray32(h, 0.8)) === AGray{U8}(h, 0.8)
+@test AGray32(0.5) == AGray32(h, 1)
+@test convert(AGray32, 0.5, 0.8) == AGray32(h, U8(0.8))
+@test RGB24(0.5) == RGB24(h, h, h)
+@test convert(RGB24, 0.5) == RGB24(h, h, h)
+@test ARGB32(0.5) == ARGB32(h, h, h, 1)
+
 @test red(c)   == red(ac)
 @test green(c) == green(ac)
 @test blue(c)  == blue(ac)
 ac2 = convert(ARGB32, c)
-@test ac2.color == (c.color | 0xff000000)
+@test reinterpret(UInt32, ac2) == (c.color | 0xff000000)
 @test color(c) == c
 @test color(ac) == c
 @test alpha(c) == U8(1)
 @test alpha(ac) == UFixed8(ac.color>>24, 0)
 @test alpha(ac2) == U8(1)
-@test convert(RGB24,  0xff020304).color == 0xff020304
-@test convert(ARGB32, 0x01020304).color == 0x01020304
+@test reinterpret(UInt32, reinterpret(RGB24,  0xff020304)) == 0xff020304
+@test reinterpret(UInt32, reinterpret(ARGB32, 0x01020304)) == 0x01020304
 ac3 = convert(RGBA, ac)
 @test convert(RGB24, ac3) == c
 ac4 = AGray32(.2,.8)
@@ -326,16 +343,21 @@ for C in subtypes(AbstractRGB)
     @test rgba.b == blue(ac)
 end
 
+@test_throws ErrorException convert(HSV, RGB(1,0,1))
+@test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
+
 @test convert(Float64, Gray(.3)) === .3
+x = U8(0.3)
+@test convert(U8, Gray24(0.3)) === x
 @test convert(GrayA{U8}, .2) == GrayA{U8}(.2)
 @test convert(AGray{U8}, .2) == AGray{U8}(.2)
 @test Gray{U8}(0.37).val           == U8(0.37)
 @test convert(Gray{U8}, 0.37).val  == U8(0.37)
-@test Gray24(0x0duf8).color           == 0x000d0d0d
-@test convert(Gray24, 0x0duf8).color  == 0x000d0d0d
-@test AGray32(0x0duf8).color          == 0xff0d0d0d
-@test convert(AGray32, 0x0duf8).color == 0xff0d0d0d
-@test AGray32(0x0duf8, 0x80uf8).color    == 0x800d0d0d
+@test reinterpret(UInt32, Gray24(0x0duf8))           == 0x000d0d0d
+@test reinterpret(UInt32, convert(Gray24, 0x0duf8))  == 0x000d0d0d
+@test reinterpret(UInt32, AGray32(0x0duf8))          == 0xff0d0d0d
+@test reinterpret(UInt32, convert(AGray32, 0x0duf8)) == 0xff0d0d0d
+@test reinterpret(UInt32, AGray32(0x0duf8, 0x80uf8)) == 0x800d0d0d
 @test convert(Gray{UFixed16}, Gray24(0x0duf8)) == Gray{UFixed16}(0.05098)
 
 @test promote(Gray{U8}(0.2), Gray24(0.3)) === (Gray{U8}(0.2), Gray{U8}(0.3))
@@ -398,22 +420,16 @@ end
 @test ColorTypes.colorfields(BGR) == (:r, :g, :b)
 
 # UInt32 comparison
-@test Gray24() == 0x00000000
-@test Gray24(.2) == 0x00333333
-@test Gray24(0x23uf8) == 0x00232323
-@test convert(UInt32, Gray24(0x23uf8)) === 0x00232323
-@test AGray32() == 0xff000000
-@test AGray32(.2) == 0xff333333
-@test convert(AGray32, .2, 0.) == 0x00333333
-@test AGray32(0x23uf8) == 0xff232323
-@test convert(UInt32, AGray32(0x23uf8)) === 0xff232323
-@test RGB24() == 0x00000000
-@test RGB24(0x00232323) == 0x00232323
-@test convert(UInt32, RGB24(0x00232323)) === 0x00232323
-@test ARGB32() == 0xff000000
-@test ARGB32(0xff232323) == 0xff232323
-@test ARGB32(1,.2,.3) == 0xffff334c
-@test convert(UInt32, ARGB32(1,.2,.3)) === 0xffff334c
+@test reinterpret(UInt32, Gray24()) == 0x00000000
+@test reinterpret(UInt32, Gray24(.2)) == 0x00333333
+@test reinterpret(UInt32, Gray24(0x23uf8)) == 0x00232323
+@test reinterpret(UInt32, AGray32()) == 0xff000000
+@test reinterpret(UInt32, AGray32(.2)) == 0xff333333
+@test reinterpret(UInt32, convert(AGray32, .2, 0.)) == 0x00333333
+@test reinterpret(UInt32, AGray32(0x23uf8)) == 0xff232323
+@test reinterpret(UInt32, RGB24()) == 0x00000000
+@test reinterpret(UInt32, ARGB32()) == 0xff000000
+@test reinterpret(UInt32, ARGB32(1,.2,.3)) == 0xffff334c
 
 @test @inferred5(mapc(sqrt, Gray{U8}(0.04))) == Gray(sqrt(U8(0.04)))
 @test @inferred5(mapc(sqrt, AGray{U8}(0.04, 0.4))) == AGray(sqrt(U8(0.04)), sqrt(U8(0.4)))
@@ -451,3 +467,24 @@ end
 for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),)
     @test (a == b) == (hash(a) == hash(b))
 end
+
+### Test deprecations
+tmpfile, io = mktemp()
+redirect_stderr(io) do
+    @test convert(UInt32, RGB24(1,1,1))    == 0x00ffffff
+    @test convert(UInt32, ARGB32(1,1,1,0)) == 0x00ffffff
+    @test convert(UInt32, Gray24(1))    == 0x00ffffff
+    @test convert(UInt32, AGray32(1,0)) == 0x00ffffff
+    @test RGB24(1,1,1)    == 0x00ffffff
+    @test ARGB32(1,1,1,0) == 0x00ffffff
+    @test Gray24(1)    == 0x00ffffff
+    @test AGray32(1,0) == 0x00ffffff
+    @test RGB24(0x00ffffff)  === RGB24(1,1,1)
+    @test ARGB32(0x00ffffff) === ARGB32(1,1,1,0)
+    @test Gray24(0x00ffffff)  === Gray24(1)
+    @test AGray32(0x00ffffff) === AGray32(1,0)
+end
+close(io)
+@test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 12
+
+nothing
