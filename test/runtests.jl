@@ -433,3 +433,21 @@ end
 # issue #52
 @test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
 @test RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5) == RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5)
+
+for (a, b) in ((Gray(1.0), Gray(1)),
+               (GrayA(0.8, 0.6), AGray(0.8, 0.6)),
+               (RGB(1, 0.5, 0), BGR(1, 0.5, 0)),
+               (RGBA(1, 0.5, 0, 0.8), ABGR(1, 0.5, 0, 0.8)))
+    @test a == b
+    @test hash(a) == hash(b)
+end
+for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 0.9)),)
+    @test a != b
+    @test hash(a) != hash(b)
+end
+# It's not obvious whether we want these to compare as equal, but
+# whatever happens, you want hashing and equality-testing to yield the
+# same result
+for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),)
+    @test (a == b) == (hash(a) == hash(b))
+end

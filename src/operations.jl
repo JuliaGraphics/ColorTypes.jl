@@ -1,5 +1,10 @@
 # rand
-import Base.rand
+import Base: ==, hash, rand
+
+hash(c::AbstractGray, hx::UInt) = hash(gray(c), hx)
+hash(c::TransparentGray, hx::UInt) = hash(alpha(c), hash(gray(c), hx))
+hash(c::AbstractRGB, hx::UInt) = hash(blue(c), hash(green(c), hash(red(c), hx)))
+hash(c::TransparentRGB, hx::UInt) = hash(alpha(c), hash(blue(c), hash(green(c), hash(red(c), hx))))
 
 typealias RandTypes{T,C} Union{AbstractRGB{T},
                                TransparentRGB{C,T},
