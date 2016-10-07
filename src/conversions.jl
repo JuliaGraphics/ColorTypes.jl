@@ -14,7 +14,7 @@ cconvert{C<:TransparentColor}(::Type{C}, c::Color, alpha) =_convert(C, base_colo
 
 # Fallback definitions that print nice error messages
 _convert{C}(::Type{C}, ::Any, ::Any, c) = error("No conversion of ", c, " to ", C, " has been defined")
-_convert{C}(::Type{C}, ::Any, ::Any, c, alpha) = error("No conversion of (", c, ",alpha=$alpha) to ", C, " has been defined")
+_convert{C}(::Type{C}, C1::Any, C2::Any, c, alpha) = error("No conversion of (", c, ",alpha=$alpha) to ", C, " with consistency-types $C1 and $C2 has been defined")
 
 # Any AbstractRGB types can be interconverted
 # (the first 2 are just for ambiguity resolution)
@@ -38,18 +38,18 @@ _convert{A<:Transparent3,Ccmp<:Color3}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c,
 # Grayscale
 _convert{Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) = Cout(gray(c))
 _convert{A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{A}, ::Type{C1}, ::Type{C2}, c) = A(gray(c), alpha(c))
-_convert{A<:TransparentGray,Ccmp<:AbstractGray}(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) = A(gray(c), alpha)
+_convert{A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha) = A(gray(c), alpha)
 
 
-convert(::Type{UInt32}, c::RGB24)   = c.color
-convert(::Type{UInt32}, c::ARGB32)  = c.color
-convert(::Type{UInt32}, g::Gray24)  = g.color
-convert(::Type{UInt32}, g::AGray32) = g.color
+@deprecate convert(::Type{UInt32}, c::RGB24) reinterpret(UInt32, c)
+@deprecate convert(::Type{UInt32}, c::ARGB32) reinterpret(UInt32, c)
+@deprecate convert(::Type{UInt32}, g::Gray24) reinterpret(UInt32, g)
+@deprecate convert(::Type{UInt32}, g::AGray32) reinterpret(UInt32, g)
 
-convert(::Type{RGB24},   x::Real) = RGB24(x)
-convert(::Type{ARGB32},  x::Real) = ARGB32(x)
+convert(::Type{RGB24},   x::Real) = RGB24(x, x, x)
+convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x, 1)
 convert(::Type{Gray24},  x::Real) = Gray24(x)
-convert(::Type{AGray32}, x::Real) = AGray32(x)
+convert(::Type{AGray32}, x::Real) = AGray32(x, 1)
 convert(::Type{AGray32}, x::Real, alpha) = AGray32(x, alpha)
 
 convert{T}(::Type{Gray{T}},  x::Real)    = Gray{T}(x)
