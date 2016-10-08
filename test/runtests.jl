@@ -469,22 +469,23 @@ for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),)
 end
 
 ### Test deprecations
-tmpfile, io = mktemp()
-redirect_stderr(io) do
-    @test convert(UInt32, RGB24(1,1,1))    == 0x00ffffff
-    @test convert(UInt32, ARGB32(1,1,1,0)) == 0x00ffffff
-    @test convert(UInt32, Gray24(1))    == 0x00ffffff
-    @test convert(UInt32, AGray32(1,0)) == 0x00ffffff
-    @test RGB24(1,1,1)    == 0x00ffffff
-    @test ARGB32(1,1,1,0) == 0x00ffffff
-    @test Gray24(1)    == 0x00ffffff
-    @test AGray32(1,0) == 0x00ffffff
-    @test RGB24(0x00ffffff)  === RGB24(1,1,1)
-    @test ARGB32(0x00ffffff) === ARGB32(1,1,1,0)
-    @test Gray24(0x00ffffff)  === Gray24(1)
-    @test AGray32(0x00ffffff) === AGray32(1,0)
+mktemp() do tmpfile, io
+    redirect_stderr(io) do
+        @test convert(UInt32, RGB24(1,1,1))    == 0x00ffffff
+        @test convert(UInt32, ARGB32(1,1,1,0)) == 0x00ffffff
+        @test convert(UInt32, Gray24(1))    == 0x00ffffff
+        @test convert(UInt32, AGray32(1,0)) == 0x00ffffff
+        @test RGB24(1,1,1)    == 0x00ffffff
+        @test ARGB32(1,1,1,0) == 0x00ffffff
+        @test Gray24(1)    == 0x00ffffff
+        @test AGray32(1,0) == 0x00ffffff
+        @test RGB24(0x00ffffff)  === RGB24(1,1,1)
+        @test ARGB32(0x00ffffff) === ARGB32(1,1,1,0)
+        @test Gray24(0x00ffffff)  === Gray24(1)
+        @test AGray32(0x00ffffff) === AGray32(1,0)
+    end
+    close(io)
+    @test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 12
 end
-close(io)
-@test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 12
 
 nothing
