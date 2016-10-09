@@ -19,7 +19,7 @@ typealias U16 UFixed16
 
 "`U16` is an abbreviation for the UFixed16 type from FixedPointNumbers" U16
 
-import Base: ==, hash, convert, eltype, length, show, showcompact, one, zero, reinterpret, rand
+import Base: ==, hash, convert, eltype, length, show, showcompact, one, zero, reinterpret, rand, getindex
 
 ## Types
 export Fractional, U8, U16

@@ -41,10 +41,15 @@ _convert{A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{A}, ::Type
 _convert{A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray}(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha) = A(gray(c), alpha)
 
 
-@deprecate convert(::Type{UInt32}, c::RGB24) reinterpret(UInt32, c)
-@deprecate convert(::Type{UInt32}, c::ARGB32) reinterpret(UInt32, c)
-@deprecate convert(::Type{UInt32}, g::Gray24) reinterpret(UInt32, g)
-@deprecate convert(::Type{UInt32}, g::AGray32) reinterpret(UInt32, g)
+for T in (RGB24, ARGB32, Gray24, AGray32)
+    @eval begin
+        @deprecate convert(::Type{UInt32}, c::$T) reinterpret(UInt32, c)
+        @deprecate getindex(::Type{$T}, x::UInt32) $T[reinterpret($T, x)]
+        @deprecate getindex(::Type{$T}, x::UInt32, y::UInt32) $T[reinterpret($T, x), reinterpret($T, y)]
+        @deprecate getindex(::Type{$T}, x::UInt32, y::UInt32, z::UInt32) $T[reinterpret($T, x), reinterpret($T, y), reinterpret($T, z)]
+        @deprecate getindex(::Type{$T}, vals::UInt32...) $T[map(x->reinterpret($T, x), vals)...]
+    end
+end
 
 convert(::Type{RGB24},   x::Real) = RGB24(x, x, x)
 convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x, 1)
