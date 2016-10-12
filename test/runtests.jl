@@ -483,15 +483,14 @@ mktemp() do tmpfile, io
         @test ARGB32(0x00ffffff) === ARGB32(1,1,1,0)
         @test Gray24(0x00ffffff)  === Gray24(1)
         @test AGray32(0x00ffffff) === AGray32(1,0)
+        @test RGB24[0x00000000] == [RGB24(0)]
+        @test RGB24[0x00000000,0x00808080] == [RGB24(0), RGB24(0.5)]
+        @test RGB24[0x00000000,0x00808080,0x00ffffff] == [RGB24(0), RGB24(0.5), RGB24(1)]
+        @test RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff] == [RGB24(0), RGB24(0.5), RGB24(1), RGB24(0,0,1)]
     end
     close(io)
-    @test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 12
+    Base.JLOptions().depwarn==1 && @test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 16
 end
 
-# # deprecated
-# @test RGB24[0x00000000] == [RGB24(0)]
-# @test RGB24[0x00000000,0x00808080] == [RGB24(0), RGB24(0.5)]
-# @test RGB24[0x00000000,0x00808080,0x00ffffff] == [RGB24(0), RGB24(0.5), RGB24(1)]
-# @test RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff] == [RGB24(0), RGB24(0.5), RGB24(1), RGB24(0,0,1)]
 
 nothing
