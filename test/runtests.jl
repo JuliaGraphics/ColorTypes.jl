@@ -123,6 +123,9 @@ for val in (1.2, 1.2f0, UFixed12(1.2), Gray{UFixed12}(1.2), 2)
 end
 @test eltype(Gray()) == U8
 @test Gray(Gray()) == Gray()  # no StackOverflowError
+@test eltype(broadcast(Gray, rand(5))) == Gray{Float64}
+@test eltype(broadcast(Gray, rand(Float32,5))) == Gray{Float32}
+
 for C in ColorTypes.parametric3
     @test eltype(C{Float32}) == Float32
     et = (C <: AbstractRGB) ? U8 : Float32
@@ -419,6 +422,8 @@ for T in (Gray{U8}, AGray{Float32}, GrayA{Float64},
     @test isa(a, Array{T,2})
     @test size(a) == (3,5)
 end
+a = [BGR(1,0,0)]
+@test eltype(broadcast(RGB, a)) == RGB{U8}
 
 # colorfields
 @test ColorTypes.colorfields(AGray32(.2)) == (:color,:alpha)
