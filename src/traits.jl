@@ -33,7 +33,7 @@ gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
 gray(c::Gray24)  = UFixed8(c.color & 0x000000ff, 0)
 gray(c::AGray32) = UFixed8(c.color & 0x000000ff, 0)
-gray(x::Union{Fractional,Bool}) = x
+gray(x::Number)  = x
 
 # Extract the first, second, and third arguments as you'd
 # pass them to the constructor
@@ -90,6 +90,13 @@ eltype{T,N        }(::Type{Colorant{T,N}}) = T
 @pure eltype{C<:Colorant}(::Type{C}) = eltype(supertype(C))
 
 eltype(c::Colorant) = eltype(typeof(c))
+
+# eltypes_supported(RGB) -> T<:Union{AbstractFloat, Fractional}
+@pure eltypes_supported{C<:Colorant}(::Type{C}) = base_colorant_type(C).parameters[1]
+
+eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
+
+@pure issupported{C<:Colorant,T}(::Type{C}, ::Type{T}) = T <: eltypes_supported(C)
 
 # Return the number of components in the color
 # Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
@@ -169,7 +176,7 @@ colorant_string{C<:Colorant}(::Type{C}) = string(C.name.name)
  `ccolor` ("concrete color") helps write flexible methods. The idea is
 that users may write `convert(HSV, c)` or even `convert(Array{HSV},
 A)` without specifying the element type explicitly (e.g.,
-`convert(HSV{Float32}, c)`). `ccolor` implements the logic "choose the
+`convert(Array{HSV{Float32}}, A)`). `ccolor` implements the logic "choose the
 user's eltype if specified, otherwise retain the eltype of the source
 object." However, when the source object has FixedPoint element type,
 and the destination only supports AbstractFloat, we choose Float32.
@@ -226,7 +233,8 @@ ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = base_coloran
 
 # Generic concrete types
 ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = _ccolor(Cdest, Csrc, pick_eltype(Cdest, eltype(Cdest), eltype(Csrc)))
-ccolor{Cdest<:AbstractGray,T<:Union{Bool,Fractional}}(::Type{Cdest}, ::Type{T}) = _ccolor(Cdest, Gray{T}, pick_eltype(Cdest, eltype(Cdest), T))
+ccolor{Cdest<:AbstractGray,T<:Number}(::Type{Cdest}, ::Type{T}) = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
+
 _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = base_colorant_type(Cdest){T}
 _ccolor{Cdest,Csrc}(          ::Type{Cdest}, ::Type{Csrc}, ::Any)     = Cdest
 
@@ -236,16 +244,15 @@ ccolor{Csrc<:Colorant}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
 ccolor{Csrc<:Colorant}(::Type{Gray24},  ::Type{Csrc}) = Gray24
 ccolor{Csrc<:Colorant}(::Type{AGray32}, ::Type{Csrc}) = AGray32
 
-pick_eltype{C,T1<:Number,T2<:Number    }(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
-pick_eltype{C,T1<:Number,T2<:FixedPoint}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
-pick_eltype{C,T2<:Number    }(::Type{C}, ::Any, ::Type{T2})     = T2
-pick_eltype{C,T2<:FixedPoint}(::Type{C}, ::Any, ::Type{T2})     = pick_eltype_compat(C, eltype_default(C), T2)
-pick_eltype{C               }(::Type{C}, ::Any, ::Any)          = eltype(C)
-# When T2 <: FixedPoint, choosed based on whether color type supports it
-pick_eltype_compat{T1            ,T2}(::Any, ::Type{T1}, ::Type{T2}) = T1
-pick_eltype_compat{T1<:FixedPoint,T2}(::Any, ::Type{T1}, ::Type{T2}) = T2
-
-
+pick_eltype{C,T1<:Number,T2<:Number}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype{C}(::Type{C}, ::Any, ::Any) = eltypes_supported(C)
+if VERSION >= v"0.5.0-dev+755"
+    pick_eltype{C,T2<:Number}(::Type{C}, ::Any, ::Type{T2}) = issupported(C, T2) ? T2 : eltype_default(C)
+else
+    @generated function pick_eltype{C,T2<:Number}(::Type{C}, ::Any, ::Type{T2})
+        issupported(C, T2) ? :(T2) : :(eltype_default(C))
+    end
+end
 
 ### Equality
 function ==(c1::AbstractRGB, c2::AbstractRGB)

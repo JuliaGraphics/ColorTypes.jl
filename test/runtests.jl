@@ -68,6 +68,12 @@ end
 
 @test @inferred(ccolor(Gray{U8}, Bool)) === Gray{U8}
 @test @inferred(ccolor(Gray,     Bool)) === Gray{Bool}
+@test @inferred(ccolor(Gray,     Int))  === Gray{U8}
+# This tests the same thing as the last, but in a user-observable way
+a = Array{Gray}(1)
+a[1] = Gray(0)
+a[1] = 1
+@test a[1] === Gray(1)
 
 @test @inferred(ccolor(RGB,  RGB))  === RGB
 @test @inferred(ccolor(Gray, Gray)) === Gray
@@ -92,6 +98,8 @@ end
 @test @inferred(base_colorant_type(RGB{U8}(1,0,0))) == RGB
 @test @inferred(base_colorant_type(ARGB(1.0,0.8,0.6,0.4))) == ARGB
 @test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
+
+@test U8 <: ColorTypes.eltypes_supported(RGB(1,0,0))
 
 # Constructors
 for val in (0.2, 0.2f0, U8(0.2), UFixed12(0.2), UFixed16(0.2),
@@ -483,15 +491,14 @@ mktemp() do tmpfile, io
         @test ARGB32(0x00ffffff) === ARGB32(1,1,1,0)
         @test Gray24(0x00ffffff)  === Gray24(1)
         @test AGray32(0x00ffffff) === AGray32(1,0)
+        @test RGB24[0x00000000] == [RGB24(0)]
+        @test RGB24[0x00000000,0x00808080] == [RGB24(0), RGB24(0.5)]
+        @test RGB24[0x00000000,0x00808080,0x00ffffff] == [RGB24(0), RGB24(0.5), RGB24(1)]
+        @test RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff] == [RGB24(0), RGB24(0.5), RGB24(1), RGB24(0,0,1)]
     end
     close(io)
-    @test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 12
+    Base.JLOptions().depwarn==1 && @test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 16
 end
 
-# # deprecated
-# @test RGB24[0x00000000] == [RGB24(0)]
-# @test RGB24[0x00000000,0x00808080] == [RGB24(0), RGB24(0.5)]
-# @test RGB24[0x00000000,0x00808080,0x00ffffff] == [RGB24(0), RGB24(0.5), RGB24(1)]
-# @test RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff] == [RGB24(0), RGB24(0.5), RGB24(1), RGB24(0,0,1)]
 
 nothing
