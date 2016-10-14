@@ -25,6 +25,20 @@ function rand{C<:RandTypes{U16}}(::Type{C}, sz::Dims)
     reinterpret(C, rand(UInt16, (sizeof(C)>>1, sz...)), sz)
 end
 
+# broadcast
+# Without this, Gray.(a) returns an Array{Gray}, which does not have concrete eltype
+Base.broadcast{C<:Colorant}(::Type{C}, A::AbstractArray) = _broadcast(C, eltype(C), A)
+if VERSION < v"0.5.0-dev+4754"
+    _broadcast{C<:Colorant,T<:Number}(::Type{C}, ::Type{T}, A) = broadcast!(C, Array(C, size(A)), A)
+else
+    _broadcast{C<:Colorant,T<:Number}(::Type{C}, ::Type{T}, A) = broadcast!(C, similar(Array{C}, indices(A)), A)
+end
+function _broadcast{C<:Colorant}(::Type{C}, ::Any, A)
+    Cnew = ccolor(C, eltype(A))
+    _broadcast(Cnew, eltype(Cnew), A)
+end
+
+
 # Mapping a function over color channels
 """
     mapc(f, rgb) -> rgbf
