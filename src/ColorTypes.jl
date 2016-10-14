@@ -12,17 +12,13 @@ else
 end
 
 typealias Fractional Union{AbstractFloat, FixedPoint}
-typealias U8 UFixed8
-typealias U16 UFixed16
-
-"`U8` is an abbreviation for the UFixed8 type from FixedPointNumbers" U8
-
-"`U16` is an abbreviation for the UFixed16 type from FixedPointNumbers" U16
+Base.@deprecate_binding U8  N0f8
+Base.@deprecate_binding U16 N0f16
 
 import Base: ==, hash, convert, eltype, length, show, showcompact, one, zero, reinterpret, rand, getindex
 
 ## Types
-export Fractional, U8, U16
+export Fractional
 
 export Colorant
 export Color, TransparentColor, AlphaColor, ColorAlpha, AbstractRGB

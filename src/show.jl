@@ -27,11 +27,9 @@ for N = 1:4
         end
         # Special handling for UFixed types: don't print the giant type name
         function show_ufixed{T,f}(io::IO, c::Colorant{FixedPointNumbers.UFixed{T,f},$N})
-            print(io, colorant_string(typeof(c)), "{UFixed", f, "}(")
-            $(printargs[:]...)
-        end
-        function show_ufixed(io::IO, c::Colorant{U8,$N})
-            print(io, colorant_string(typeof(c)), "{U8}(")
+            print(io, colorant_string(typeof(c)), '{')
+            FixedPointNumbers.showtype(io, eltype(typeof(c)))
+            print(io, "}(")
             $(printargs[:]...)
         end
     end

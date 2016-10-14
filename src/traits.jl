@@ -6,33 +6,33 @@ without an alpha channel, it will always return 1.
 """
 alpha(c::TransparentColor) = c.alpha
 alpha(c::Color)   = one(eltype(c))
-alpha(c::RGB24)   = UFixed8(1)
-alpha(c::ARGB32)  = UFixed8((c.color & 0xff000000)>>24, 0)
-alpha(c::AGray32) = UFixed8((c.color & 0xff000000)>>24, 0)
+alpha(c::RGB24)   = N0f8(1)
+alpha(c::ARGB32)  = N0f8((c.color & 0xff000000)>>24, 0)
+alpha(c::AGray32) = N0f8((c.color & 0xff000000)>>24, 0)
 
 "`red(c)` returns the red component of an `AbstractRGB` opaque or transparent color."
 red(c::AbstractRGB   ) = c.r
 red(c::TransparentRGB) = c.r
-red(c::RGB24)  = UFixed8((c.color & 0x00ff0000)>>16, 0)
-red(c::ARGB32) = UFixed8((c.color & 0x00ff0000)>>16, 0)
+red(c::RGB24)  = N0f8((c.color & 0x00ff0000)>>16, 0)
+red(c::ARGB32) = N0f8((c.color & 0x00ff0000)>>16, 0)
 
 "`green(c)` returns the green component of an `AbstractRGB` opaque or transparent color."
 green(c::AbstractRGB   ) = c.g
 green(c::TransparentRGB) = c.g
-green(c::RGB24)  = UFixed8((c.color & 0x0000ff00)>>8, 0)
-green(c::ARGB32) = UFixed8((c.color & 0x0000ff00)>>8, 0)
+green(c::RGB24)  = N0f8((c.color & 0x0000ff00)>>8, 0)
+green(c::ARGB32) = N0f8((c.color & 0x0000ff00)>>8, 0)
 
 "`blue(c)` returns the blue component of an `AbstractRGB` opaque or transparent color."
 blue(c::AbstractRGB   ) = c.b
 blue(c::TransparentRGB) = c.b
-blue(c::RGB24)  = UFixed8(c.color & 0x000000ff, 0)
-blue(c::ARGB32) = UFixed8(c.color & 0x000000ff, 0)
+blue(c::RGB24)  = N0f8(c.color & 0x000000ff, 0)
+blue(c::ARGB32) = N0f8(c.color & 0x000000ff, 0)
 
 "`gray(c)` returns the gray component of a grayscale opaque or transparent color."
 gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
-gray(c::Gray24)  = UFixed8(c.color & 0x000000ff, 0)
-gray(c::AGray32) = UFixed8(c.color & 0x000000ff, 0)
+gray(c::Gray24)  = N0f8(c.color & 0x000000ff, 0)
+gray(c::AGray32) = N0f8(c.color & 0x000000ff, 0)
 gray(x::Number)  = x
 
 Base.real(g::Gray) = gray(g)
@@ -119,7 +119,7 @@ For example,
 
     color_type(RGB)          == RGB
     color_type(RGB{Float32}) == RGB{Float32}
-    color_type(ARGB{U8})     == RGB{U8}
+    color_type(ARGB{N0f8})     == RGB{N0f8}
 """
 color_type{C<:Color}(::Type{C}) = C
 @pure color_type{C<:AlphaColor}(::Type{C}) = color_type(supertype(C))
@@ -136,8 +136,8 @@ color_type(c::Colorant) = color_type(typeof(c))
 `base_color_type` is similar to `color_type`, except it "strips off" the
 element type.  For example,
 
-    color_type(RGB{U8})     == RGB{U8}
-    base_color_type(RGB{U8}) == RGB
+    color_type(RGB{N0f8})     == RGB{N0f8}
+    base_color_type(RGB{N0f8}) == RGB
 
 This can be very handy if you want to switch element types. For example:
 
@@ -162,8 +162,8 @@ end
 
 For example,
 
-    base_color_type(ARGB{U8})  == RGB
-    base_colorant_type(ARGB{U8})  == ARGB
+    base_color_type(ARGB{N0f8})  == RGB
+    base_colorant_type(ARGB{N0f8})  == ARGB
 
 If you just want to switch element types, this is the safest default
 and the easiest to use:

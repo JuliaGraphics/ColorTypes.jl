@@ -75,7 +75,7 @@ typealias ColorantUFixed{T<:UFixed,N}        Colorant{T,N}
 """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
 individual color channels range from 0 (black) to 1 (saturated). If
-you want "Integer" storage types (e.g., 255 for full color), use `U8(1)`
+you want "Integer" storage types (e.g., 255 for full color), use `N0f8(1)`
 instead (see FixedPointNumbers).
 """
 immutable RGB{T<:Fractional} <: AbstractRGB{T}
@@ -285,7 +285,7 @@ still extract the individual components with `red(c)`, `green(c)`,
 `blue(c)`.  You can construct them directly from a `UInt32`, or as
 `RGB(r, g, b)`.
 """
-immutable RGB24 <: AbstractRGB{U8}
+immutable RGB24 <: AbstractRGB{N0f8}
     color::UInt32
 
     RGB24(col::UInt32, ::Type{Val{true}}) = new(col)
@@ -308,10 +308,10 @@ end
 # constructor is used to implement reinterpret, see traits.jl.)
 RGB24() = reinterpret(RGB24, UInt32(0))
 _RGB24(r::UInt8, g::UInt8, b::UInt8) = reinterpret(RGB24, UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
-RGB24(r::UFixed8, g::UFixed8, b::UFixed8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
+RGB24(r::N0f8, g::N0f8, b::N0f8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 function RGB24(r, g, b)
-    checkval(U8, r, g, b)
-    RGB24(_rem(r,U8), _rem(g,U8), _rem(b,U8))
+    checkval(N0f8, r, g, b)
+    RGB24(_rem(r,N0f8), _rem(g,N0f8), _rem(b,N0f8))
 end
 @deprecate RGB24(x::UInt32) reinterpret(RGB24, x)
 
@@ -319,22 +319,22 @@ end
 `ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
 R=red, G=green, B=blue and A is the alpha channel. This format is
 often used by external libraries such as Cairo.  On a little-endian
-machine, this type has the exact same storage format as `BGRA{U8}`.
+machine, this type has the exact same storage format as `BGRA{N0f8}`.
 
 `ARGB32` colors do not have fields named `alpha`, `r`, `g`, `b`, but
 you can still extract the individual components with `alpha(c)`,
 `red(c)`, `green(c)`, `blue(c)`.  You can construct them directly from
 a `UInt32`, or as `ARGB32(r, g, b, alpha)`.
 """
-immutable ARGB32 <: AlphaColor{RGB24, U8, 4}
+immutable ARGB32 <: AlphaColor{RGB24, N0f8, 4}
     color::UInt32
 
     ARGB32(col::UInt32, ::Type{Val{true}}) = new(col)
 end
 ARGB32() = reinterpret(ARGB32, UInt32(0xff)<<24)
 _ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = reinterpret(ARGB32, UInt32(alpha)<<24 | UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
-ARGB32(r::UFixed8, g::UFixed8, b::UFixed8, alpha::UFixed8 = U8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
-ARGB32(r, g, b, alpha = 1) = ARGB32(U8(r), U8(g), U8(b), U8(alpha))
+ARGB32(r::N0f8, g::N0f8, b::N0f8, alpha::N0f8 = N0f8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
+ARGB32(r, g, b, alpha = 1) = ARGB32(N0f8(r), N0f8(g), N0f8(b), N0f8(alpha))
 ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c), alpha)
 @deprecate ARGB32(x::UInt32) reinterpret(ARGB32, x)
 
@@ -362,17 +362,17 @@ You can extract the single gray value with `gray(c)`.  You can
 construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
 `i` is interpreted on a scale from 0 (black) to 1 (white).
 """
-immutable Gray24 <: AbstractGray{U8}
+immutable Gray24 <: AbstractGray{N0f8}
     color::UInt32
 
     Gray24(c::UInt32, ::Type{Val{true}}) = new(c)
 end
 Gray24() = reinterpret(Gray24, UInt32(0))
 _Gray24(val::UInt8) = (g = UInt32(val); reinterpret(Gray24, g<<16 | g<<8 | g))
-Gray24(val::UFixed8) = _Gray24(reinterpret(val))
+Gray24(val::N0f8) = _Gray24(reinterpret(val))
 function Gray24(val::Real)
-    checkval(U8, val)
-    Gray24(val%U8)
+    checkval(N0f8, val)
+    Gray24(val%N0f8)
 end
 @deprecate Gray24(x::UInt32) reinterpret(Gray24, x)
 
@@ -387,21 +387,21 @@ You can extract the single gray value with `gray(c)` and the alpha as
 `AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
 scale from 0 (black) to 1 (white).
 """
-immutable AGray32 <: AlphaColor{Gray24, U8, 2}
+immutable AGray32 <: AlphaColor{Gray24, N0f8, 2}
     color::UInt32
 
     AGray32(c::UInt32, ::Type{Val{true}}) = new(c)
 end
 AGray32() = reinterpret(AGray32, 0xff000000)
 _AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); reinterpret(AGray32, UInt32(alpha)<<24 | g<<16 | g<<8 | g))
-AGray32(val::UFixed8, alpha::UFixed8 = UFixed8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
+AGray32(val::N0f8, alpha::N0f8 = N0f8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
 function AGray32(val::Real, alpha = 1)
-    checkval(U8, val, alpha)
-    AGray32(val%U8, alpha%U8)
+    checkval(N0f8, val, alpha)
+    AGray32(val%N0f8, alpha%N0f8)
 end
 function AGray32(g::Gray24, alpha = 1)
-    checkval(U8, alpha)
-    reinterpret(AGray32, UInt32(reinterpret(_rem(alpha,U8)))<<24 | g.color)
+    checkval(N0f8, alpha)
+    reinterpret(AGray32, UInt32(reinterpret(_rem(alpha,N0f8)))<<24 | g.color)
 end
 AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 @deprecate AGray32(x::UInt32) reinterpret(AGray32, x)
@@ -516,8 +516,8 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     end)
 end
 
-eltype_default{C<:AbstractRGB  }(::Type{C}) = U8
-eltype_default{C<:AbstractGray }(::Type{C}) = U8
+eltype_default{C<:AbstractRGB  }(::Type{C}) = N0f8
+eltype_default{C<:AbstractGray }(::Type{C}) = N0f8
 eltype_default{C<:Color  }(::Type{C}) = Float32
 eltype_default{P<:Colorant        }(::Type{P}) = eltype_default(color_type(P))
 
@@ -557,8 +557,8 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
 end
 
 # RGB1 and RGB4 require special handling because of the alphadummy field
-@eval @make_constructors RGB1 (r,g,b) $U8
-@eval @make_constructors RGB4 (r,g,b) $U8
+@eval @make_constructors RGB1 (r,g,b) $N0f8
+@eval @make_constructors RGB4 (r,g,b) $N0f8
 alphacolor{C<:Gray24}(::Type{C}) = AGray32
 alphacolor{C<:RGB24}(::Type{C}) = ARGB32
 alphacolor{C<:RGB1}(::Type{C}) = ARGB
@@ -619,7 +619,7 @@ element type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
 end
 
-function throw_colorerror(::Type{UFixed8}, values::Tuple{Vararg{Integer}})
+function throw_colorerror(::Type{N0f8}, values::Tuple{Vararg{Integer}})
     # Let's try to read the user's mind
     if all(x->0<=x<=255, values)
         if length(values) == 1
@@ -637,12 +637,12 @@ function throw_colorerror(::Type{UFixed8}, values::Tuple{Vararg{Integer}})
         end
         args = join(map(v->"$v/255", values), ',')
         throw(ArgumentError("""
-$vstr in the range 0-255, but integer inputs are encoded with the UFixed8
+$vstr in the range 0-255, but integer inputs are encoded with the N0f8
   type, an 8-bit type representing 256 discrete values between 0 and 1.
-  Consider dividing your input values by 255, for example: $Tstr{UFixed8}($args)
+  Consider dividing your input values by 255, for example: $Tstr{N0f8}($args)
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
     end
-    throw_colorerror_(UFixed8, values)
+    throw_colorerror_(N0f8, values)
 end
 
 function throw_colorerror{T<:UFixed}(::Type{T}, values::Tuple)
