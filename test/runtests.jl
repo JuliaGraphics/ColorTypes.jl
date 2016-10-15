@@ -218,7 +218,7 @@ if VERSION >= v"0.5.0"
 end
 
 c = Gray(0.8)
-@test gray(c) == 0.8
+@test gray(c) == real(c) == 0.8
 @test gray(0.8) == 0.8
 c = convert(Gray, 0.8)
 @test c === Gray{Float64}(0.8)

@@ -35,6 +35,8 @@ gray(c::Gray24)  = UFixed8(c.color & 0x000000ff, 0)
 gray(c::AGray32) = UFixed8(c.color & 0x000000ff, 0)
 gray(x::Number)  = x
 
+Base.real(g::Gray) = gray(g)
+
 # Extract the first, second, and third arguments as you'd
 # pass them to the constructor
 """
