@@ -4,26 +4,64 @@ hash(c::TransparentGray, hx::UInt) = hash(alpha(c), hash(gray(c), hx))
 hash(c::AbstractRGB, hx::UInt) = hash(blue(c), hash(green(c), hash(red(c), hx)))
 hash(c::TransparentRGB, hx::UInt) = hash(alpha(c), hash(blue(c), hash(green(c), hash(red(c), hx))))
 
-# rand
-typealias RandTypes{T,C} Union{AbstractRGB{T},
-                               TransparentRGB{C,T},
-                               AbstractGray{T},
-                               TransparentGray{C,T}}
-typealias RandTypesFloat{C,T<:AbstractFloat} RandTypes{T,C}
+# gamut{min,max}
+gamutmax{T<:HSV}(::Type{T}) = (360,1,1)
+gamutmin{T<:HSV}(::Type{T}) = (0,0,0)
+gamutmax{T<:HSL}(::Type{T}) = (360,1,1)
+gamutmin{T<:HSL}(::Type{T}) = (0,0,0)
+gamutmax{T<:Lab}(::Type{T}) = (100,1,1)
+gamutmin{T<:Lab}(::Type{T}) = (0,0,0)
+gamutmax{T<:LCHab}(::Type{T}) = (100,1,360)
+gamutmin{T<:LCHab}(::Type{T}) = (0,0,0)
+gamutmax{T<:YIQ}(::Type{T}) = (1,0.5226,0.5226)
+gamutmin{T<:YIQ}(::Type{T}) = (0,-0.5957,-0.5957)
 
-rand{G<:AbstractGray}(::Type{G}) = G(rand())
-rand{G<:TransparentGray}(::Type{G}) = G(rand(), rand())
-rand{C<:AbstractRGB}(::Type{C}) = C(rand(), rand(), rand())
-rand{C<:TransparentRGB}(::Type{C}) = C(rand(), rand(), rand(), rand())
-function rand{C<:RandTypesFloat}(::Type{C}, sz::Dims)
-    reinterpret(C, rand(eltype(C), (sizeof(C)÷sizeof(eltype(C)), sz...)), sz)
+gamutmax{T<:AbstractGray}(::Type{T}) = (1,)
+gamutmax{T<:TransparentGray}(::Type{T}) = (1,1)
+gamutmax{T<:AbstractRGB}(::Type{T}) = (1,1,1)
+gamutmax{T<:TransparentRGB}(::Type{T}) = (1,1,1,1)
+gamutmin{T<:AbstractGray}(::Type{T}) = (0,)
+gamutmin{T<:TransparentGray}(::Type{T}) = (0,0)
+gamutmin{T<:AbstractRGB}(::Type{T}) = (0,0,0)
+gamutmin{T<:TransparentRGB}(::Type{T}) = (0,0,0,0)
+
+# rand
+for t in [Float16,Float32,Float64,N0f8,N0f16,N0f32]
+    @eval _rand{T<:Union{AbstractRGB{$t},AbstractGray{$t}}}(::Type{T}) =
+          mapc(x->rand(eltype(T)), base_colorant_type(T)())
 end
-function rand{C<:RandTypes{N0f8}}(::Type{C}, sz::Dims)
-    reinterpret(C, rand(UInt8, (sizeof(C), sz...)), sz)
+
+function _rand{T<:Colorant}(::Type{T})
+    Gmax = gamutmax(T)
+    Gmin = gamutmin(T)
+    Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
+    A = rand(eltype(T), length(T))
+    for j in eachindex(Gmax)
+        A[j] = A[j] * (Mi * (Gmax[j]-Gmin[j])) + Gmin[j]
+    end
+    T(A...)
 end
-function rand{C<:RandTypes{N0f16}}(::Type{C}, sz::Dims)
-    reinterpret(C, rand(UInt16, (sizeof(C)>>1, sz...)), sz)
+
+function _rand{T<:Colorant}(::Type{T}, sz::Dims)
+    Gmax = gamutmax(T)
+    Gmin = gamutmin(T)
+    Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
+    A = rand(eltype(T), (div(sizeof(T), sizeof(eltype(T))), sz...))
+    for j in eachindex(Gmax)
+        s = Mi * (Gmax[j]-Gmin[j])
+        for i = j:length(Gmax):length(A)
+            A[i] = A[i] * s + Gmin[j]
+        end
+    end
+    reinterpret(T, A, sz)
 end
+
+rand{T<:Colorant}(::Type{T}, sz::Dims...) = _rand(ccolor(T, base_colorant_type(T){Float64}), sz...)
+
+rand(::Type{Gray24}) = Gray24(rand(N0f8))
+rand(::Type{Gray24}, sz::Dims) = Gray24.(rand(N0f8,sz))
+rand(::Type{AGray32}) = AGray32(rand(N0f8),rand(N0f8))
+rand(::Type{AGray32}, sz::Dims) = AGray32.(rand(N0f8,sz),rand(N0f8,sz))
 
 # broadcast
 # Without this, Gray.(a) returns an Array{Gray}, which does not have concrete eltype
