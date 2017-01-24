@@ -3,7 +3,7 @@ Base.promote_rule{T1<:AbstractRGB,T2<:AbstractRGB}(::Type{T1}, ::Type{T2}) = RGB
 
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
-
+convert{C<:Colorant}(::Type{C}, c::C) = c
 convert{C<:Colorant}(::Type{C}, c) = cconvert(ccolor(C, typeof(c)), c)
 cconvert{C}(::Type{C}, c::C) = c
 cconvert{C}(::Type{C}, c)    = _convert(C, base_color_type(C), base_color_type(c), c)
