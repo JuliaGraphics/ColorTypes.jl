@@ -70,7 +70,7 @@ typealias Color3{T}                          Color{T,3}
 typealias TransparentGray{C<:AbstractGray,T} TransparentColor{C,T,2}
 typealias Transparent3{C<:Color3,T}          TransparentColor{C,T,4}
 typealias TransparentRGB{C<:AbstractRGB,T}   TransparentColor{C,T,4}
-typealias ColorantUFixed{T<:UFixed,N}        Colorant{T,N}
+typealias ColorantNormed{T<:Normed,N}        Colorant{T,N}
 
 """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
@@ -84,7 +84,7 @@ immutable RGB{T<:Fractional} <: AbstractRGB{T}
     b::T # Blue [0,1]
 
     RGB(r::T, g::T, b::T) = new(r, g, b)
-    # T might be a UFixed, and so some inputs will result in an
+    # T might be a Normed, and so some inputs will result in an
     # error. Try to make it a nice error.
     function RGB(r::Real, g::Real, b::Real)
         checkval(T, r, g, b)
@@ -576,26 +576,26 @@ color type with storage order (alpha, color).
 color type with storage order (color, alpha).
 """ coloralpha
 
-### Validating the inputs for UFixed constructors
+### Validating the inputs for Normed constructors
 
 # Throw helpful errors in case of trouble. The inlining here is
 # carefully designed to reduce the impact on runtime performance, and
 # we also avoid splatting.
 
-@inline function isok{T<:UFixed}(::Type{T}, x)
+@inline function isok{T<:Normed}(::Type{T}, x)
     Δ = eps(T)/2 # as long as the number rounds to a valid number, that's OK
     (-Δ <= x) & (x < typemax(T)+Δ)
 end
 
-@inline checkval{T<:UFixed}(::Type{T}, a) = isok(T, a) || throw_colorerror(T, a)
+@inline checkval{T<:Normed}(::Type{T}, a) = isok(T, a) || throw_colorerror(T, a)
 
-@inline function checkval{T<:UFixed}(::Type{T}, a, b)
+@inline function checkval{T<:Normed}(::Type{T}, a, b)
     isok(T, a) & isok(T, b) || throw_colorerror(T, a, b)
 end
-@inline function checkval{T<:UFixed}(::Type{T}, a, b, c)
+@inline function checkval{T<:Normed}(::Type{T}, a, b, c)
     isok(T, a) & isok(T, b) & isok(T, c) || throw_colorerror(T, a, b, c)
 end
-@inline function checkval{T<:UFixed}(::Type{T}, a, b, c, d)
+@inline function checkval{T<:Normed}(::Type{T}, a, b, c, d)
     isok(T, a) & isok(T, b) & isok(T, c) & isok(T, d) || throw_colorerror(T, a, b, c, d)
 end
 checkval{T}(::Type{T}, a) = nothing
@@ -608,7 +608,7 @@ checkval{T}(::Type{T}, a, b, c, d) = nothing
 @noinline throw_colorerror{T}(::Type{T}, r, g, b) = throw_colorerror(T, (r, g, b))
 @noinline throw_colorerror{T}(::Type{T}, r, g, b, a) = throw_colorerror(T, (r, g, b, a))
 
-function throw_colorerror_{T<:UFixed}(::Type{T}, values)
+function throw_colorerror_{T<:Normed}(::Type{T}, values)
     io = IOBuffer()
     showcompact(io, typemin(T)); Tmin = takebuf_string(io)
     showcompact(io, typemax(T)); Tmax = takebuf_string(io)
@@ -645,9 +645,9 @@ $vstr in the range 0-255, but integer inputs are encoded with the N0f8
     throw_colorerror_(N0f8, values)
 end
 
-function throw_colorerror{T<:UFixed}(::Type{T}, values::Tuple)
+function throw_colorerror{T<:Normed}(::Type{T}, values::Tuple)
     throw_colorerror_(T, values)
 end
 
-_rem{T<:UFixed}(x,::Type{T}) = x % T
+_rem{T<:Normed}(x,::Type{T}) = x % T
 _rem{T}(x, ::Type{T})        = x

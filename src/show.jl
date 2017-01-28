@@ -1,7 +1,7 @@
 show(io::IO, c::Colorant)              = _show(io, c)
-show(io::IO, c::ColorantUFixed)        = show_ufixed(io, c)
+show(io::IO, c::ColorantNormed)        = show_normed(io, c)
 showcompact(io::IO, c::Colorant)       = _showcompact(io, c)
-showcompact(io::IO, c::ColorantUFixed) = show_ufixed(io, c)
+showcompact(io::IO, c::ColorantNormed) = show_normed(io, c)
 
 for N = 1:4
     component = N >= 3 ? (:comp1, :comp2, :comp3, :alpha) : (:comp1, :alpha)
@@ -25,8 +25,8 @@ for N = 1:4
             print(io, colorant_string(typeof(c)), "{", T, "}(")
             $(printargs[:]...)
         end
-        # Special handling for UFixed types: don't print the giant type name
-        function show_ufixed{T,f}(io::IO, c::Colorant{FixedPointNumbers.UFixed{T,f},$N})
+        # Special handling for Normed types: don't print the giant type name
+        function show_normed{T,f}(io::IO, c::Colorant{FixedPointNumbers.Normed{T,f},$N})
             print(io, colorant_string(typeof(c)), '{')
             FixedPointNumbers.showtype(io, eltype(typeof(c)))
             print(io, "}(")

@@ -15,7 +15,7 @@ if VERSION >= v"0.5.0"
     @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 end
 
-@test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.UFixed{UInt8,8},2}
+@test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 @test @inferred(eltype(Color{N0f8})) == N0f8
 @test @inferred(eltype(RGB{Float32})) == Float32
 @test @inferred(eltype(RGBA{Float64})) == Float64
