@@ -18,10 +18,10 @@ rand{C<:TransparentRGB}(::Type{C}) = C(rand(), rand(), rand(), rand())
 function rand{C<:RandTypesFloat}(::Type{C}, sz::Dims)
     reinterpret(C, rand(eltype(C), (sizeof(C)÷sizeof(eltype(C)), sz...)), sz)
 end
-function rand{C<:RandTypes{U8}}(::Type{C}, sz::Dims)
+function rand{C<:RandTypes{N0f8}}(::Type{C}, sz::Dims)
     reinterpret(C, rand(UInt8, (sizeof(C), sz...)), sz)
 end
-function rand{C<:RandTypes{U16}}(::Type{C}, sz::Dims)
+function rand{C<:RandTypes{N0f16}}(::Type{C}, sz::Dims)
     reinterpret(C, rand(UInt16, (sizeof(C)>>1, sz...)), sz)
 end
 
