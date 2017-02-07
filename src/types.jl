@@ -414,8 +414,16 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 # Note: with the exceptions of `alphacolor` and `coloralpha`, all
 # traits in the rest of this file are intended just for internal use
 
-const color3types = filter(x->(!x.abstract && length(fieldnames(x))>1), union(subtypes(Color), subtypes(AbstractRGB)))
-const parametric3 = filter(x->!isempty(x.parameters), color3types)
+const color3types = map(s->getfield(ColorTypes,s),
+  filter(names(ColorTypes, true)) do s
+    isdefined(ColorTypes, s) || return false
+    t = getfield(ColorTypes, s)
+    isa(t, Type) && t <: Colorant && !isabstract(t) && length(fieldnames(t))>1
+  end)
+# The above should have filtered out every non-DataType that's not also a
+# wrapped UnionAll-wrapped DataType. By avoiding the explicit UnionAll check
+# here, we remain compatible with pre-0.6 julia.
+const parametric3 = filter(x->!isa(x, DataType) || !isempty(x.parameters), color3types)
 
 # Provide the field names in the order expected by the constructor
 colorfields{C<:Color}(::Type{C}) = (fieldnames(C)...)
@@ -485,13 +493,13 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
 
         # More constructors for the alpha versions
         $acol{T<:Integer}($(Tconstrfields...), alpha::T=1) = $acol{$elty}($(fields...), alpha)
-        $acol(c::$C, alpha=one(eltype(c))) = $acol{eltype(c)}(c, alpha)
+        $acol(c::$C, alpha::Real=one(eltype(c))) = $acol{eltype(c)}(c, alpha)
         function $acol($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
             $acol{T}(p...)
         end
-        function $acol($(constrfields...), alpha)
+        function $acol($(constrfields...), alpha::Real)
             p = promote($(constrfields...), alpha)
             T = typeof(p[1])
             $acol{T}(p...)
@@ -500,13 +508,13 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         $acol() = $acol{$elty}($(zfields...))
 
         $cola{T<:Integer}($(Tconstrfields...), alpha::T=1) = $cola{$elty}($(fields...), alpha)
-        $cola(c::$C, alpha=one(eltype(c))) = $cola{eltype(c)}(c, alpha)
+        $cola(c::$C, alpha::Real=one(eltype(c))) = $cola{eltype(c)}(c, alpha)
         function $cola($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
             $cola{T}(p...)
         end
-        function $cola($(constrfields...), alpha)
+        function $cola($(constrfields...), alpha::Real)
             p = promote($(constrfields...), alpha)
             T = typeof(p[1])
             $cola{T}(p...)
@@ -551,7 +559,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = C.name.name
+    Csym = Base.datatype_name(C)
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
@@ -610,8 +618,8 @@ checkval{T}(::Type{T}, a, b, c, d) = nothing
 
 function throw_colorerror_{T<:Normed}(::Type{T}, values)
     io = IOBuffer()
-    showcompact(io, typemin(T)); Tmin = takebuf_string(io)
-    showcompact(io, typemax(T)); Tmax = takebuf_string(io)
+    showcompact(io, typemin(T)); Tmin = String(take!(io))
+    showcompact(io, typemax(T)); Tmax = String(take!(io))
     bitstring = sizeof(T) == 1 ? "an 8-bit" : "a $(8*sizeof(T))-bit"
     throw(ArgumentError("""
 element type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $Tmin to $Tmax,
