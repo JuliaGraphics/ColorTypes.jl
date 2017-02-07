@@ -19,6 +19,13 @@ if VERSION >= v"0.5.0"
     end
 end
 
+# Support pre- and post- julia #20288
+if VERSION >= v"0.6.0-dev.2505"
+    tformat(x...) = join(string.(x), ", ")
+else
+    tformat(x...) = join(map(string, x), ",")
+end
+
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 @test @inferred(eltype(Color{N0f8})) == N0f8
 @test @inferred(eltype(RGB{Float32})) == Float32
@@ -214,10 +221,10 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
 end
 if VERSION >= v"0.5.0"
     ret = @test_throws ArgumentError RGB(255, 17, 48)
-    @test contains(ret.value.msg, "255, 17, 48")
+    @test contains(ret.value.msg, tformat(255,17,48))
     @test contains(ret.value.msg, "0-255")
     ret = @test_throws ArgumentError RGB(256, 17, 48)
-    @test contains(ret.value.msg, "256, 17, 48")
+    @test contains(ret.value.msg, tformat(256,17,48))
     @test !contains(ret.value.msg, "0-255")
 end
 

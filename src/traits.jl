@@ -135,11 +135,13 @@ include_string("""
 """)
 else
     length{T,N}(::Type{Colorant{T,N}}) = N
+    length{N}(::Type{Colorant{TypeVar(:T),N}}) = N   # julia #12596
     @pure length{C<:Colorant}(::Type{C}) = length(supertype(C))
 
     color_type{C    }(::Type{TransparentColor{C}})     = C
     color_type{C,T  }(::Type{TransparentColor{C,T}})   = C
     color_type{C,T,N}(::Type{TransparentColor{C,T,N}}) = C
+    color_type{C,N  }(::Type{TransparentColor{C,TypeVar(:T),N}}) = C
 end
 
 @pure color_type{C<:AlphaColor}(::Type{C}) = color_type(supertype(C))
@@ -165,9 +167,12 @@ base_color_type(c::Colorant) = base_color_type(typeof(c))
 base_color_type(x::Number)   = Gray
 
 if isdefined(Core, :UnionAll)
-    basetype(T) = typename(T).wrapper
+    @pure basetype(T) = typename(T).wrapper
 else
-    basetype(T) = typename(T).primary
+    @generated function basetype{C<:Colorant}(::Type{C})
+        name = C.name.name
+        :($name)
+    end
 end
 base_colorant_type{C<:Colorant}(::Type{C}) = basetype(C)
 
@@ -187,7 +192,7 @@ and the easiest to use:
 """
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
-colorant_string{C<:Colorant}(::Type{C}) = string(Base.datatype_name(C))
+colorant_string{C<:Colorant}(::Type{C}) = isdefined(Core, :UnionAll) ? string(Base.datatype_name(C)) : string(C.name.name)
 
 """
  `ccolor` ("concrete color") helps write flexible methods. The idea is
@@ -259,7 +264,7 @@ include_string("""
        base_colorant_type(Cdest){S} where S<:T
 """)
 else
-    _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = base_colorant_type(Cdest){T}  
+    _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = base_colorant_type(Cdest){T}
 end
 _ccolor{Cdest,Csrc}(          ::Type{Cdest}, ::Type{Csrc}, ::Any)     = Cdest
 
@@ -270,14 +275,12 @@ ccolor{Csrc<:Colorant}(::Type{Gray24},  ::Type{Csrc}) = Gray24
 ccolor{Csrc<:Colorant}(::Type{AGray32}, ::Type{Csrc}) = AGray32
 
 pick_eltype{C,T1<:Number,T2<:Number}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
-pick_eltype{C}(::Type{C}, ::Any, ::Any) = eltypes_supported(C)
-if VERSION >= v"0.5.0-dev+755"
-    pick_eltype{C,T2<:Number}(::Type{C}, ::Any, ::Type{T2}) = issupported(C, T2) ? T2 : eltype_default(C)
+if isdefined(Core, :UnionAll)
+    pick_eltype{C}(::Type{C}, ::Any, ::Any) = eltypes_supported(C)
 else
-    @generated function pick_eltype{C,T2<:Number}(::Type{C}, ::Any, ::Type{T2})
-        issupported(C, T2) ? :(T2) : :(eltype_default(C))
-    end
+    @pure pick_eltype{C}(::Type{C}, ::Any, ::Any) = TypeVar(:T, eltypes_supported(C))
 end
+pick_eltype{C,T2<:Number}(::Type{C}, ::Any, ::Type{T2}) = issupported(C, T2) ? T2 : eltype_default(C)
 
 ### Equality
 function ==(c1::AbstractRGB, c2::AbstractRGB)
@@ -318,9 +321,3 @@ end
 
 zero{T}(::Type{Gray{T}}) = Gray{T}(zero(T))
 one{T}(::Type{Gray{T}}) = Gray{T}(one(T))
-
-# Workarounds for pre-0.6
-if !isdefined(Core, :UnionAll)
-  length{N}(::Type{Colorant{TypeVar(:T),N}}) = N   # julia #12596
-  color_type{C,N  }(::Type{TransparentColor{C,TypeVar(:T),N}}) = C
-end

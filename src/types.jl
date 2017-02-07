@@ -415,7 +415,7 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 # traits in the rest of this file are intended just for internal use
 
 const color3types = map(s->getfield(ColorTypes,s),
-  filter(names(ColorTypes, true)) do s
+  filter(names(ColorTypes, false)) do s
     isdefined(ColorTypes, s) || return false
     t = getfield(ColorTypes, s)
     isa(t, Type) && t <: Colorant && !isabstract(t) && length(fieldnames(t))>1
@@ -559,7 +559,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = Base.datatype_name(C)
+    Csym = isdefined(Core, :UnionAll) ? Base.datatype_name(C) : C.name.name
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
