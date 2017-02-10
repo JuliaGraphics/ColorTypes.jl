@@ -83,12 +83,12 @@ immutable RGB{T<:Fractional} <: AbstractRGB{T}
     g::T # Green [0,1]
     b::T # Blue [0,1]
 
-    RGB(r::T, g::T, b::T) = new(r, g, b)
+    (::Type{RGB{T}}){T}(r::T, g::T, b::T) = new{T}(r, g, b)
     # T might be a Normed, and so some inputs will result in an
     # error. Try to make it a nice error.
-    function RGB(r::Real, g::Real, b::Real)
+    function (::Type{RGB{T}}){T}(r::Real, g::Real, b::Real)
         checkval(T, r, g, b)
-        new(_rem(r,T), _rem(g,T), _rem(b,T))
+        new{T}(_rem(r,T), _rem(g,T), _rem(b,T))
     end
 end
 # For types that support Fractional, we need this to avoid a
@@ -108,10 +108,10 @@ immutable BGR{T<:Fractional} <: AbstractRGB{T}
     g::T
     r::T
 
-    BGR(r::T, g::T, b::T) = new(b, g, r)
-    function BGR(r::Real, g::Real, b::Real)
+    (::Type{BGR{T}}){T}(r::T, g::T, b::T) = new{T}(b, g, r)
+    function (::Type{BGR{T}}){T}(r::Real, g::Real, b::Real)
         checkval(T, r, g, b)
-        new(_rem(b,T), _rem(g,T), _rem(r,T))
+        new{T}(_rem(b,T), _rem(g,T), _rem(r,T))
     end
 end
 BGR{T<:Fractional}(r::T, g::T, b::T) = BGR{T}(r, g, b)
@@ -130,10 +130,10 @@ immutable RGB1{T<:Fractional} <: AbstractRGB{T}
     g::T
     b::T
 
-    RGB1(r::T, g::T, b::T) = new(one(T), r, g, b)
-    function RGB1(r::Real, g::Real, b::Real)
+    (::Type{RGB1{T}}){T}(r::T, g::T, b::T) = new{T}(one(T), r, g, b)
+    function (::Type{RGB1{T}}){T}(r::Real, g::Real, b::Real)
         checkval(T, r, g, b)
-        new(one(T), _rem(r,T), _rem(g,T), _rem(b,T))
+        new{T}(one(T), _rem(r,T), _rem(g,T), _rem(b,T))
     end
 end
 RGB1{T<:Fractional}(r::T, g::T, b::T) = RGB1{T}(r, g, b)
@@ -152,10 +152,10 @@ immutable RGB4{T<:Fractional} <: AbstractRGB{T}
     b::T
     alphadummy::T
 
-    RGB4(r::T, g::T, b::T) = new(r, g, b, one(T))
-    function RGB4(r::Real, g::Real, b::Real)
+    (::Type{RGB4{T}}){T}(r::T, g::T, b::T) = new{T}(r, g, b, one(T))
+    function (::Type{RGB4{T}}){T}(r::Real, g::Real, b::Real)
         checkval(T, r, g, b)
-        new(_rem(r,T), _rem(g,T), _rem(b,T), one(T))
+        new{T}(_rem(r,T), _rem(g,T), _rem(b,T), one(T))
     end
 end
 RGB4{T<:Fractional}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
@@ -344,10 +344,10 @@ ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c
 immutable Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
 
-    Gray(val::T) = new(val)
-    function Gray(val::Real)
+    (::Type{Gray{T}}){T}(val::T) = new{T}(val)
+    function (::Type{Gray{T}}){T}(val::Real)
         checkval(T, val)
-        new(_rem(val,T))
+        new{T}(_rem(val,T))
     end
 end
 Gray{T<:Union{Fractional,Bool}}(val::T) = Gray{T}(val)
@@ -469,23 +469,23 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             alpha::T
             $(Tfields...)
 
-            $acol($(Tconstrfields...), alpha::T=one(T)) = new(alpha, $(fields...))
-            function $acol($(realfields...), alpha::Real=one(T))
+            (::Type{$acol{T}}){T}($(Tconstrfields...), alpha::T=one(T)) = new{T}(alpha, $(fields...))
+            function (::Type{$acol{T}}){T}($(realfields...), alpha::Real=one(T))
                 checkval(T, $(fields...), alpha)
-                new(_rem(alpha,T), $(remfields...))
+                new{T}(_rem(alpha,T), $(remfields...))
             end
-            $acol(c::$C, alpha::Real=one(T)) = $acol{T}($(cfields...), alpha)
+            (::Type{$acol{T}}){T}(c::$C, alpha::Real=one(T)) = $acol{T}($(cfields...), alpha)
         end
         immutable $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
             $(Tfields...)
             alpha::T
 
-            $cola($(Tconstrfields...), alpha::T=one(T)) = new($(fields...), alpha)
-            function $cola($(realfields...), alpha::Real=one(T))
+            (::Type{$cola{T}}){T}($(Tconstrfields...), alpha::T=one(T)) = new{T}($(fields...), alpha)
+            function (::Type{$cola{T}}){T}($(realfields...), alpha::Real=one(T))
                 checkval(T, $(fields...), alpha)
-                new($(remfields...), _rem(alpha,T))
+                new{T}($(remfields...), _rem(alpha,T))
             end
-            $cola(c::$C, alpha::Real=one(T)) = $cola{T}($(cfields...), alpha)
+            (::Type{$cola{T}}){T}(c::$C, alpha::Real=one(T)) = $cola{T}($(cfields...), alpha)
         end
         $exportexpr
         alphacolor{C<:$C}(::Type{C}) = $acol
