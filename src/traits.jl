@@ -319,5 +319,7 @@ function ==(x::TransparentColor, y::TransparentColor)
 end
 
 
-zero{T}(::Type{Gray{T}}) = Gray{T}(zero(T))
-one{T}(::Type{Gray{T}}) = Gray{T}(one(T))
+zero{T<:Union{Fractional,Bool}}(::Type{Gray{T}}) = Gray{T}(zero(T))
+one{T<:Union{Fractional,Bool}}(::Type{Gray{T}}) = Gray{T}(one(T))
+zero{C<:Gray}(::Type{C}) = C(0)
+one{C<:Gray}(::Type{C}) = C(1)
