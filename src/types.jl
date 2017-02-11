@@ -559,7 +559,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = isdefined(Core, :UnionAll) ? Base.datatype_name(C) : C.name.name
+    Csym = isdefined(Core, :UnionAll) ? Base.datatype_name(Base.unwrap_unionall(C)) : C.name.name
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
