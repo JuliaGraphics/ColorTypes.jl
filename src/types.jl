@@ -6,14 +6,14 @@ channel) information.  `T` is the element type (extractable with
 with `length`), i.e., the number of arguments you would supply to the
 constructor.
 """
-abstract Colorant{T,N}
+Compat.@compat abstract type Colorant{T,N} end
 
 # Colors (without transparency)
 """
 `Color{T,N}` is the abstract supertype for a color (or
 grayscale) with no transparency.
 """
-abstract Color{T, N} <: Colorant{T,N}
+Compat.@compat abstract type Color{T, N} <: Colorant{T,N} end
 
 """
 `AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
@@ -23,7 +23,7 @@ assumptions about internal storage order, the number of fields, or the
 representation. One `AbstractRGB` color-type, `RGB24`, is not
 parametric and does not have fields named `r`, `g`, `b`.
 """
-abstract AbstractRGB{T}      <: Color{T,3}
+Compat.@compat abstract type AbstractRGB{T}      <: Color{T,3} end
 
 
 # Types with transparency
@@ -49,20 +49,20 @@ transparent analogs.  These two indicate different internal storage
 order (see `AlphaColor` and `ColorAlpha`, and the `alphacolor` and
 `coloralpha` functions).
 """
-abstract TransparentColor{C<:Color,T,N} <: Colorant{T,N}
+Compat.@compat abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N} end
 
 """
 `AlphaColor` is an abstract supertype for types like `ARGB`, where the
 alpha channel comes first in the internal storage order. **Note** that
 the constructor order is still `(color, alpha)`.
 """
-abstract AlphaColor{C,T,N} <: TransparentColor{C,T,N}
+Compat.@compat abstract type AlphaColor{C,T,N} <: TransparentColor{C,T,N} end
 
 """
 `ColorAlpha` is an abstract supertype for types like `RGBA`, where the
 alpha channel comes last in the internal storage order.
 """
-abstract ColorAlpha{C,T,N} <: TransparentColor{C,T,N}
+Compat.@compat abstract type ColorAlpha{C,T,N} <: TransparentColor{C,T,N} end
 
 # These are types we'll dispatch on. Not exported.
 typealias AbstractGray{T}                    Color{T,1}
