@@ -65,12 +65,12 @@ alpha channel comes last in the internal storage order.
 Compat.@compat abstract type ColorAlpha{C,T,N} <: TransparentColor{C,T,N} end
 
 # These are types we'll dispatch on. Not exported.
-typealias AbstractGray{T}                    Color{T,1}
-typealias Color3{T}                          Color{T,3}
-typealias TransparentGray{C<:AbstractGray,T} TransparentColor{C,T,2}
-typealias Transparent3{C<:Color3,T}          TransparentColor{C,T,4}
-typealias TransparentRGB{C<:AbstractRGB,T}   TransparentColor{C,T,4}
-typealias ColorantNormed{T<:Normed,N}        Colorant{T,N}
+Compat.@compat AbstractGray{T}                    = Color{T,1}
+Compat.@compat Color3{T}                          = Color{T,3}
+Compat.@compat TransparentGray{C<:AbstractGray,T} = TransparentColor{C,T,2}
+Compat.@compat Transparent3{C<:Color3,T}          = TransparentColor{C,T,4}
+Compat.@compat TransparentRGB{C<:AbstractRGB,T}   = TransparentColor{C,T,4}
+Compat.@compat ColorantNormed{T<:Normed,N}        = Colorant{T,N}
 
 """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
@@ -168,7 +168,7 @@ immutable HSV{T<:AbstractFloat} <: Color{T,3}
 end
 
 "`HSB` (Hue-Saturation-Brightness) is an alias for `HSV`."
-typealias HSB HSV
+const HSB = HSV
 
 "`HSL` is the Hue-Saturation-Lightness colorspace."
 immutable HSL{T<:AbstractFloat} <: Color{T,3}
