@@ -96,10 +96,10 @@ color(s), returning an output color in the same colorspace.
     julia> mapc(+, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.6,1.3,0.8)
 """
-mapc{C<:AbstractGray}(f, c::C) = base_color_type(C)(f(gray(c)))
-mapc{C<:TransparentGray}(f, c::C) = base_colorant_type(C)(f(gray(c)), f(alpha(c)))
-mapc{C<:Color3}(f, c::C) = base_color_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)))
-mapc{C<:Transparent3}(f, c::C) = base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(alpha(c)))
+@inline mapc{C<:AbstractGray}(f, c::C) = base_color_type(C)(f(gray(c)))
+@inline mapc{C<:TransparentGray}(f, c::C) = base_colorant_type(C)(f(gray(c)), f(alpha(c)))
+@inline mapc{C<:Color3}(f, c::C) = base_color_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)))
+@inline mapc{C<:Transparent3}(f, c::C) = base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(alpha(c)))
 
 mapc(f, x, y) = _mapc(_same_colorspace(x,y), f, x, y)
 _mapc{C<:AbstractGray}(::Type{C}, f, x, y) = C(f(gray(x), gray(y)))
