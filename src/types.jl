@@ -606,6 +606,12 @@ end
 @inline function checkval{T<:Normed}(::Type{T}, a, b, c, d)
     isok(T, a) & isok(T, b) & isok(T, c) & isok(T, d) || throw_colorerror(T, a, b, c, d)
 end
+
+checkval{T<:Normed}(::Type{T}, a::T) = nothing
+checkval{T<:Normed}(::Type{T}, a::T, b::T) = nothing
+checkval{T<:Normed}(::Type{T}, a::T, b::T, c::T) = nothing
+checkval{T<:Normed}(::Type{T}, a::T, b::T, c::T, d::T) = nothing
+
 checkval{T}(::Type{T}, a) = nothing
 checkval{T}(::Type{T}, a, b) = nothing
 checkval{T}(::Type{T}, a, b, c) = nothing
