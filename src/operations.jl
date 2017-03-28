@@ -112,3 +112,43 @@ _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type
 _same_colorspace{C<:Colorant}(::Type{C}, ::Type{C}) = C
 @noinline _same_colorspace{C1<:Colorant,C2<:Colorant}(::Type{C1}, ::Type{C2}) =
     throw(ArgumentError("$C1 and $C2 are from different colorspaces"))
+
+"""
+    reducec(op, v0, c)
+
+Reduce across color channels of `c` with the binary operator
+`op`. `v0` is the neutral element used to initiate the reduction. For
+grayscale,
+
+    reducec(op, v0, c::Gray) = op(v0, comp1(c))
+
+whereas for RGB
+
+    reducec(op, v0, c::RGB) = op(comp3(c), op(comp2(c), op(v0, comp1(c))))
+
+If `c` has an alpha channel, it is always the last one to be folded into the reduction.
+"""
+@inline reducec{C<:AbstractGray}(op, v0, c::C) = op(v0, comp1(c))
+@inline reducec{C<:TransparentGray}(op, v0, c::C) = op(alpha(c), op(v0, comp1(c)))
+@inline reducec{C<:Color3}(op, v0, c::C) = op(comp3(c), op(comp2(c), op(v0, comp1(c))))
+@inline reducec{C<:Transparent3}(op, v0, c::C) = op(alpha(c), op(comp3(c), op(comp2(c), op(v0, comp1(c)))))
+
+"""
+    mapreducec(f, op, v0, c)
+
+Reduce across color channels of `c` with the binary operator `op`,
+first applying `f` to each channel. `v0` is the neutral element used
+to initiate the reduction. For grayscale,
+
+    mapreducec(f, op, v0, c::Gray) = op(v0, f(comp1(c)))
+
+whereas for RGB
+
+    mapreducec(f, op, v0, c::RGB) = op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c)))))
+
+If `c` has an alpha channel, it is always the last one to be folded into the reduction.
+"""
+@inline mapreducec{C<:AbstractGray}(f, op, v0, c::C) = op(v0, f(comp1(c)))
+@inline mapreducec{C<:TransparentGray}(f, op, v0, c::C) = op(f(alpha(c)), op(v0, f(comp1(c))))
+@inline mapreducec{C<:Color3}(f, op, v0, c::C) = op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c)))))
+@inline mapreducec{C<:Transparent3}(f, op, v0, c::C) = op(f(alpha(c)), op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c))))))

@@ -498,6 +498,27 @@ a = [BGR(1,0,0)]
 @test_throws ArgumentError mapc(min, RGB{N0f8}(0.2,0.8,0.7), BGR{N0f8}(0.5,0.2,0.99))
 
 
+@test @inferred(reducec(+, 0.0, Gray(0.3))) === 0.3
+@test @inferred(reducec(+, 1.0, Gray(0.3))) === 1.3
+@test @inferred(reducec(+, 0, Gray(0.3))) === 0.3
+@test @inferred(reducec(+, 0.0, AGray(0.3, 0.8))) === 0.3 + 0.8
+@test @inferred(reducec(+, 0.0, RGB(0.3, 0.8, 0.5))) === (0.3 + 0.8) + 0.5
+@test @inferred(reducec(+, 0.0, RGBA(0.3, 0.8, 0.5, 0.7))) === ((0.3 + 0.8) + 0.5) + 0.7
+@test @inferred(reducec(&, true, Gray(true)))
+@test !(@inferred(reducec(&, false, Gray(true))))
+@test !(@inferred(reducec(&, true, Gray(false))))
+
+@test @inferred(mapreducec(x->x^2, +, 0.0, Gray(0.3))) === 0.3^2
+@test @inferred(mapreducec(x->x^2, +, 1.0, Gray(0.3))) === 1 + 0.3^2
+@test @inferred(mapreducec(x->x^2, +, 0, Gray(0.3))) === 0.3^2
+@test @inferred(mapreducec(x->x^2, +, 0.0, AGray(0.3, 0.8))) === 0.3^2 + 0.8^2
+@test @inferred(mapreducec(x->x^2, +, 0.0, RGB(0.3, 0.8, 0.5))) === (0.3^2 + 0.8^2) + 0.5^2
+@test @inferred(mapreducec(x->x^2, +, 0.0, RGBA(0.3, 0.8, 0.5, 0.7))) === ((0.3^2 + 0.8^2) + 0.5^2) + 0.7^2
+@test !(@inferred(mapreducec(x->!x, &, true, Gray(true))))
+@test !(@inferred(mapreducec(x->!x, &, false, Gray(true))))
+@test @inferred(mapreducec(x->!x, &, true, Gray(false)))
+@test !@inferred(mapreducec(x->!x, &, false, Gray(false)))
+
 # issue #52
 @test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
 @test RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5) == RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5)

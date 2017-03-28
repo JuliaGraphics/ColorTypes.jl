@@ -45,7 +45,7 @@ export base_color_type, base_colorant_type, ccolor, color, color_type
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export comp1, comp2, comp3
-export mapc, gamutmax, gamutmin
+export mapc, reducec, mapreducec, gamutmax, gamutmin
 
 if VERSION < v"0.5.0-dev+1946"
     const supertype = super
