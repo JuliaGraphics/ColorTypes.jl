@@ -496,7 +496,7 @@ a = [BGR(1,0,0)]
 @test @inferred5(mapc(+, RGBA{N0f8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) == RGBA(0.5f0+N0f8(0.2),0.2f0+N0f8(0.8),0.99f0+N0f8(0.7),0.5f0+N0f8(0.3))
 @test @inferred5(mapc(+, HSVA(0.1,0.8,0.3,0.5), HSVA(0.5,0.5,0.5,0.3))) == HSVA(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.3)
 @test_throws ArgumentError mapc(min, RGB{N0f8}(0.2,0.8,0.7), BGR{N0f8}(0.5,0.2,0.99))
-
+@test @inferred(mapc(abs, -2)) == 2
 
 @test @inferred(reducec(+, 0.0, Gray(0.3))) === 0.3
 @test @inferred(reducec(+, 1.0, Gray(0.3))) === 1.3
@@ -508,6 +508,12 @@ a = [BGR(1,0,0)]
 @test !(@inferred(reducec(&, false, Gray(true))))
 @test !(@inferred(reducec(&, true, Gray(false))))
 
+@test @inferred(reducec(+, 0.0, 0.3)) === 0.3
+@test @inferred(reducec(+, 0, 0.3)) === 0.3
+@test @inferred(reducec(&, true, true))
+@test !(@inferred(reducec(&, false, true)))
+@test !(@inferred(reducec(&, true, false)))
+
 @test @inferred(mapreducec(x->x^2, +, 0.0, Gray(0.3))) === 0.3^2
 @test @inferred(mapreducec(x->x^2, +, 1.0, Gray(0.3))) === 1 + 0.3^2
 @test @inferred(mapreducec(x->x^2, +, 0, Gray(0.3))) === 0.3^2
@@ -518,6 +524,14 @@ a = [BGR(1,0,0)]
 @test !(@inferred(mapreducec(x->!x, &, false, Gray(true))))
 @test @inferred(mapreducec(x->!x, &, true, Gray(false)))
 @test !@inferred(mapreducec(x->!x, &, false, Gray(false)))
+
+@test @inferred(mapreducec(x->x^2, +, 0.0, 0.3)) === 0.3^2
+@test @inferred(mapreducec(x->x^2, +, 1.0, 0.3)) === 1 + 0.3^2
+@test @inferred(mapreducec(x->x^2, +, 0, 0.3)) === 0.3^2
+@test !(@inferred(mapreducec(x->!x, &, true, true)))
+@test !(@inferred(mapreducec(x->!x, &, false, true)))
+@test @inferred(mapreducec(x->!x, &, true, false))
+@test !@inferred(mapreducec(x->!x, &, false, false))
 
 # issue #52
 @test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
