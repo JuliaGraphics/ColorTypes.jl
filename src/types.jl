@@ -443,7 +443,7 @@ macro make_constructors(C, fields, elty)
     esc(quote
         # More constructors for the non-alpha version
         $C{T<:Integer}($(Tfields...)) = $C{$elty}($(fields...))
-        $C($(realfields...)) = $C(promote($(fields...))...)
+        $C($(realfields...)) = $C{promote_eltype($C, $(fields...))}($(fields...))
         $C() = $C{$elty}($(zfields...))
     end)
 end
@@ -533,6 +533,12 @@ eltype_default{P<:Colorant        }(::Type{P}) = eltype_default(color_type(P))
 eltype_ub{P<:Colorant        }(::Type{P}) = eltype_ub(eltype_default(P))
 eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
 eltype_ub{T<:AbstractFloat}(::Type{T}) = AbstractFloat
+
+@inline promote_eltype{C<:Colorant}(::Type{C}, vals...) = _promote_eltype(eltype_ub(C), eltype_default(C), promote_type(map(typeof, vals)...))
+_promote_eltype{Tdef,T<:AbstractFloat}(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) = T
+_promote_eltype{Tdef,T<:Real}(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) = Tdef
+_promote_eltype{Tdef,T<:Fractional}(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) = T
+_promote_eltype{Tdef,T<:Real}(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) = Tdef
 
 ctypes = union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
 

@@ -158,6 +158,11 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     @test green(c) == c.g == 0.5
     @test blue(c)  == c.b == 0
 end
+
+# #80
+z = N0f8(0)
+@test HSV(z, z, z) === HSV{Float32}(0, 0, 0)
+
 # Check various input types and values
 for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
