@@ -3,13 +3,7 @@ __precompile__()
 module ColorTypes
 
 using FixedPointNumbers
-if VERSION >= v"0.5.0-dev+755"
-    using Base.@pure
-else
-    macro pure(ex)
-        esc(ex)
-    end
-end
+using Base.@pure
 
 import Compat
 using Compat.TypeUtils
@@ -46,11 +40,6 @@ export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export comp1, comp2, comp3
 export mapc, reducec, mapreducec, gamutmax, gamutmin
-
-if VERSION < v"0.5.0-dev+1946"
-    const supertype = super
-    export supertype
-end
 
 include("types.jl")
 include("traits.jl")
