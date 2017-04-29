@@ -306,13 +306,11 @@ for T in (RGB24, ARGB32, Gray24, AGray32)
     @eval begin
         reinterpret(::Type{UInt32}, x::$T) = x.color
         reinterpret(::Type{$T}, x::UInt32) = $T(x, Val{true})
-        @deprecate ==(x::UInt32, y::$T) x == reinterpret(UInt32, y)
-        @deprecate ==(x::$T, y::UInt32) reinterpret(UInt32, x) == y
     end
 end
-==(x::Gray, y::Gray) = x.val == y.val
-==(x::Number, y::Gray) = x == y.val
-==(x::Gray, y::Number) = ==(y, x)
+==(x::AbstractGray, y::AbstractGray) = gray(x) == gray(y)
+==(x::Number, y::AbstractGray) = x == gray(y)
+==(x::AbstractGray, y::Number) = ==(y, x)
 
 function ==(x::TransparentColor, y::TransparentColor)
     color(x) == color(y) && alpha(x) == alpha(y)
