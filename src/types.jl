@@ -313,7 +313,6 @@ function RGB24(r, g, b)
     checkval(N0f8, r, g, b)
     RGB24(_rem(r,N0f8), _rem(g,N0f8), _rem(b,N0f8))
 end
-@deprecate RGB24(x::UInt32) reinterpret(RGB24, x)
 
 """
 `ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
@@ -336,7 +335,6 @@ _ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = reinterpret(ARGB32, UInt32
 ARGB32(r::N0f8, g::N0f8, b::N0f8, alpha::N0f8 = N0f8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 ARGB32(r, g, b, alpha = 1) = ARGB32(N0f8(r), N0f8(g), N0f8(b), N0f8(alpha))
 ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c), alpha)
-@deprecate ARGB32(x::UInt32) reinterpret(ARGB32, x)
 
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
@@ -374,7 +372,6 @@ function Gray24(val::Real)
     checkval(N0f8, val)
     Gray24(val%N0f8)
 end
-@deprecate Gray24(x::UInt32) reinterpret(Gray24, x)
 
 """
 `AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -404,7 +401,6 @@ function AGray32(g::Gray24, alpha = 1)
     reinterpret(AGray32, UInt32(reinterpret(_rem(alpha,N0f8)))<<24 | g.color)
 end
 AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
-@deprecate AGray32(x::UInt32) reinterpret(AGray32, x)
 
 # Generated code:
 #   - more constructors for colors

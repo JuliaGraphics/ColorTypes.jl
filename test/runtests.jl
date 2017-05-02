@@ -1,19 +1,9 @@
 using ColorTypes, FixedPointNumbers
 using Base.Test
 
-if VERSION >= v"0.5.0-dev+2396"
-    macro inferred5(ex)
-        Expr(:macrocall, Symbol("@inferred"), esc(ex))
-    end
-else
-    macro inferred5(ex)
-        esc(ex)
-    end
-end
-
 if VERSION >= v"0.5.0"
     if isdefined(Core, :UnionAll)
-      #@test isempty(detect_ambiguities(ColorTypes, Base, Core, allow_bottom=false))
+      #@test isempty(detect_ambiguities(ColorTypes, Base, Core))
     else
       @test isempty(detect_ambiguities(ColorTypes, Base, Core))
     end
@@ -224,14 +214,13 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
         end
     end
 end
-if VERSION >= v"0.5.0"
-    ret = @test_throws ArgumentError RGB(255, 17, 48)
-    @test contains(ret.value.msg, tformat(255,17,48))
-    @test contains(ret.value.msg, "0-255")
-    ret = @test_throws ArgumentError RGB(256, 17, 48)
-    @test contains(ret.value.msg, tformat(256,17,48))
-    @test !contains(ret.value.msg, "0-255")
-end
+
+ret = @test_throws ArgumentError RGB(255, 17, 48)
+@test contains(ret.value.msg, tformat(255,17,48))
+@test contains(ret.value.msg, "0-255")
+ret = @test_throws ArgumentError RGB(256, 17, 48)
+@test contains(ret.value.msg, tformat(256,17,48))
+@test !contains(ret.value.msg, "0-255")
 
 c = Gray(0.8)
 @test gray(c) == real(c) == 0.8
@@ -270,14 +259,12 @@ for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
         @test color_type(c) == C{Float64}
         cc = color(c)
         @test cc == C{Float64}(1,0.8,0.6)
-        if VERSION >= v"0.4.0-dev"
-            @test A(cc) == A{Float64}(1,0.8,0.6,1)
-            @test A(cc, 0.4)  == c
-            @test A(cc, 0x01) == A{Float64}(1,0.8,0.6,1)
-            @test A{Float32}(cc, 0x01) == A{Float32}(1,0.8,0.6,1)
-            @test C(c         ) == C{Float64}(1,0.8,0.6)
-            @test C{Float32}(c) == C{Float32}(1,0.8,0.6)
-        end
+        @test A(cc) == A{Float64}(1,0.8,0.6,1)
+        @test A(cc, 0.4)  == c
+        @test A(cc, 0x01) == A{Float64}(1,0.8,0.6,1)
+        @test A{Float32}(cc, 0x01) == A{Float32}(1,0.8,0.6,1)
+        @test C(c         ) == C{Float64}(1,0.8,0.6)
+        @test C{Float32}(c) == C{Float32}(1,0.8,0.6)
         @test convert(A, cc) == A{Float64}(1,0.8,0.6,1)
         @test convert(A, cc, 0.4)  == c
         @test convert(A, cc, 0x01) == A{Float64}(1,0.8,0.6,1)
@@ -488,18 +475,18 @@ a = [BGR(1,0,0)]
 @test reinterpret(UInt32, ARGB32()) == 0xff000000
 @test reinterpret(UInt32, ARGB32(1,.2,.3)) == 0xffff334c
 
-@test @inferred5(mapc(sqrt, Gray{N0f8}(0.04))) == Gray(sqrt(N0f8(0.04)))
-@test @inferred5(mapc(sqrt, AGray{N0f8}(0.04, 0.4))) == AGray(sqrt(N0f8(0.04)), sqrt(N0f8(0.4)))
-@test @inferred5(mapc(sqrt, GrayA{N0f8}(0.04, 0.4))) == GrayA(sqrt(N0f8(0.04)), sqrt(N0f8(0.4)))
-@test @inferred5(mapc(x->2x, RGB{N0f8}(0.04,0.2,0.3))) == RGB(map(x->2*N0f8(x), (0.04,0.2,0.3))...)
-@test @inferred5(mapc(sqrt, RGBA{N0f8}(0.04,0.2,0.3,0.7))) == RGBA(map(x->sqrt(N0f8(x)), (0.04,0.2,0.3,0.7))...)
-@test @inferred5(mapc(x->1.5f0x, RGBA{N0f8}(0.04,0.2,0.3,0.4))) == RGBA(map(x->1.5f0*N0f8(x), (0.04,0.2,0.3,0.4))...)
+@test @inferred(mapc(sqrt, Gray{N0f8}(0.04))) == Gray(sqrt(N0f8(0.04)))
+@test @inferred(mapc(sqrt, AGray{N0f8}(0.04, 0.4))) == AGray(sqrt(N0f8(0.04)), sqrt(N0f8(0.4)))
+@test @inferred(mapc(sqrt, GrayA{N0f8}(0.04, 0.4))) == GrayA(sqrt(N0f8(0.04)), sqrt(N0f8(0.4)))
+@test @inferred(mapc(x->2x, RGB{N0f8}(0.04,0.2,0.3))) == RGB(map(x->2*N0f8(x), (0.04,0.2,0.3))...)
+@test @inferred(mapc(sqrt, RGBA{N0f8}(0.04,0.2,0.3,0.7))) == RGBA(map(x->sqrt(N0f8(x)), (0.04,0.2,0.3,0.7))...)
+@test @inferred(mapc(x->1.5f0x, RGBA{N0f8}(0.04,0.2,0.3,0.4))) == RGBA(map(x->1.5f0*N0f8(x), (0.04,0.2,0.3,0.4))...)
 
-@test @inferred5(mapc(max, Gray{N0f8}(0.2), Gray{N0f8}(0.3))) == Gray{N0f8}(0.3)
-@test @inferred5(mapc(-, AGray{Float32}(0.3), AGray{Float32}(0.2))) == AGray{Float32}(0.3f0-0.2f0,0.0)
-@test @inferred5(mapc(min, RGB{N0f8}(0.2,0.8,0.7), RGB{N0f8}(0.5,0.2,0.99))) == RGB{N0f8}(0.2,0.2,0.7)
-@test @inferred5(mapc(+, RGBA{N0f8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) == RGBA(0.5f0+N0f8(0.2),0.2f0+N0f8(0.8),0.99f0+N0f8(0.7),0.5f0+N0f8(0.3))
-@test @inferred5(mapc(+, HSVA(0.1,0.8,0.3,0.5), HSVA(0.5,0.5,0.5,0.3))) == HSVA(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.3)
+@test @inferred(mapc(max, Gray{N0f8}(0.2), Gray{N0f8}(0.3))) == Gray{N0f8}(0.3)
+@test @inferred(mapc(-, AGray{Float32}(0.3), AGray{Float32}(0.2))) == AGray{Float32}(0.3f0-0.2f0,0.0)
+@test @inferred(mapc(min, RGB{N0f8}(0.2,0.8,0.7), RGB{N0f8}(0.5,0.2,0.99))) == RGB{N0f8}(0.2,0.2,0.7)
+@test @inferred(mapc(+, RGBA{N0f8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) == RGBA(0.5f0+N0f8(0.2),0.2f0+N0f8(0.8),0.99f0+N0f8(0.7),0.5f0+N0f8(0.3))
+@test @inferred(mapc(+, HSVA(0.1,0.8,0.3,0.5), HSVA(0.5,0.5,0.5,0.3))) == HSVA(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.3)
 @test_throws ArgumentError mapc(min, RGB{N0f8}(0.2,0.8,0.7), BGR{N0f8}(0.5,0.2,0.99))
 @test @inferred(mapc(abs, -2)) == 2
 
@@ -560,29 +547,31 @@ for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),)
     @test (a == b) == (hash(a) == hash(b))
 end
 
-### Test deprecations
-mktemp() do tmpfile, io
-    redirect_stderr(io) do
-        @test convert(UInt32, RGB24(1,1,1))    == 0x00ffffff
-        @test convert(UInt32, ARGB32(1,1,1,0)) == 0x00ffffff
-        @test convert(UInt32, Gray24(1))    == 0x00ffffff
-        @test convert(UInt32, AGray32(1,0)) == 0x00ffffff
-        @test RGB24(1,1,1)    == 0x00ffffff
-        @test ARGB32(1,1,1,0) == 0x00ffffff
-        @test Gray24(1)    == 0x00ffffff
-        @test AGray32(1,0) == 0x00ffffff
-        @test RGB24(0x00ffffff)  === RGB24(1,1,1)
-        @test ARGB32(0x00ffffff) === ARGB32(1,1,1,0)
-        @test Gray24(0x00ffffff)  === Gray24(1)
-        @test AGray32(0x00ffffff) === AGray32(1,0)
-        @test RGB24[0x00000000] == [RGB24(0)]
-        @test RGB24[0x00000000,0x00808080] == [RGB24(0), RGB24(0.5)]
-        @test RGB24[0x00000000,0x00808080,0x00ffffff] == [RGB24(0), RGB24(0.5), RGB24(1)]
-        @test RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff] == [RGB24(0), RGB24(0.5), RGB24(1), RGB24(0,0,1)]
-    end
-    close(io)
-    Base.JLOptions().depwarn==1 && @test sum(x->contains(x, "WARNING"), readlines(tmpfile)) == 16
-end
+### Prevent ambiguous definitions
 
+# Certain types, like Gray24, reinterpret a UInt32 as having a
+# particular color meaning. The problem with defining `convert`
+# methods is that a UInt32 has a value, e.g., 0 = black and 1 = white.
+# Users who want to interpret a UInt32 as a bit pattern should
+# explicitly use `reinterpret`.
+@testset "bit pattern ambiguities" begin
+    @test_throws MethodError convert(UInt32, RGB24(1,1,1))
+    @test_throws MethodError convert(UInt32, ARGB32(1,1,1,0))
+    @test convert(UInt32, Gray24(1)) == 1
+    @test_throws InexactError convert(UInt32, Gray24(0.5))
+    @test_throws MethodError convert(UInt32, AGray32(1,0))
+    @test !(RGB24(1,1,1) == 0x00ffffff)
+    @test !(ARGB32(1,1,1,0) == 0x00ffffff)
+    @test Gray24(1) == 1
+    @test !(Gray24(1) == 0x00ffffff)
+    @test !(AGray32(1,0) == 0x00ffffff)
+    @test_throws ArgumentError RGB24(0x00ffffff)
+    @test_throws ArgumentError ARGB32(0x00ffffff)
+    @test_throws ArgumentError Gray24(0x00ffffff)
+    @test_throws ArgumentError AGray32(0x00ffffff)
+    @test_throws ArgumentError RGB24[0x00000000,0x00808080]
+    @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff]
+    @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
+end
 
 nothing
