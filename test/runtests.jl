@@ -1,13 +1,7 @@
 using ColorTypes, FixedPointNumbers
 using Base.Test
 
-if VERSION >= v"0.5.0"
-    if isdefined(Core, :UnionAll)
-      #@test isempty(detect_ambiguities(ColorTypes, Base, Core))
-    else
-      @test isempty(detect_ambiguities(ColorTypes, Base, Core))
-    end
-end
+@test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
 # Support pre- and post- julia #20288
 if VERSION >= v"0.6.0-dev.2505"

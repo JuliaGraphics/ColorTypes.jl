@@ -64,14 +64,15 @@ rand(::Type{AGray32}) = AGray32(rand(N0f8),rand(N0f8))
 rand(::Type{AGray32}, sz::Dims) = AGray32.(rand(N0f8,sz),rand(N0f8,sz))
 
 # broadcast
-# Without this, Gray.(a) returns an Array{Gray}, which does not have concrete eltype
-Base.broadcast{C<:Colorant}(::Type{C}, A::AbstractArray) = _broadcast(C, eltype(C), A)
-_broadcast{C<:Colorant,T<:Number}(::Type{C}, ::Type{T}, A) = broadcast!(C, similar(Array{C}, indices(A)), A)
-function _broadcast{C<:Colorant}(::Type{C}, ::Any, A)
-    Cnew = ccolor(C, eltype(A))
-    _broadcast(Cnew, eltype(Cnew), A)
+if VERSION < v"0.6.0-dev.2010"
+    # Without this, Gray.(a) returns an Array{Gray}, which does not have concrete eltype
+    Base.broadcast{C<:Colorant}(::Type{C}, A::AbstractArray) = _broadcast(C, eltype(C), A)
+    _broadcast{C<:Colorant,T<:Number}(::Type{C}, ::Type{T}, A) = broadcast!(C, similar(Array{C}, indices(A)), A)
+    function _broadcast{C<:Colorant}(::Type{C}, ::Any, A)
+        Cnew = ccolor(C, eltype(A))
+        _broadcast(Cnew, eltype(Cnew), A)
+    end
 end
-
 
 # Mapping a function over color channels
 """
