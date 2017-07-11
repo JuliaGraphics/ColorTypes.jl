@@ -123,7 +123,7 @@ color_type(c::Colorant) = color_type(typeof(c))
 length(c::Colorant) = length(typeof(c))
 
 if isdefined(Core, :UnionAll)
-include_string("""
+include_string(@__MODULE__, """
     length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
     # This definition should be unnecessary, but julia currently incorrectly
     # dispatches to the first definition below, even when the second is
@@ -258,7 +258,7 @@ ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = _ccolor(Cd
 ccolor{Cdest<:AbstractGray,T<:Number}(::Type{Cdest}, ::Type{T}) = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
 
 if isdefined(Core, :UnionAll)
-include_string("""
+include_string(@__MODULE__, """
     _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = isleaftype(T) ?
        base_colorant_type(Cdest){T} :
        base_colorant_type(Cdest){S} where S<:T
