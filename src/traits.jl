@@ -100,6 +100,8 @@ eltype(c::Colorant) = eltype(typeof(c))
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
 @pure issupported{C<:Colorant,T}(::Type{C}, ::Type{T}) = T <: eltypes_supported(C)
+@pure issupported{C<:AbstractRGB,T<:FixedPointNumbers.FixedPoint}(::Type{C}, ::Type{T}) = T <: eltypes_supported(C)
+@pure issupported{C<:Colorant,T<:FixedPointNumbers.FixedPoint}(::Type{C}, ::Type{T}) = false # stopgap to allow e.g. LMS{Real}
 
 """
 `color_type(c)` or `color_type(C)` (`c` being a color instance and `C`
