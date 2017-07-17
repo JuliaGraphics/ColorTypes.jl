@@ -78,7 +78,7 @@ individual color channels range from 0 (black) to 1 (saturated). If
 you want "Integer" storage types (e.g., 255 for full color), use `N0f8(1)`
 instead (see FixedPointNumbers).
 """
-immutable RGB{T<:Fractional} <: AbstractRGB{T}
+immutable RGB{T<:Real} <: AbstractRGB{T}
     r::T # Red [0,1]
     g::T # Green [0,1]
     b::T # Blue [0,1]
@@ -94,7 +94,7 @@ end
 # For types that support Fractional, we need this to avoid a
 # StackOverflow. For color types that only support AbstractFloat, this
 # is handled by @make_constructors.
-RGB{T<:Fractional}(r::T, g::T, b::T) = RGB{T}(r, g, b)
+# RGB{T<:Real}(r::T, g::T, b::T) = RGB{T}(r, g, b)
 
 """
 `BGR` is a variant of `RGB` with the opposite storage order.  Note
@@ -527,14 +527,14 @@ eltype_default{P<:Colorant        }(::Type{P}) = eltype_default(color_type(P))
 
 # Upper bound on element type for each color type
 eltype_ub{P<:Colorant        }(::Type{P}) = eltype_ub(eltype_default(P))
-eltype_ub{T<:FixedPoint   }(::Type{T}) = Fractional
-eltype_ub{T<:AbstractFloat}(::Type{T}) = AbstractFloat
+eltype_ub{T<:Real}(::Type{T}) = Real
 
 @inline promote_eltype{C<:Colorant}(::Type{C}, vals...) = _promote_eltype(eltype_ub(C), eltype_default(C), promote_type(map(typeof, vals)...))
 _promote_eltype{Tdef,T<:AbstractFloat}(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) = T
 _promote_eltype{Tdef,T<:Real}(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) = Tdef
 _promote_eltype{Tdef,T<:Fractional}(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) = T
 _promote_eltype{Tdef,T<:Real}(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) = Tdef
+_promote_eltype{Tdef,T<:Real}(::Type{Real}, ::Type{Tdef}, ::Type{T}) = T
 
 ctypes = union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
 
