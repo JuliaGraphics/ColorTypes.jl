@@ -78,7 +78,7 @@ individual color channels range from 0 (black) to 1 (saturated). If
 you want "Integer" storage types (e.g., 255 for full color), use `N0f8(1)`
 instead (see FixedPointNumbers).
 """
-immutable RGB{T<:Fractional} <: AbstractRGB{T}
+struct RGB{T<:Fractional} <: AbstractRGB{T}
     r::T # Red [0,1]
     g::T # Green [0,1]
     b::T # Blue [0,1]
@@ -103,7 +103,7 @@ This storage order is noteworthy because on little-endian machines,
 `BGRA` (with transparency) can be `reinterpret`ed to the `UInt32`
 color format used by libraries such as Cairo and OpenGL.
 """
-immutable BGR{T<:Fractional} <: AbstractRGB{T}
+struct BGR{T<:Fractional} <: AbstractRGB{T}
     b::T
     g::T
     r::T
@@ -124,7 +124,7 @@ memory-alignment properties.
 Like all other AbstractRGB objects, the constructor is still called
 `RGB1(r, g, b)`.
 """
-immutable RGB1{T<:Fractional} <: AbstractRGB{T}
+struct RGB1{T<:Fractional} <: AbstractRGB{T}
     alphadummy::T
     r::T
     g::T
@@ -146,7 +146,7 @@ memory-alignment properties.
 Like all other AbstractRGB objects, the constructor is still called
 `RGB4(r, g, b)`.
 """
-immutable RGB4{T<:Fractional} <: AbstractRGB{T}
+struct RGB4{T<:Fractional} <: AbstractRGB{T}
     r::T
     g::T
     b::T
@@ -161,7 +161,7 @@ end
 RGB4{T<:Fractional}(r::T, g::T, b::T) = RGB4{T}(r, g, b)
 
 "`HSV` is the Hue-Saturation-Value colorspace."
-immutable HSV{T<:AbstractFloat} <: Color{T,3}
+struct HSV{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
@@ -171,14 +171,14 @@ end
 const HSB = HSV
 
 "`HSL` is the Hue-Saturation-Lightness colorspace."
-immutable HSL{T<:AbstractFloat} <: Color{T,3}
+struct HSL{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360)
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
 "`HSI` is the Hue-Saturation-Intensity colorspace."
-immutable HSI{T<:AbstractFloat} <: Color{T,3}
+struct HSI{T<:AbstractFloat} <: Color{T,3}
     h::T
     s::T
     i::T
@@ -189,63 +189,63 @@ end
 meaning that mathematical operations such as addition, subtraction,
 and scaling make "colorimetric sense" in this colorspace.
 """
-immutable XYZ{T<:AbstractFloat} <: Color{T,3}
+struct XYZ{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     z::T
 end
 
 "`xyY` is the CIE 1931 xyY (chromaticity + luminance) space"
-immutable xyY{T<:AbstractFloat} <: Color{T,3}
+struct xyY{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     Y::T
 end
 
 "`Lab` is the CIELAB colorspace."
-immutable Lab{T<:AbstractFloat} <: Color{T,3}
+struct Lab{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance in approximately [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
 "`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace"
-immutable LCHab{T<:AbstractFloat} <: Color{T,3}
+struct LCHab{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360)
 end
 
 "`Luv` is the CIELUV colorspace"
-immutable Luv{T<:AbstractFloat} <: Color{T,3}
+struct Luv{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
 "`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace"
-immutable LCHuv{T<:AbstractFloat} <: Color{T,3}
+struct LCHuv{T<:AbstractFloat} <: Color{T,3}
     l::T # Luminance
     c::T # Chroma
     h::T # Hue
 end
 
 "`DIN99` is the (L99, a99, b99) adaptation of CIELAB"
-immutable DIN99{T<:AbstractFloat} <: Color{T,3}
+struct DIN99{T<:AbstractFloat} <: Color{T,3}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
 "`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99"
-immutable DIN99d{T<:AbstractFloat} <: Color{T,3}
+struct DIN99d{T<:AbstractFloat} <: Color{T,3}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
 "`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB"
-immutable DIN99o{T<:AbstractFloat} <: Color{T,3}
+struct DIN99o{T<:AbstractFloat} <: Color{T,3}
     l::T # L99o
     a::T # a99o
     b::T # b99o
@@ -255,21 +255,21 @@ end
 `LMS` is the Long-Medium-Short colorspace based on activation of the
 three cone photoreceptors.  Like `XYZ`, this is a linear color space.
 """
-immutable LMS{T<:AbstractFloat} <: Color{T,3}
+struct LMS{T<:AbstractFloat} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
 end
 
 "`YIQ` is a color encoding, for example used in NTSC transmission."
-immutable YIQ{T<:AbstractFloat} <: Color{T,3}
+struct YIQ{T<:AbstractFloat} <: Color{T,3}
     y::T
     i::T
     q::T
 end
 
 "`YCbCr` is the Y'CbCr color encoding often used in digital photography or video"
-immutable YCbCr{T<:AbstractFloat} <: Color{T,3}
+struct YCbCr{T<:AbstractFloat} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -285,7 +285,7 @@ still extract the individual components with `red(c)`, `green(c)`,
 `blue(c)`.  You can construct them directly from a `UInt32`, or as
 `RGB(r, g, b)`.
 """
-immutable RGB24 <: AbstractRGB{N0f8}
+struct RGB24 <: AbstractRGB{N0f8}
     color::UInt32
 
     RGB24(col::UInt32, ::Type{Val{true}}) = new(col)
@@ -325,7 +325,7 @@ you can still extract the individual components with `alpha(c)`,
 `red(c)`, `green(c)`, `blue(c)`.  You can construct them directly from
 a `UInt32`, or as `ARGB32(r, g, b, alpha)`.
 """
-immutable ARGB32 <: AlphaColor{RGB24, N0f8, 4}
+struct ARGB32 <: AlphaColor{RGB24, N0f8, 4}
     color::UInt32
 
     ARGB32(col::UInt32, ::Type{Val{true}}) = new(col)
@@ -339,7 +339,7 @@ ARGB32{T}(c::AbstractRGB{T}, alpha = alpha(c)) = ARGB32(red(c), green(c), blue(c
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
 """
-immutable Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
+struct Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
 
     (::Type{Gray{T}}){T}(val::T) = new{T}(val)
@@ -360,7 +360,7 @@ You can extract the single gray value with `gray(c)`.  You can
 construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
 `i` is interpreted on a scale from 0 (black) to 1 (white).
 """
-immutable Gray24 <: AbstractGray{N0f8}
+struct Gray24 <: AbstractGray{N0f8}
     color::UInt32
 
     Gray24(c::UInt32, ::Type{Val{true}}) = new(c)
@@ -384,7 +384,7 @@ You can extract the single gray value with `gray(c)` and the alpha as
 `AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
 scale from 0 (black) to 1 (white).
 """
-immutable AGray32 <: AlphaColor{Gray24, N0f8, 2}
+struct AGray32 <: AlphaColor{Gray24, N0f8, 2}
     color::UInt32
 
     AGray32(c::UInt32, ::Type{Val{true}}) = new(c)
@@ -461,7 +461,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     Tconstr = Expr(:<:, :T, ub)
     exportexpr = Expr(:export, acol, cola)
     esc(quote
-        immutable $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
+        struct $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
             alpha::T
             $(Tfields...)
 
@@ -472,7 +472,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             end
             (::Type{$acol{T}}){T}(c::$C, alpha::Real=one(T)) = $acol{T}($(cfields...), alpha)
         end
-        immutable $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
+        struct $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
             $(Tfields...)
             alpha::T
 
