@@ -53,27 +53,27 @@ Specifically, for any `Color{T,3}`,
 returns true.
 """
 comp1(c::AbstractRGB) = red(c)
-comp1{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = red(c)
+comp1(c::Union{AlphaColor{C},ColorAlpha{C}}) where {C<:AbstractRGB} = red(c)
 comp1(c::Union{Color,ColorAlpha}) = getfield(c, 1)
 comp1(c::AlphaColor) = getfield(c, 2)
 comp1(c::AGray32) = gray(c)
 
 "`comp2(c)` extracts the second constructor argument (see `comp1`)."
 comp2(c::AbstractRGB) = green(c)
-comp2{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = green(c)
+comp2(c::Union{AlphaColor{C},ColorAlpha{C}}) where {C<:AbstractRGB} = green(c)
 comp2(c::Union{Color,ColorAlpha}) = getfield(c, 2)
 comp2(c::AlphaColor) = getfield(c, 3)
 
 "`comp3(c)` extracts the third constructor argument (see `comp1`)."
 comp3(c::AbstractRGB) = blue(c)
-comp3{C<:AbstractRGB}(c::Union{AlphaColor{C},ColorAlpha{C}}) = blue(c)
+comp3(c::Union{AlphaColor{C},ColorAlpha{C}}) where {C<:AbstractRGB} = blue(c)
 comp3(c::Union{Color,ColorAlpha}) = getfield(c, 3)
 comp3(c::AlphaColor) = getfield(c, 4)
 
 "`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)."
 color(c::Color) = c
-color{C,T}(c::TransparentColor{C,T,4}) = C(comp1(c), comp2(c), comp3(c))
-color{C,T}(c::TransparentColor{C,T,2}) = C(comp1(c))
+color(c::TransparentColor{C,T,4}) where {C,T} = C(comp1(c), comp2(c), comp3(c))
+color(c::TransparentColor{C,T,2}) where {C,T} = C(comp1(c))
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
@@ -81,25 +81,25 @@ color{C,T}(c::TransparentColor{C,T,2}) = C(comp1(c))
 
 # recurse up the type hierarchy until you get to Colorant{T,N} for
 # specific T,N.
-to_top{T,N}(::Type{Colorant{T,N}}) = Colorant{T,N}
-@pure to_top{C<:Colorant}(::Type{C}) = to_top(supertype(C))
+to_top(::Type{Colorant{T,N}}) where {T,N} = Colorant{T,N}
+@pure to_top(::Type{C}) where {C<:Colorant} = to_top(supertype(C))
 
 to_top(c::Colorant) = to_top(typeof(c))
 
 # eltype(RGB{Float32}) -> Float32
-eltype{T          }(::Type{Colorant{T}})   = T
-eltype{T,N        }(::Type{Colorant{T,N}}) = T
-@pure eltype{C<:Colorant}(::Type{C}) = eltype(supertype(C))
+eltype(::Type{Colorant{T}}) where {T          }   = T
+eltype(::Type{Colorant{T,N}}) where {T,N        } = T
+@pure eltype(::Type{C}) where {C<:Colorant} = eltype(supertype(C))
 
 eltype(c::Colorant) = eltype(typeof(c))
 
 # eltypes_supported(Colorant{T<:X}) -> T<:X (pre 0.6) or X (post 0.6)
-@pure eltypes_supported{C<:Colorant}(::Type{C}) =
+@pure eltypes_supported(::Type{C}) where {C<:Colorant} =
     parameter_upper_bound(base_colorant_type(C), 1)
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
-@pure issupported{C<:Colorant,T}(::Type{C}, ::Type{T}) = T <: eltypes_supported(C)
+@pure issupported(::Type{C}, ::Type{T}) where {C<:Colorant,T} = T <: eltypes_supported(C)
 
 """
 `color_type(c)` or `color_type(C)` (`c` being a color instance and `C`
@@ -115,7 +115,7 @@ For example,
     color_type(ARGB{N0f8})     == RGB{N0f8}
 """
 color_type(::Type{TransparentColor})        = Color
-color_type{C<:Color}(::Type{C}) = C
+color_type(::Type{C}) where {C<:Color} = C
 color_type(c::Colorant) = color_type(typeof(c))
 
 # Return the number of components in the color
@@ -134,18 +134,18 @@ include_string(@__MODULE__, """
     color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
 """)
 else
-    length{T,N}(::Type{Colorant{T,N}}) = N
-    length{N}(::Type{Colorant{TypeVar(:T),N}}) = N   # julia #12596
-    @pure length{C<:Colorant}(::Type{C}) = length(supertype(C))
+    length(::Type{Colorant{T,N}}) where {T,N} = N
+    length(::Type{Colorant{TypeVar(:T),N}}) where {N} = N   # julia #12596
+    @pure length(::Type{C}) where {C<:Colorant} = length(supertype(C))
 
-    color_type{C    }(::Type{TransparentColor{C}})     = C
-    color_type{C,T  }(::Type{TransparentColor{C,T}})   = C
-    color_type{C,T,N}(::Type{TransparentColor{C,T,N}}) = C
-    color_type{C,N  }(::Type{TransparentColor{C,TypeVar(:T),N}}) = C
+    color_type(::Type{TransparentColor{C}}) where {C    }     = C
+    color_type(::Type{TransparentColor{C,T}}) where {C,T  }   = C
+    color_type(::Type{TransparentColor{C,T,N}}) where {C,T,N} = C
+    color_type(::Type{TransparentColor{C,TypeVar(:T),N}}) where {C,N  } = C
 end
 
-@pure color_type{C<:AlphaColor}(::Type{C}) = color_type(supertype(C))
-@pure color_type{C<:ColorAlpha}(::Type{C}) = color_type(supertype(C))
+@pure color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
+@pure color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
 
 """
 `base_color_type` is similar to `color_type`, except it "strips off" the
@@ -161,7 +161,7 @@ This can be very handy if you want to switch element types. For example:
 converts `c` into a `Float64` representation (potentially discarding
 any alpha-channel information).
 """
-base_color_type{C<:Colorant}(::Type{C}) = base_colorant_type(color_type(C))
+base_color_type(::Type{C}) where {C<:Colorant} = base_colorant_type(color_type(C))
 
 base_color_type(c::Colorant) = base_color_type(typeof(c))
 base_color_type(x::Number)   = Gray
@@ -169,12 +169,12 @@ base_color_type(x::Number)   = Gray
 if isdefined(Core, :UnionAll)
     @pure basetype(T) = typename(T).wrapper
 else
-    @generated function basetype{C<:Colorant}(::Type{C})
+    @generated function basetype(::Type{C}) where C<:Colorant
         name = C.name.name
         :($name)
     end
 end
-base_colorant_type{C<:Colorant}(::Type{C}) = basetype(C)
+base_colorant_type(::Type{C}) where {C<:Colorant} = basetype(C)
 
 """
 `base_colorant_type` is similar to `base_color_type`, but it preserves the
@@ -192,7 +192,7 @@ and the easiest to use:
 """
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
-colorant_string{C<:Colorant}(::Type{C}) = isdefined(Core, :UnionAll) ? string(Base.datatype_name(C)) : string(C.name.name)
+colorant_string(::Type{C}) where {C<:Colorant} = isdefined(Core, :UnionAll) ? string(Base.datatype_name(C)) : string(C.name.name)
 
 """
  `ccolor` ("concrete color") helps write flexible methods. The idea is
@@ -213,49 +213,49 @@ Example:
 
 where `cnvt` is the function that performs explicit conversion.
 """
-ccolor{   Csrc<:Colorant}(::Type{Colorant   }, ::Type{Csrc}) = Csrc
-ccolor{T, Csrc<:Colorant}(::Type{Colorant{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
-ccolor{T, Csrc<:Color3  }(::Type{Colorant{T,3}}, ::Type{Csrc}) = Csrc
-ccolor{T, Csrc<:Transparent3}(::Type{Colorant{T,3}}, ::Type{Csrc}) = base_color_type(Csrc)
-ccolor{   Csrc<:Colorant}(::Type{Color   }, ::Type{Csrc}) = color_type(Csrc)
-ccolor{T, Csrc<:Colorant}(::Type{Color{T}}, ::Type{Csrc}) = base_color_type(Csrc){T}
+ccolor(::Type{Colorant   }, ::Type{Csrc}) where {   Csrc<:Colorant} = Csrc
+ccolor(::Type{Colorant{T}}, ::Type{Csrc}) where {T, Csrc<:Colorant} = base_colorant_type(Csrc){T}
+ccolor(::Type{Colorant{T,3}}, ::Type{Csrc}) where {T, Csrc<:Color3  } = Csrc
+ccolor(::Type{Colorant{T,3}}, ::Type{Csrc}) where {T, Csrc<:Transparent3} = base_color_type(Csrc)
+ccolor(::Type{Color   }, ::Type{Csrc}) where {   Csrc<:Colorant} = color_type(Csrc)
+ccolor(::Type{Color{T}}, ::Type{Csrc}) where {T, Csrc<:Colorant} = base_color_type(Csrc){T}
 
-ccolor{Csrc<:Color}(::Type{TransparentColor}, ::Type{Csrc}) =
+ccolor(::Type{TransparentColor}, ::Type{Csrc}) where {Csrc<:Color} =
           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor{C<:Color,    Csrc<:Color}(
-       ::Type{TransparentColor{C    }}, ::Type{Csrc}) =
+ccolor(
+::Type{TransparentColor{C    }}, ::Type{Csrc}) where {C<:Color,    Csrc<:Color} =
            error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor{C<:Color,T,  Csrc<:Color}(
-       ::Type{TransparentColor{C,T  }}, ::Type{Csrc}) =
+ccolor(
+::Type{TransparentColor{C,T  }}, ::Type{Csrc}) where {C<:Color,T,  Csrc<:Color} =
            error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor{C<:Color,T,N,Csrc<:Color}(
-       ::Type{TransparentColor{C,T,N}}, ::Type{Csrc}) =
+ccolor(
+::Type{TransparentColor{C,T,N}}, ::Type{Csrc}) where {C<:Color,T,N,Csrc<:Color} =
            error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
 
-ccolor{Csrc<:TransparentColor}(::Type{TransparentColor}, ::Type{Csrc}) = Csrc
+ccolor(::Type{TransparentColor}, ::Type{Csrc}) where {Csrc<:TransparentColor} = Csrc
 
-ccolor{Csrc<:Colorant}(::Type{AlphaColor}, ::Type{Csrc}) = alphacolor(Csrc)
-ccolor{C<:Color,    Csrc<:Colorant}(
-       ::Type{AlphaColor{C    }}, ::Type{Csrc}) = ccolor(alphacolor(C), Csrc)
-ccolor{C<:Color,T,  Csrc<:Colorant}(
-       ::Type{AlphaColor{C,T  }}, ::Type{Csrc}) = ccolor(alphacolor(C){T}, Csrc)
-ccolor{C<:Color,T,N,Csrc<:Colorant}(
-       ::Type{AlphaColor{C,T,N}}, ::Type{Csrc}) = ccolor(alphacolor(C){T}, Csrc)
+ccolor(::Type{AlphaColor}, ::Type{Csrc}) where {Csrc<:Colorant} = alphacolor(Csrc)
+ccolor(
+::Type{AlphaColor{C    }}, ::Type{Csrc}) where {C<:Color,    Csrc<:Colorant} = ccolor(alphacolor(C), Csrc)
+ccolor(
+::Type{AlphaColor{C,T  }}, ::Type{Csrc}) where {C<:Color,T,  Csrc<:Colorant} = ccolor(alphacolor(C){T}, Csrc)
+ccolor(
+::Type{AlphaColor{C,T,N}}, ::Type{Csrc}) where {C<:Color,T,N,Csrc<:Colorant} = ccolor(alphacolor(C){T}, Csrc)
 
-ccolor{Csrc<:Colorant}(::Type{ColorAlpha}, ::Type{Csrc}) = coloralpha(Csrc)
-ccolor{C<:Color,    Csrc<:Colorant}(
-       ::Type{ColorAlpha{C    }}, ::Type{Csrc}) = ccolor(coloralpha(C), Csrc)
-ccolor{C<:Color,T,  Csrc<:Colorant}(
-       ::Type{ColorAlpha{C,T  }}, ::Type{Csrc}) = ccolor(coloralpha(C){T}, Csrc)
-ccolor{C<:Color,T,N,Csrc<:Colorant}(
-       ::Type{ColorAlpha{C,T,N}}, ::Type{Csrc}) = ccolor(coloralpha(C){T}, Csrc)
+ccolor(::Type{ColorAlpha}, ::Type{Csrc}) where {Csrc<:Colorant} = coloralpha(Csrc)
+ccolor(
+::Type{ColorAlpha{C    }}, ::Type{Csrc}) where {C<:Color,    Csrc<:Colorant} = ccolor(coloralpha(C), Csrc)
+ccolor(
+::Type{ColorAlpha{C,T  }}, ::Type{Csrc}) where {C<:Color,T,  Csrc<:Colorant} = ccolor(coloralpha(C){T}, Csrc)
+ccolor(
+::Type{ColorAlpha{C,T,N}}, ::Type{Csrc}) where {C<:Color,T,N,Csrc<:Colorant} = ccolor(coloralpha(C){T}, Csrc)
 
-ccolor{  Csrc<:AbstractRGB}(::Type{AbstractRGB},    ::Type{Csrc}) = Csrc
-ccolor{T,Csrc<:AbstractRGB}(::Type{AbstractRGB{T}}, ::Type{Csrc}) = base_colorant_type(Csrc){T}
+ccolor(::Type{AbstractRGB},    ::Type{Csrc}) where {  Csrc<:AbstractRGB} = Csrc
+ccolor(::Type{AbstractRGB{T}}, ::Type{Csrc}) where {T,Csrc<:AbstractRGB} = base_colorant_type(Csrc){T}
 
 # Generic concrete types
-ccolor{Cdest<:Colorant,Csrc<:Colorant}(::Type{Cdest}, ::Type{Csrc}) = _ccolor(Cdest, Csrc, pick_eltype(Cdest, eltype(Cdest), eltype(Csrc)))
-ccolor{Cdest<:AbstractGray,T<:Number}(::Type{Cdest}, ::Type{T}) = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
+ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant,Csrc<:Colorant} = _ccolor(Cdest, Csrc, pick_eltype(Cdest, eltype(Cdest), eltype(Csrc)))
+ccolor(::Type{Cdest}, ::Type{T}) where {Cdest<:AbstractGray,T<:Number} = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
 
 if isdefined(Core, :UnionAll)
 include_string(@__MODULE__, """
@@ -264,23 +264,23 @@ include_string(@__MODULE__, """
        base_colorant_type(Cdest){S} where S<:T
 """)
 else
-    _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = base_colorant_type(Cdest){T}
+    _ccolor(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) where {Cdest,Csrc,T<:Number} = base_colorant_type(Cdest){T}
 end
-_ccolor{Cdest,Csrc}(          ::Type{Cdest}, ::Type{Csrc}, ::Any)     = Cdest
+_ccolor(          ::Type{Cdest}, ::Type{Csrc}, ::Any) where {Cdest,Csrc}     = Cdest
 
 # Specific concrete types
-ccolor{Csrc<:Colorant}(::Type{RGB24},   ::Type{Csrc}) = RGB24
-ccolor{Csrc<:Colorant}(::Type{ARGB32},  ::Type{Csrc}) = ARGB32
-ccolor{Csrc<:Colorant}(::Type{Gray24},  ::Type{Csrc}) = Gray24
-ccolor{Csrc<:Colorant}(::Type{AGray32}, ::Type{Csrc}) = AGray32
+ccolor(::Type{RGB24},   ::Type{Csrc}) where {Csrc<:Colorant} = RGB24
+ccolor(::Type{ARGB32},  ::Type{Csrc}) where {Csrc<:Colorant} = ARGB32
+ccolor(::Type{Gray24},  ::Type{Csrc}) where {Csrc<:Colorant} = Gray24
+ccolor(::Type{AGray32}, ::Type{Csrc}) where {Csrc<:Colorant} = AGray32
 
-pick_eltype{C,T1<:Number,T2<:Number}(::Type{C}, ::Type{T1}, ::Type{T2}) = T1
+pick_eltype(::Type{C}, ::Type{T1}, ::Type{T2}) where {C,T1<:Number,T2<:Number} = T1
 if isdefined(Core, :UnionAll)
-    pick_eltype{C}(::Type{C}, ::Any, ::Any) = eltypes_supported(C)
+    pick_eltype(::Type{C}, ::Any, ::Any) where {C} = eltypes_supported(C)
 else
-    @pure pick_eltype{C}(::Type{C}, ::Any, ::Any) = TypeVar(:T, eltypes_supported(C))
+    @pure pick_eltype(::Type{C}, ::Any, ::Any) where {C} = TypeVar(:T, eltypes_supported(C))
 end
-pick_eltype{C,T2<:Number}(::Type{C}, ::Any, ::Type{T2}) = issupported(C, T2) ? T2 : eltype_default(C)
+pick_eltype(::Type{C}, ::Any, ::Type{T2}) where {C,T2<:Number} = issupported(C, T2) ? T2 : eltype_default(C)
 
 ### Equality
 function ==(c1::AbstractRGB, c2::AbstractRGB)
@@ -317,7 +317,7 @@ function ==(x::TransparentColor, y::TransparentColor)
 end
 
 
-zero{T<:Union{Fractional,Bool}}(::Type{Gray{T}}) = Gray{T}(zero(T))
-one{T<:Union{Fractional,Bool}}(::Type{Gray{T}}) = Gray{T}(one(T))
-zero{C<:Gray}(::Type{C}) = C(0)
-one{C<:Gray}(::Type{C}) = C(1)
+zero(::Type{Gray{T}}) where {T<:Union{Fractional,Bool}} = Gray{T}(zero(T))
+one(::Type{Gray{T}}) where {T<:Union{Fractional,Bool}} = Gray{T}(one(T))
+zero(::Type{C}) where {C<:Gray} = C(0)
+one(::Type{C}) where {C<:Gray} = C(1)
