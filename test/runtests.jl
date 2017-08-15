@@ -4,11 +4,7 @@ using Base.Test
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
 # Support pre- and post- julia #20288
-if VERSION >= v"0.6.0-dev.2505"
-    tformat(x...) = join(string.(x), ", ")
-else
-    tformat(x...) = join(map(string, x), ",")
-end
+tformat(x...) = join(string.(x), ", ")
 
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 @test @inferred(eltype(Color{N0f8})) == N0f8
