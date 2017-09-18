@@ -387,7 +387,7 @@ show(iob, cf)
 showcompact(iob, cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218,0.14983,0.87819)"
 
-@test one(Gray{N0f8}) == Gray{N0f8}(1)
+@test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
 @test zero(Gray{N0f8}) == Gray{N0f8}(0)
 
 c = Gray(0.8)

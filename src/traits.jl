@@ -5,7 +5,7 @@
 without an alpha channel, it will always return 1.
 """
 alpha(c::TransparentColor) = c.alpha
-alpha(c::Color)   = one(eltype(c))
+alpha(c::Color)   = oneunit(eltype(c))
 alpha(c::RGB24)   = N0f8(1)
 alpha(c::ARGB32)  = N0f8((c.color & 0xff000000)>>24, 0)
 alpha(c::AGray32) = N0f8((c.color & 0xff000000)>>24, 0)
@@ -317,7 +317,10 @@ function ==(x::TransparentColor, y::TransparentColor)
 end
 
 
-zero(::Type{Gray{T}}) where {T<:Union{Fractional,Bool}} = Gray{T}(zero(T))
-one(::Type{Gray{T}}) where {T<:Union{Fractional,Bool}} = Gray{T}(one(T))
 zero(::Type{C}) where {C<:Gray} = C(0)
-one(::Type{C}) where {C<:Gray} = C(1)
+oneunit(::Type{C}) where {C<:Gray} = C(1)
+
+function Base.one(::Type{C}) where {C<:Gray}
+    Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)
+    C(1)
+end
