@@ -92,10 +92,14 @@ color(s), returning an output color in the same colorspace.
 @inline mapc(f, x::Number) = f(x)
 
 mapc(f, x, y) = _mapc(_same_colorspace(x,y), f, x, y)
-_mapc(::Type{C}, f, x, y) where {C<:AbstractGray} = C(f(gray(x), gray(y)))
-_mapc(::Type{C}, f, x, y) where {C<:TransparentGray} = C(f(gray(x), gray(y)), f(alpha(x), alpha(y)))
-_mapc(::Type{C}, f, x, y) where {C<:Color3} = C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)))
-_mapc(::Type{C}, f, x, y) where {C<:Transparent3} = C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(alpha(x), alpha(y)))
+_mapc(::Type{C}, f, x::AbstractGray, y::AbstractGray) where C =
+    C(f(gray(x), gray(y)))
+_mapc(::Type{C}, f, x::TransparentGray, y::TransparentGray) where C =
+    C(f(gray(x), gray(y)), f(alpha(x), alpha(y)))
+_mapc(::Type{C}, f, x::Color3, y::Color3) where C =
+    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)))
+_mapc(::Type{C}, f, x::Transparent3, y::Transparent3) where C =
+    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(alpha(x), alpha(y)))
 
 _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type(x),
                                                               base_colorant_type(y))

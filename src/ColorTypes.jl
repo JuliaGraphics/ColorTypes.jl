@@ -12,7 +12,7 @@ const Fractional = Union{AbstractFloat, FixedPoint}
 Base.@deprecate_binding U8  N0f8
 Base.@deprecate_binding U16 N0f16
 
-import Base: ==, hash, convert, eltype, length, show, showcompact, one, zero, reinterpret, rand, getindex
+import Base: ==, hash, convert, eltype, length, show, showcompact, oneunit, zero, reinterpret, rand, getindex
 
 ## Types
 export Fractional

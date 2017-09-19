@@ -130,10 +130,10 @@ struct RGB1{T<:Fractional} <: AbstractRGB{T}
     g::T
     b::T
 
-    RGB1{T}(r::T, g::T, b::T) where {T} = new{T}(one(T), r, g, b)
+    RGB1{T}(r::T, g::T, b::T) where {T} = new{T}(oneunit(T), r, g, b)
     function RGB1{T}(r::Real, g::Real, b::Real) where T
         checkval(T, r, g, b)
-        new{T}(one(T), _rem(r,T), _rem(g,T), _rem(b,T))
+        new{T}(oneunit(T), _rem(r,T), _rem(g,T), _rem(b,T))
     end
 end
 RGB1(r::T, g::T, b::T) where {T<:Fractional} = RGB1{T}(r, g, b)
@@ -152,10 +152,10 @@ struct RGB4{T<:Fractional} <: AbstractRGB{T}
     b::T
     alphadummy::T
 
-    RGB4{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b, one(T))
+    RGB4{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b, oneunit(T))
     function RGB4{T}(r::Real, g::Real, b::Real) where T
         checkval(T, r, g, b)
-        new{T}(_rem(r,T), _rem(g,T), _rem(b,T), one(T))
+        new{T}(_rem(r,T), _rem(g,T), _rem(b,T), oneunit(T))
     end
 end
 RGB4(r::T, g::T, b::T) where {T<:Fractional} = RGB4{T}(r, g, b)
@@ -465,23 +465,23 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             alpha::T
             $(Tfields...)
 
-            (::Type{$acol{T}})($(Tconstrfields...), alpha::T=one(T)) where {T} = new{T}(alpha, $(fields...))
-            function (::Type{$acol{T}})($(realfields...), alpha::Real=one(T)) where T
+            (::Type{$acol{T}})($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}(alpha, $(fields...))
+            function (::Type{$acol{T}})($(realfields...), alpha::Real=oneunit(T)) where T
                 checkval(T, $(fields...), alpha)
                 new{T}(_rem(alpha,T), $(remfields...))
             end
-            $acol{T}(c::$C, alpha::Real=one(T)) where {T} = $acol{T}($(cfields...), alpha)
+            $acol{T}(c::$C, alpha::Real=oneunit(T)) where {T} = $acol{T}($(cfields...), alpha)
         end
         struct $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
             $(Tfields...)
             alpha::T
 
-            (::Type{$cola{T}})($(Tconstrfields...), alpha::T=one(T)) where {T} = new{T}($(fields...), alpha)
-            function (::Type{$cola{T}})($(realfields...), alpha::Real=one(T)) where T
+            (::Type{$cola{T}})($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}($(fields...), alpha)
+            function (::Type{$cola{T}})($(realfields...), alpha::Real=oneunit(T)) where T
                 checkval(T, $(fields...), alpha)
                 new{T}($(remfields...), _rem(alpha,T))
             end
-            $cola{T}(c::$C, alpha::Real=one(T)) where {T} = $cola{T}($(cfields...), alpha)
+            $cola{T}(c::$C, alpha::Real=oneunit(T)) where {T} = $cola{T}($(cfields...), alpha)
         end
         $exportexpr
         alphacolor(::Type{C}) where {C<:$C} = $acol
@@ -489,7 +489,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
 
         # More constructors for the alpha versions
         $acol($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $acol{$elty}($(fields...), alpha)
-        $acol(c::$C, alpha::Real=one(eltype(c))) = $acol{eltype(c)}(c, alpha)
+        $acol(c::$C, alpha::Real=oneunit(eltype(c))) = $acol{eltype(c)}(c, alpha)
         function $acol($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
@@ -504,7 +504,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         $acol() = $acol{$elty}($(zfields...))
 
         $cola($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $cola{$elty}($(fields...), alpha)
-        $cola(c::$C, alpha::Real=one(eltype(c))) = $cola{eltype(c)}(c, alpha)
+        $cola(c::$C, alpha::Real=oneunit(eltype(c))) = $cola{eltype(c)}(c, alpha)
         function $cola($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
