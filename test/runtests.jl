@@ -523,10 +523,12 @@ for (a, b) in ((Gray(1.0), Gray(1)),
                (GrayA(0.8, 0.6), AGray(0.8, 0.6)),
                (RGB(1, 0.5, 0), BGR(1, 0.5, 0)),
                (RGBA(1, 0.5, 0, 0.8), ABGR(1, 0.5, 0, 0.8)))
+    local a, b
     @test a == b
     @test hash(a) == hash(b)
 end
 for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 0.9)),)
+    local a, b
     @test a != b
     @test hash(a) != hash(b)
 end
@@ -534,6 +536,7 @@ end
 # whatever happens, you want hashing and equality-testing to yield the
 # same result
 for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),)
+    local a, b
     @test (a == b) == (hash(a) == hash(b))
 end
 
