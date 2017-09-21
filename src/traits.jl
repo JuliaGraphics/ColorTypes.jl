@@ -259,7 +259,7 @@ ccolor(::Type{Cdest}, ::Type{T}) where {Cdest<:AbstractGray,T<:Number} = _ccolor
 
 if isdefined(Core, :UnionAll)
 include_string(@__MODULE__, """
-    _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = isleaftype(T) ?
+    _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = isconcrete(T) ?
        base_colorant_type(Cdest){T} :
        base_colorant_type(Cdest){S} where S<:T
 """)
