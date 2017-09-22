@@ -515,6 +515,15 @@ a = [BGR(1,0,0)]
 @test @inferred(mapreducec(x->!x, &, true, false))
 @test !@inferred(mapreducec(x->!x, &, false, false))
 
+@test Gray(0.8) ≈ Gray(0.8 + eps())
+@test Gray(0.8) ≈ 0.8 + eps()
+@test 0.8 + eps() ≈ Gray(0.8)
+@test GrayA(0.8, 0.4) ≈ GrayA(0.8 + eps(), 0.4)
+@test RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.4)
+@test RGBA(0.2, 0.8, 0.4, 0.2) ≈ RGBA(0.2, 0.8 + eps(), 0.4, 0.2 - eps())
+@test !(Gray(0.8) ≈ Gray(0.6))
+@test !(RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.5))
+
 # issue #52
 @test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
 @test RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5) == RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5)
