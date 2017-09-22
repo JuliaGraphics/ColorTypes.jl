@@ -6,14 +6,14 @@ channel) information.  `T` is the element type (extractable with
 with `length`), i.e., the number of arguments you would supply to the
 constructor.
 """
-Compat.@compat abstract type Colorant{T,N} end
+abstract type Colorant{T,N} end
 
 # Colors (without transparency)
 """
 `Color{T,N}` is the abstract supertype for a color (or
 grayscale) with no transparency.
 """
-Compat.@compat abstract type Color{T, N} <: Colorant{T,N} end
+abstract type Color{T, N} <: Colorant{T,N} end
 
 """
 `AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
@@ -23,7 +23,7 @@ assumptions about internal storage order, the number of fields, or the
 representation. One `AbstractRGB` color-type, `RGB24`, is not
 parametric and does not have fields named `r`, `g`, `b`.
 """
-Compat.@compat abstract type AbstractRGB{T}      <: Color{T,3} end
+abstract type AbstractRGB{T}      <: Color{T,3} end
 
 
 # Types with transparency
@@ -49,28 +49,28 @@ transparent analogs.  These two indicate different internal storage
 order (see `AlphaColor` and `ColorAlpha`, and the `alphacolor` and
 `coloralpha` functions).
 """
-Compat.@compat abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N} end
+abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N} end
 
 """
 `AlphaColor` is an abstract supertype for types like `ARGB`, where the
 alpha channel comes first in the internal storage order. **Note** that
 the constructor order is still `(color, alpha)`.
 """
-Compat.@compat abstract type AlphaColor{C,T,N} <: TransparentColor{C,T,N} end
+abstract type AlphaColor{C,T,N} <: TransparentColor{C,T,N} end
 
 """
 `ColorAlpha` is an abstract supertype for types like `RGBA`, where the
 alpha channel comes last in the internal storage order.
 """
-Compat.@compat abstract type ColorAlpha{C,T,N} <: TransparentColor{C,T,N} end
+abstract type ColorAlpha{C,T,N} <: TransparentColor{C,T,N} end
 
 # These are types we'll dispatch on. Not exported.
-Compat.@compat AbstractGray{T}                    = Color{T,1}
-Compat.@compat Color3{T}                          = Color{T,3}
-Compat.@compat TransparentGray{C<:AbstractGray,T} = TransparentColor{C,T,2}
-Compat.@compat Transparent3{C<:Color3,T}          = TransparentColor{C,T,4}
-Compat.@compat TransparentRGB{C<:AbstractRGB,T}   = TransparentColor{C,T,4}
-Compat.@compat ColorantNormed{T<:Normed,N}        = Colorant{T,N}
+AbstractGray{T}                    = Color{T,1}
+Color3{T}                          = Color{T,3}
+TransparentGray{C<:AbstractGray,T} = TransparentColor{C,T,2}
+Transparent3{C<:Color3,T}          = TransparentColor{C,T,4}
+TransparentRGB{C<:AbstractRGB,T}   = TransparentColor{C,T,4}
+ColorantNormed{T<:Normed,N}        = Colorant{T,N}
 
 """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
@@ -561,7 +561,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = isdefined(Core, :UnionAll) ? Base.datatype_name(Base.unwrap_unionall(C)) : C.name.name
+    Csym = Base.datatype_name(Base.unwrap_unionall(C))
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end

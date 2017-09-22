@@ -122,27 +122,14 @@ color_type(c::Colorant) = color_type(typeof(c))
 # Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
 length(c::Colorant) = length(typeof(c))
 
-if isdefined(Core, :UnionAll)
-include_string(@__MODULE__, """
-    length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
-    # This definition should be unnecessary, but julia currently incorrectly
-    # dispatches to the first definition below, even when the second is
-    # applicable.
-    _color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
-    color_type(::Type{TC}) where TC<:TransparentColor =
-      isa(TC, UnionAll) ? parameter_upper_bound(TC, 1) : _color_type(TC)
-    color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
-""")
-else
-    length(::Type{Colorant{T,N}}) where {T,N} = N
-    length(::Type{Colorant{TypeVar(:T),N}}) where {N} = N   # julia #12596
-    @pure length(::Type{C}) where {C<:Colorant} = length(supertype(C))
-
-    color_type(::Type{TransparentColor{C}}) where {C    }     = C
-    color_type(::Type{TransparentColor{C,T}}) where {C,T  }   = C
-    color_type(::Type{TransparentColor{C,T,N}}) where {C,T,N} = C
-    color_type(::Type{TransparentColor{C,TypeVar(:T),N}}) where {C,N  } = C
-end
+length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
+# This definition should be unnecessary, but julia currently incorrectly
+# dispatches to the first definition below, even when the second is
+# applicable.
+_color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
+color_type(::Type{TC}) where TC<:TransparentColor =
+    isa(TC, UnionAll) ? parameter_upper_bound(TC, 1) : _color_type(TC)
+color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
 
 @pure color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
 @pure color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
@@ -166,14 +153,7 @@ base_color_type(::Type{C}) where {C<:Colorant} = base_colorant_type(color_type(C
 base_color_type(c::Colorant) = base_color_type(typeof(c))
 base_color_type(x::Number)   = Gray
 
-if isdefined(Core, :UnionAll)
-    @pure basetype(T) = typename(T).wrapper
-else
-    @generated function basetype(::Type{C}) where C<:Colorant
-        name = C.name.name
-        :($name)
-    end
-end
+@pure basetype(T) = typename(T).wrapper
 base_colorant_type(::Type{C}) where {C<:Colorant} = basetype(C)
 
 """
@@ -192,7 +172,7 @@ and the easiest to use:
 """
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
-colorant_string(::Type{C}) where {C<:Colorant} = isdefined(Core, :UnionAll) ? string(Base.datatype_name(C)) : string(C.name.name)
+colorant_string(::Type{C}) where {C<:Colorant} = string(Base.datatype_name(C))
 
 """
  `ccolor` ("concrete color") helps write flexible methods. The idea is
@@ -257,15 +237,10 @@ ccolor(::Type{AbstractRGB{T}}, ::Type{Csrc}) where {T,Csrc<:AbstractRGB} = base_
 ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant,Csrc<:Colorant} = _ccolor(Cdest, Csrc, pick_eltype(Cdest, eltype(Cdest), eltype(Csrc)))
 ccolor(::Type{Cdest}, ::Type{T}) where {Cdest<:AbstractGray,T<:Number} = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
 
-if isdefined(Core, :UnionAll)
-include_string(@__MODULE__, """
-    _ccolor{Cdest,Csrc,T<:Number}(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) = isconcrete(T) ?
-       base_colorant_type(Cdest){T} :
-       base_colorant_type(Cdest){S} where S<:T
-""")
-else
-    _ccolor(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) where {Cdest,Csrc,T<:Number} = base_colorant_type(Cdest){T}
-end
+_ccolor(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) where {Cdest,Csrc,T<:Number} =
+    isconcrete(T) ? base_colorant_type(Cdest){T} :
+                    base_colorant_type(Cdest){S} where S<:T
+
 _ccolor(          ::Type{Cdest}, ::Type{Csrc}, ::Any) where {Cdest,Csrc}     = Cdest
 
 # Specific concrete types
@@ -275,11 +250,7 @@ ccolor(::Type{Gray24},  ::Type{Csrc}) where {Csrc<:Colorant} = Gray24
 ccolor(::Type{AGray32}, ::Type{Csrc}) where {Csrc<:Colorant} = AGray32
 
 pick_eltype(::Type{C}, ::Type{T1}, ::Type{T2}) where {C,T1<:Number,T2<:Number} = T1
-if isdefined(Core, :UnionAll)
-    pick_eltype(::Type{C}, ::Any, ::Any) where {C} = eltypes_supported(C)
-else
-    @pure pick_eltype(::Type{C}, ::Any, ::Any) where {C} = TypeVar(:T, eltypes_supported(C))
-end
+pick_eltype(::Type{C}, ::Any, ::Any) where {C} = eltypes_supported(C)
 pick_eltype(::Type{C}, ::Any, ::Type{T2}) where {C,T2<:Number} = issupported(C, T2) ? T2 : eltype_default(C)
 
 ### Equality
@@ -315,6 +286,19 @@ end
 function ==(x::TransparentColor, y::TransparentColor)
     color(x) == color(y) && alpha(x) == alpha(y)
 end
+
+
+struct BoolTuple end
+@inline BoolTuple(args::Bool...) = (args...)
+
+function isapprox(a::C, b::C; kwargs...) where {C<:Colorant}
+    componentapprox(x, y) = isapprox(x, y; kwargs...)
+    all(ColorTypes._mapc(BoolTuple, componentapprox, a, b))
+end
+isapprox(x::Number, y::AbstractGray; kwargs...) =
+    isapprox(x, gray(y); kwargs...)
+isapprox(x::AbstractGray, y::Number; kwargs...) =
+    isapprox(y, x; kwargs...)
 
 
 zero(::Type{C}) where {C<:Gray} = C(0)
