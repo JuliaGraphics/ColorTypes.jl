@@ -386,6 +386,12 @@ show(iob, cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
 showcompact(iob, cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218,0.14983,0.87819)"
+show(iob, Gray24(0.4))
+@test String(take!(iob)) == "Gray24(0.4N0f8)"
+show(iob, RGB24(0.4,0.2,0.8))
+@test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
+show(iob, ARGB32(0.4,0.2,0.8,1.0))
+@test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
 
 @test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
 @test zero(Gray{N0f8}) == Gray{N0f8}(0)
