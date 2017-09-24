@@ -427,6 +427,8 @@ for T in (Gray{N0f8}, Gray{N2f6}, Gray{N0f16}, Gray{N2f14}, Gray{N0f32}, Gray{N2
     end
     @test eltype(a) <: T
     @test size(a) == (3,5)
+    ap = a'
+    @test ap[1,1] == a[1,1]
 end
 for T in (Gray24, AGray32)
     a = rand(T)
