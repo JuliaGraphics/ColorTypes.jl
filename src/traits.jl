@@ -173,6 +173,22 @@ and the easiest to use:
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
 colorant_string(::Type{C}) where {C<:Colorant} = string(Base.datatype_name(C))
+colorant_string_with_eltype(::Type{C}) where {C<:Colorant} =
+    String(take!(colorant_string_with_eltype(IOBuffer(), C)))
+function colorant_string_with_eltype(io::IO, ::Type{C}) where {C<:Colorant}
+    print(io, colorant_string(C), '{')
+    showcoloranttype(io, eltype(C))
+    print(io, '}')
+end
+# Nonparametric types
+colorant_string_with_eltype(io::IO, ::Type{Gray24}) = print(io, "Gray24")
+colorant_string_with_eltype(io::IO, ::Type{RGB24})  = print(io, "RGB24")
+colorant_string_with_eltype(io::IO, ::Type{ARGB32}) = print(io, "ARGB32")
+
+showcoloranttype(io, ::Type{T}) where {T<:FixedPoint} = FixedPointNumbers.showtype(io, T)
+showcoloranttype(io, ::Type{Union{}}) = show(io, Union{})
+showcoloranttype(io, ::Type{T}) where {T} = show(io, T)
+
 
 """
  `ccolor` ("concrete color") helps write flexible methods. The idea is
