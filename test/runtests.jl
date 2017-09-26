@@ -386,6 +386,16 @@ show(iob, cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
 showcompact(iob, cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218,0.14983,0.87819)"
+show(iob, Gray24(0.4))
+@test String(take!(iob)) == "Gray24(0.4N0f8)"
+show(iob, RGB24(0.4,0.2,0.8))
+@test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
+show(iob, ARGB32(0.4,0.2,0.8,1.0))
+@test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+if VERSION >= v"0.7.0-DEV.1790"
+    summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
+    @test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
+end
 
 @test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
 @test zero(Gray{N0f8}) == Gray{N0f8}(0)
@@ -427,6 +437,8 @@ for T in (Gray{N0f8}, Gray{N2f6}, Gray{N0f16}, Gray{N2f14}, Gray{N0f32}, Gray{N2
     end
     @test eltype(a) <: T
     @test size(a) == (3,5)
+    ap = a'
+    @test ap[1,1] == a[1,1]
 end
 for T in (Gray24, AGray32)
     a = rand(T)
