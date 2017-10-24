@@ -396,6 +396,19 @@ if VERSION >= v"0.7.0-DEV.1790"
     summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
     @test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
 end
+@test ColorTypes.colorant_string(Union{})   == "Union{}"
+@test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
+@test ColorTypes.colorant_string(RGB24)     == "RGB24"
+@test ColorTypes.colorant_string(ARGB32)    == "ARGB32"
+@test ColorTypes.colorant_string(Gray24)    == "Gray24"
+@test ColorTypes.colorant_string(AGray32)   == "AGray32"
+@test ColorTypes.colorant_string_with_eltype(Union{})   == "Union{}"
+@test ColorTypes.colorant_string_with_eltype(RGB{N0f8}) == "RGB{N0f8}"
+@test ColorTypes.colorant_string_with_eltype(RGB24)     == "RGB24"
+@test ColorTypes.colorant_string_with_eltype(ARGB32)    == "ARGB32"
+@test ColorTypes.colorant_string_with_eltype(Gray24)    == "Gray24"
+@test ColorTypes.colorant_string_with_eltype(AGray32)   == "AGray32"
+
 
 @test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
 @test zero(Gray{N0f8}) == Gray{N0f8}(0)
