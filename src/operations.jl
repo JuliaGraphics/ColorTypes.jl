@@ -57,7 +57,12 @@ function _rand(::Type{T}, sz::Dims) where T<:Colorant
             A[i] = A[i] * s + Gmin[j]
         end
     end
-    reinterpret(T, A, sz)
+    _reinterpret(T, A, sz)
+end
+if VERSION < v"0.7.0-DEV.2083"
+    _reinterpret(T, A, sz) = reinterpret(T, A, sz)
+else
+    _reinterpret(T, A, sz) = reshape(reinterpret(T, A), sz)
 end
 
 rand(::Type{T}, sz::Dims...) where {T<:Colorant} = _rand(ccolor(T, base_colorant_type(T){Float64}), sz...)
