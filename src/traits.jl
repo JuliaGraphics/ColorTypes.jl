@@ -313,10 +313,21 @@ end
 struct BoolTuple end
 @inline BoolTuple(args::Bool...) = (args...)
 
-function isapprox(a::C, b::C; kwargs...) where {C<:Colorant}
+function _isapprox(a::Colorant, b::Colorant; kwargs...)
     componentapprox(x, y) = isapprox(x, y; kwargs...)
     all(ColorTypes._mapc(BoolTuple, componentapprox, a, b))
 end
+isapprox(a::C, b::C; kwargs...) where {C<:Colorant} =
+    _isapprox(a, b; kwargs...)
+isapprox(a::Colorant, b::Colorant; kwargs...) =
+    _isapprox(base_colorant_type(a), base_colorant_type(b), a, b; kwargs...)
+_isapprox(::Type{C}, ::Type{C}, a, b; kwargs...) where {C<:Colorant} =
+    _isapprox(a, b; kwargs...)
+_isapprox(::Type{<:AbstractRGB}, ::Type{<:AbstractRGB}, a, b; kwargs...) =
+    _isapprox(RGB(a), RGB(b); kwargs...)
+_isapprox(::Type{<:AbstractGray}, ::Type{<:AbstractGray}, a, b; kwargs...) =
+    isapprox(gray(a), gray(b); kwargs...)
+_isapprox(TA::Type, TB::Type, a, b; kwargs...) = false
 isapprox(x::Number, y::AbstractGray; kwargs...) =
     isapprox(x, gray(y); kwargs...)
 isapprox(x::AbstractGray, y::Number; kwargs...) =
