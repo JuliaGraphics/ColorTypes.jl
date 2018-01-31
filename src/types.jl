@@ -414,7 +414,7 @@ const color3types = map(s->getfield(ColorTypes,s),
   filter(names(ColorTypes, false)) do s
     isdefined(ColorTypes, s) || return false
     t = getfield(ColorTypes, s)
-    isa(t, Type) && t <: Colorant && !isabstract(t) && length(fieldnames(t))>1
+    isa(t, Type) && t <: Colorant && !isabstracttype(t) && length(fieldnames(t))>1
   end)
 # The above should have filtered out every non-DataType that's not also a
 # wrapped UnionAll-wrapped DataType. By avoiding the explicit UnionAll check

@@ -260,7 +260,7 @@ ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant,Csrc<:Colorant} = _cc
 ccolor(::Type{Cdest}, ::Type{T}) where {Cdest<:AbstractGray,T<:Number} = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
 
 _ccolor(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) where {Cdest,Csrc,T<:Number} =
-    isconcrete(T) ? base_colorant_type(Cdest){T} :
+    isconcretetype(T) ? base_colorant_type(Cdest){T} :
                     base_colorant_type(Cdest){S} where S<:T
 
 _ccolor(          ::Type{Cdest}, ::Type{Csrc}, ::Any) where {Cdest,Csrc}     = Cdest
