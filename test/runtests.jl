@@ -1,5 +1,5 @@
 using ColorTypes, FixedPointNumbers
-using Base.Test
+using Compat, Compat.Test
 
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
@@ -61,10 +61,11 @@ tformat(x...) = join(string.(x), ", ")
 @test @inferred(ccolor(Gray,     Bool)) === Gray{Bool}
 @test @inferred(ccolor(Gray,     Int))  === Gray{N0f8}
 # This tests the same thing as the last, but in a user-observable way
-a = Array{Gray}(1)
-a[1] = Gray(0)
-a[1] = 1
-@test a[1] === Gray(1)
+let a = Array{Gray}(uninitialized, 1)
+    a[1] = Gray(0)
+    a[1] = 1
+    @test a[1] === Gray(1)
+end
 
 @test @inferred(ccolor(RGB,  RGB))  == RGB
 @test @inferred(ccolor(Gray, Gray)) == Gray
@@ -212,23 +213,25 @@ ret = @test_throws ArgumentError RGB(256, 17, 48)
 @test contains(ret.value.msg, tformat(256,17,48))
 @test !contains(ret.value.msg, "0-255")
 
-c = Gray(0.8)
-@test gray(c) == real(c) == 0.8
-@test gray(0.8) == 0.8
-c = convert(Gray, 0.8)
-@test c === Gray{Float64}(0.8)
+@testset "Test some Gray stuff" begin
+    c = Gray(0.8)
+    @test gray(c) == real(c) == 0.8
+    @test gray(0.8) == 0.8
+    c = convert(Gray, 0.8)
+    @test c === Gray{Float64}(0.8)
 
-ac = convert(AGray, c)
-@test ac === AGray{Float64}(0.8, 1.0)
+    ac = convert(AGray, c)
+    @test ac === AGray{Float64}(0.8, 1.0)
 
-c = AGray(0.8)
-@test gray(c) == 0.8
-@test color(c) == Gray(0.8)
+    c = AGray(0.8)
+    @test gray(c) == 0.8
+    @test color(c) == Gray(0.8)
 
-c = convert(Gray, true)
-@test c === Gray{Bool}(true)
-@test gray(c) === true
-@test gray(false) === false
+    c = convert(Gray, true)
+    @test c === Gray{Bool}(true)
+    @test gray(c) === true
+    @test gray(false) === false
+end
 
 # Transparency
 @test alphacolor(Gray24(.2), .8) == AGray32(.2,.8)
@@ -470,8 +473,7 @@ for T in (Gray24, AGray32)
     @test size(a) == (3,5)
 end
 
-a = [BGR(1,0,0)]
-@test eltype(broadcast(RGB, a)) == RGB{N0f8}
+@test eltype(broadcast(RGB, [BGR(1,0,0)])) == RGB{N0f8}
 
 
 # colorfields

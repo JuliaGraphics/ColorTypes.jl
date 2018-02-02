@@ -3,10 +3,11 @@ __precompile__()
 module ColorTypes
 
 using FixedPointNumbers
-using Base.@pure
+using Base: @pure
 
 import Compat
-using Compat: TypeUtils, @__MODULE__, isabstracttype, isconcretetype
+using Compat.TypeUtils
+using Compat: @__MODULE__, isabstracttype, isconcretetype
 
 const Fractional = Union{AbstractFloat, FixedPoint}
 Base.@deprecate_binding U8  N0f8
