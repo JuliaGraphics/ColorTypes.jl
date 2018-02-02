@@ -173,7 +173,7 @@ and the easiest to use:
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
 colorant_string(::Type{Union{}}) = "Union{}"
-colorant_string(::Type{C}) where {C<:Colorant} = string(Base.datatype_name(C))
+colorant_string(::Type{C}) where {C<:Colorant} = string(Compat.nameof(C))
 function colorant_string_with_eltype(::Type{C}) where {C<:Colorant}
     io = IOBuffer()
     colorant_string_with_eltype(io, C)
@@ -260,7 +260,7 @@ ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant,Csrc<:Colorant} = _cc
 ccolor(::Type{Cdest}, ::Type{T}) where {Cdest<:AbstractGray,T<:Number} = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
 
 _ccolor(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) where {Cdest,Csrc,T<:Number} =
-    isconcrete(T) ? base_colorant_type(Cdest){T} :
+    isconcretetype(T) ? base_colorant_type(Cdest){T} :
                     base_colorant_type(Cdest){S} where S<:T
 
 _ccolor(          ::Type{Cdest}, ::Type{Csrc}, ::Any) where {Cdest,Csrc}     = Cdest
@@ -311,7 +311,7 @@ end
 
 
 struct BoolTuple end
-@inline BoolTuple(args::Bool...) = (args...)
+@inline BoolTuple(args::Bool...) = (args...,)
 
 function _isapprox(a::Colorant, b::Colorant; kwargs...)
     componentapprox(x, y) = isapprox(x, y; kwargs...)

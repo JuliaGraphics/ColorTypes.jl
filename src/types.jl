@@ -414,7 +414,7 @@ const color3types = map(s->getfield(ColorTypes,s),
   filter(names(ColorTypes, false)) do s
     isdefined(ColorTypes, s) || return false
     t = getfield(ColorTypes, s)
-    isa(t, Type) && t <: Colorant && !isabstract(t) && length(fieldnames(t))>1
+    isa(t, Type) && t <: Colorant && !isabstracttype(t) && length(fieldnames(t))>1
   end)
 # The above should have filtered out every non-DataType that's not also a
 # wrapped UnionAll-wrapped DataType. By avoiding the explicit UnionAll check
@@ -422,7 +422,7 @@ const color3types = map(s->getfield(ColorTypes,s),
 const parametric3 = filter(x->!isa(x, DataType) || !isempty(x.parameters), color3types)
 
 # Provide the field names in the order expected by the constructor
-colorfields(::Type{C}) where {C<:Color} = (fieldnames(C)...)
+colorfields(::Type{C}) where {C<:Color} = (fieldnames(C)...,)
 colorfields(::Type{C}) where {C<:RGB1} = (:r, :g, :b)
 colorfields(::Type{C}) where {C<:RGB4} = (:r, :g, :b)
 colorfields(::Type{C}) where {C<:BGR } = (:r, :g, :b)
@@ -561,7 +561,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = Base.datatype_name(Base.unwrap_unionall(C))
+    Csym = Compat.nameof(Base.unwrap_unionall(C))
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end

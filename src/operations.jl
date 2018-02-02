@@ -5,7 +5,7 @@ hash(c::AbstractRGB, hx::UInt) = hash(blue(c), hash(green(c), hash(red(c), hx)))
 hash(c::TransparentRGB, hx::UInt) = hash(alpha(c), hash(blue(c), hash(green(c), hash(red(c), hx))))
 
 if VERSION >= v"0.6.0-dev.2680"
-    Base.transpose(c::Colorant) = c
+    Compat.adjoint(c::Colorant) = c
 end
 
 # gamut{min,max}

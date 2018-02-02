@@ -10,7 +10,7 @@ show_normed(io::IO, c::ARGB32) = print(io, "ARGB32(", red(c), ',', green(c), ','
 
 for N = 1:4
     component = N >= 3 ? (:comp1, :comp2, :comp3, :alpha) : (:comp1, :alpha)
-    printargs = Array{Any}(2, N)
+    printargs = Array{Any}(uninitialized, 2, N)
     for i = 1:N
         printargs[1,i] = :(show(io, $(component[i])(c)))
         chr = i < N ? ',' : ')'
