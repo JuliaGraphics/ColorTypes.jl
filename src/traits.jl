@@ -173,7 +173,7 @@ and the easiest to use:
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
 colorant_string(::Type{Union{}}) = "Union{}"
-colorant_string(::Type{C}) where {C<:Colorant} = string(Base.nameof(C))
+colorant_string(::Type{C}) where {C<:Colorant} = string(Compat.nameof(C))
 function colorant_string_with_eltype(::Type{C}) where {C<:Colorant}
     io = IOBuffer()
     colorant_string_with_eltype(io, C)

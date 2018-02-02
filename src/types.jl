@@ -561,7 +561,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = Base.nameof(Base.unwrap_unionall(C))
+    Csym = Compat.nameof(Base.unwrap_unionall(C))
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end

@@ -7,7 +7,7 @@ using Base: @pure
 
 import Compat
 using Compat.TypeUtils
-using Compat: @__MODULE__, isabstracttype, isconcretetype
+using Compat: @__MODULE__, isabstracttype, isconcretetype, uninitialized
 
 const Fractional = Union{AbstractFloat, FixedPoint}
 Base.@deprecate_binding U8  N0f8
