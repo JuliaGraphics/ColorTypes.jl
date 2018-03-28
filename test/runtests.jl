@@ -1,7 +1,7 @@
 using ColorTypes, FixedPointNumbers
 using Compat, Compat.Test
 
-# @test isempty(Test.detect_ambiguities(ColorTypes, Base, Core))
+@test isempty(Test.detect_ambiguities(ColorTypes, Base, Core))
 
 # Support pre- and post- julia #20288
 tformat(x...) = join(string.(x), ", ")
