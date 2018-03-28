@@ -411,7 +411,7 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 # traits in the rest of this file are intended just for internal use
 
 const color3types = map(s->getfield(ColorTypes,s),
-  filter(names(ColorTypes, false)) do s
+  filter(names(ColorTypes, all=false)) do s
     isdefined(ColorTypes, s) || return false
     t = getfield(ColorTypes, s)
     isa(t, Type) && t <: Colorant && !isabstracttype(t) && length(fieldnames(t))>1

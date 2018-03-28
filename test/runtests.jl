@@ -1,7 +1,7 @@
 using ColorTypes, FixedPointNumbers
 using Compat, Compat.Test
 
-@test isempty(detect_ambiguities(ColorTypes, Base, Core))
+# @test isempty(Test.detect_ambiguities(ColorTypes, Base, Core))
 
 # Support pre- and post- julia #20288
 tformat(x...) = join(string.(x), ", ")
@@ -61,7 +61,7 @@ tformat(x...) = join(string.(x), ", ")
 @test @inferred(ccolor(Gray,     Bool)) === Gray{Bool}
 @test @inferred(ccolor(Gray,     Int))  === Gray{N0f8}
 # This tests the same thing as the last, but in a user-observable way
-let a = Array{Gray}(uninitialized, 1)
+let a = Array{Gray}(undef, 1)
     a[1] = Gray(0)
     a[1] = 1
     @test a[1] === Gray(1)
@@ -207,11 +207,11 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
 end
 
 ret = @test_throws ArgumentError RGB(255, 17, 48)
-@test contains(ret.value.msg, tformat(255,17,48))
-@test contains(ret.value.msg, "0-255")
+@test occursin(tformat(255,17,48), ret.value.msg)
+@test occursin("0-255", ret.value.msg)
 ret = @test_throws ArgumentError RGB(256, 17, 48)
-@test contains(ret.value.msg, tformat(256,17,48))
-@test !contains(ret.value.msg, "0-255")
+@test occursin(tformat(256,17,48), ret.value.msg)
+@test !occursin("0-255", ret.value.msg)
 
 @testset "Test some Gray stuff" begin
     c = Gray(0.8)
@@ -383,11 +383,11 @@ show(iob, c)
 c = RGBA{N0f8}(0.32218,0.14983,0.87819,0.99241)
 show(iob, c)
 @test String(take!(iob)) == "RGBA{N0f8}(0.322,0.149,0.878,0.992)"
-showcompact(iob, c)
+show(IOContext(iob, :compact => true), c)
 @test String(take!(iob)) == "RGBA{N0f8}(0.322,0.149,0.878,0.992)"
 show(iob, cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
-showcompact(iob, cf)
+show(IOContext(iob, :compact => true), cf)
 @test String(take!(iob)) == "RGB{Float32}(0.32218,0.14983,0.87819)"
 show(iob, Gray24(0.4))
 @test String(take!(iob)) == "Gray24(0.4N0f8)"
@@ -555,7 +555,7 @@ end
 @test !(RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.5))
 @test Gray(0.8f0) ≈ Gray(Float64(0.8f0 + eps(0.8f0)))
 c = RGB{N0f8}(0.2, 0.8, 0.4)
-c1 = mapc(Float32, c)
+c1 = mapc(x->convert(Float32,x), c)
 @test c == c1 && c ≈ c1
 c2 = RGB(red(c1), green(c1)-0.1, blue(c1))
 @test c ≈ c2 atol=0.11
