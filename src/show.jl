@@ -1,7 +1,5 @@
-show(io::IO, c::Colorant)              = _show(io, c)
-show(io::IO, c::ColorantNormed)        = show_normed(io, c)
-showcompact(io::IO, c::Colorant)       = _showcompact(io, c)
-showcompact(io::IO, c::ColorantNormed) = show_normed(io, c)
+show(io::IO, c::Colorant) = get(io, :compact, false) ? _showcompact(io, c) : _show(io, c)
+show(io::IO, c::ColorantNormed) = show_normed(io, c)
 
 # Nonparametric types
 show_normed(io::IO, c::Gray24) = print(io, "Gray24(", gray(c), ')')
@@ -10,7 +8,7 @@ show_normed(io::IO, c::ARGB32) = print(io, "ARGB32(", red(c), ',', green(c), ','
 
 for N = 1:4
     component = N >= 3 ? (:comp1, :comp2, :comp3, :alpha) : (:comp1, :alpha)
-    printargs = Array{Any}(uninitialized, 2, N)
+    printargs = Array{Any}(undef, 2, N)
     for i = 1:N
         printargs[1,i] = :(show(io, $(component[i])(c)))
         chr = i < N ? ',' : ')'
@@ -23,7 +21,7 @@ for N = 1:4
         end
     end
     for i = 1:N
-        printargs[1,i] = :(showcompact(io, $(component[i])(c)))
+        printargs[1,i] = :(show(IOContext(io, :compact => true), $(component[i])(c)))
     end
     @eval begin
         function _showcompact(io::IO, c::Colorant{T,$N}) where T

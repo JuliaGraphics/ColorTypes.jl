@@ -4,9 +4,7 @@ hash(c::TransparentGray, hx::UInt) = hash(alpha(c), hash(gray(c), hx))
 hash(c::AbstractRGB, hx::UInt) = hash(blue(c), hash(green(c), hash(red(c), hx)))
 hash(c::TransparentRGB, hx::UInt) = hash(alpha(c), hash(blue(c), hash(green(c), hash(red(c), hx))))
 
-if VERSION >= v"0.6.0-dev.2680"
-    Compat.adjoint(c::Colorant) = c
-end
+Base.adjoint(c::Colorant) = c
 
 # gamut{min,max}
 gamutmax(::Type{T}) where {T<:HSV} = (360,1,1)

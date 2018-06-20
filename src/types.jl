@@ -411,7 +411,7 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 # traits in the rest of this file are intended just for internal use
 
 const color3types = map(s->getfield(ColorTypes,s),
-  filter(names(ColorTypes, false)) do s
+  filter(names(ColorTypes, all=false)) do s
     isdefined(ColorTypes, s) || return false
     t = getfield(ColorTypes, s)
     isa(t, Type) && t <: Colorant && !isabstracttype(t) && length(fieldnames(t))>1
@@ -561,7 +561,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
     ub   = eltype_ub(C)
-    Csym = Compat.nameof(Base.unwrap_unionall(C))
+    Csym = nameof(Base.unwrap_unionall(C))
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
@@ -626,8 +626,8 @@ checkval(::Type{T}, a, b, c, d) where {T} = nothing
 
 function throw_colorerror_(::Type{T}, values) where T<:Normed
     io = IOBuffer()
-    showcompact(io, typemin(T)); Tmin = String(take!(io))
-    showcompact(io, typemax(T)); Tmax = String(take!(io))
+    show(IOContext(io, :compact=>true), typemin(T)); Tmin = String(take!(io))
+    show(IOContext(io, :compact=>true), typemax(T)); Tmax = String(take!(io))
     bitstring = sizeof(T) == 1 ? "an 8-bit" : "a $(8*sizeof(T))-bit"
     throw(ArgumentError("""
 element type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $Tmin to $Tmax,
