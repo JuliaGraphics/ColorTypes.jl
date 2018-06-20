@@ -95,7 +95,7 @@ eltype(c::Colorant) = eltype(typeof(c))
 
 # eltypes_supported(Colorant{T<:X}) -> T<:X (pre 0.6) or X (post 0.6)
 @pure eltypes_supported(::Type{C}) where {C<:Colorant} =
-    parameter_upper_bound(base_colorant_type(C), 1)
+    Base.parameter_upper_bound(base_colorant_type(C), 1)
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
@@ -128,7 +128,7 @@ length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
 # applicable.
 _color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
 color_type(::Type{TC}) where TC<:TransparentColor =
-    isa(TC, UnionAll) ? parameter_upper_bound(TC, 1) : _color_type(TC)
+    isa(TC, UnionAll) ? Base.parameter_upper_bound(TC, 1) : _color_type(TC)
 color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
 
 @pure color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
@@ -153,7 +153,7 @@ base_color_type(::Type{C}) where {C<:Colorant} = base_colorant_type(color_type(C
 base_color_type(c::Colorant) = base_color_type(typeof(c))
 base_color_type(x::Number)   = Gray
 
-@pure basetype(T) = typename(T).wrapper
+@pure basetype(T) = Base.typename(T).wrapper
 base_colorant_type(::Type{C}) where {C<:Colorant} = basetype(C)
 
 """
@@ -173,7 +173,7 @@ and the easiest to use:
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
 colorant_string(::Type{Union{}}) = "Union{}"
-colorant_string(::Type{C}) where {C<:Colorant} = string(Compat.nameof(C))
+colorant_string(::Type{C}) where {C<:Colorant} = string(nameof(C))
 function colorant_string_with_eltype(::Type{C}) where {C<:Colorant}
     io = IOBuffer()
     colorant_string_with_eltype(io, C)
