@@ -38,12 +38,10 @@ for N = 1:4
     end
 end
 
-if VERSION >= v"0.7.0-DEV.1790"
-    function Base.showarg(io::IO, a::Array{C}, toplevel) where C<:Colorant
-        toplevel || print(io, "::")
-        print(io, "Array{")
-        colorant_string_with_eltype(io, C)
-        print(io, ",$(ndims(a))}")
-        toplevel && print(io, " with eltype ", C)
-    end
+function Base.showarg(io::IO, a::Array{C}, toplevel) where C<:Colorant
+    toplevel || print(io, "::")
+    print(io, "Array{")
+    colorant_string_with_eltype(io, C)
+    print(io, ",$(ndims(a))}")
+    toplevel && print(io, " with eltype ", C)
 end

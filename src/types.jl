@@ -465,8 +465,8 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             alpha::T
             $(Tfields...)
 
-            (::Type{$acol{T}})($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}(alpha, $(fields...))
-            function (::Type{$acol{T}})($(realfields...), alpha::Real=oneunit(T)) where T
+            $acol{T}($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}(alpha, $(fields...))
+            function $acol{T}($(realfields...), alpha::Real=oneunit(T)) where T
                 checkval(T, $(fields...), alpha)
                 new{T}(_rem(alpha,T), $(remfields...))
             end
@@ -476,8 +476,8 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             $(Tfields...)
             alpha::T
 
-            (::Type{$cola{T}})($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}($(fields...), alpha)
-            function (::Type{$cola{T}})($(realfields...), alpha::Real=oneunit(T)) where T
+            $cola{T}($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}($(fields...), alpha)
+            function $cola{T}($(realfields...), alpha::Real=oneunit(T)) where T
                 checkval(T, $(fields...), alpha)
                 new{T}($(remfields...), _rem(alpha,T))
             end

@@ -395,13 +395,8 @@ show(iob, RGB24(0.4,0.2,0.8))
 @test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
 show(iob, ARGB32(0.4,0.2,0.8,1.0))
 @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
-if VERSION >= v"0.7.0-DEV.2657"
-    summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
-    @test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype Gray{Normed{UInt8,8}}"
-elseif VERSION >= v"0.7.0-DEV.1790"
-    summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
-    @test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype ColorTypes.Gray{FixedPointNumbers.Normed{UInt8,8}}"
-end
+summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
+@test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype Gray{Normed{UInt8,8}}"
 @test ColorTypes.colorant_string(Union{})   == "Union{}"
 @test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
 @test ColorTypes.colorant_string(RGB24)     == "RGB24"

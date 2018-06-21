@@ -59,7 +59,7 @@ for t in (:ARGB32, :Gray24, :RGB1, :RGB4, :RGB24)
 end
 for t in (:ARGB, :BGR, :DIN99, :DIN99d, :DIN99o, :Gray, :HSI, :HSL, :HSV, :LCHab, :LCHuv, :LMS, :Lab, :Luv, :RGB, :RGBA, :XYZ, :xyY, :YCbCr, :YIQ)
     @eval $t(x) = convert($t, x)
-    ex = :((::Type{$(t){T}})(x) where {T} = convert($(t){T}, x))
+    ex = :($(t){T}(x) where {T} = convert($(t){T}, x))
     @eval $ex
 end
 
