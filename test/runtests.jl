@@ -354,6 +354,8 @@ end
 @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
 
 @test convert(Float64, Gray(.3)) === .3
+@test Float64(Gray(0.3)) === 0.3
+@test float(Gray(0.3))   === 0.3
 x = N0f8(0.3)
 @test convert(N0f8, Gray24(0.3)) === x
 @test convert(GrayA{N0f8}, .2) == GrayA{N0f8}(.2)
