@@ -354,6 +354,8 @@ end
 @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
 
 @test convert(Float64, Gray(.3)) === .3
+@test Float64(Gray(0.3)) === 0.3
+@test float(Gray(0.3))   === 0.3
 x = N0f8(0.3)
 @test convert(N0f8, Gray24(0.3)) === x
 @test convert(GrayA{N0f8}, .2) == GrayA{N0f8}(.2)
@@ -469,6 +471,8 @@ for T in (Gray24, AGray32)
 end
 
 @test eltype(broadcast(RGB, [BGR(1,0,0)])) == RGB{N0f8}
+addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
+@test addred.([RGB(1,0,0)], RGB(1.0,0,0)) == [2]
 
 
 # colorfields

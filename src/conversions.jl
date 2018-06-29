@@ -52,6 +52,8 @@ convert(::Type{T},  x::Gray24) where {T<:Real}  = convert(T, gray(x))
 convert(::Type{AGray{T}}, x::Real) where {T}    = AGray{T}(x)
 convert(::Type{GrayA{T}}, x::Real) where {T}    = GrayA{T}(x)
 
+(::Type{T})(x::AbstractGray) where {T<:Real}    = T(gray(x))
+
 # Define some constructors that just call convert since the fallback constructor in Base
 # is removed in Julia 0.7
 for t in (:ARGB32, :Gray24, :RGB1, :RGB4, :RGB24)
