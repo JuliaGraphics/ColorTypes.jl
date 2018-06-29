@@ -471,6 +471,8 @@ for T in (Gray24, AGray32)
 end
 
 @test eltype(broadcast(RGB, [BGR(1,0,0)])) == RGB{N0f8}
+addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
+@test addred.([RGB(1,0,0)], RGB(1.0,0,0)) == [2]
 
 
 # colorfields

@@ -341,3 +341,5 @@ function Base.one(::Type{C}) where {C<:Gray}
     Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)
     C(1)
 end
+
+Base.broadcastable(x::Colorant) = Ref(x)
