@@ -56,13 +56,9 @@ convert(::Type{GrayA{T}}, x::Real) where {T}    = GrayA{T}(x)
 
 # Define some constructors that just call convert since the fallback constructor in Base
 # is removed in Julia 0.7
-for t in (:ARGB32, :Gray24, :RGB1, :RGB4, :RGB24)
+# The parametric types are handled in @make_constructors and @make_alpha
+for t in (:ARGB32, :Gray24, :RGB24)
     @eval $t(x) = convert($t, x)
-end
-for t in (:ARGB, :BGR, :DIN99, :DIN99d, :DIN99o, :Gray, :HSI, :HSL, :HSV, :LCHab, :LCHuv, :LMS, :Lab, :Luv, :RGB, :RGBA, :XYZ, :xyY, :YCbCr, :YIQ)
-    @eval $t(x) = convert($t, x)
-    ex = :($(t){T}(x) where {T} = convert($(t){T}, x))
-    @eval $ex
 end
 
 # Generate the transparent analog of a color
