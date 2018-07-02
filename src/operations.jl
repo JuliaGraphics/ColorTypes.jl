@@ -48,16 +48,20 @@ function _rand(::Type{T}, sz::Dims) where T<:Colorant
     Gmax = gamutmax(T)
     Gmin = gamutmin(T)
     Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
-    A = rand(eltype(T), (div(sizeof(T), sizeof(eltype(T))), sz...))
+    A = Array{T}(undef, sz)
+    Tr = eltype(T) <: FixedPoint ? FixedPointNumbers.rawtype(eltype(T)) : eltype(T)
+    nchannels = sizeof(T)÷sizeof(eltype(T))
+    Au = Random.UnsafeView(convert(Ptr{Tr}, pointer(A)), length(A)*nchannels)
+    rand!(Au)
+    Ar = reshape(reinterpret(eltype(T), A), (nchannels, sz...))
     for j in eachindex(Gmax)
         s = Mi * (Gmax[j]-Gmin[j])
-        for i = j:length(Gmax):length(A)
-            A[i] = A[i] * s + Gmin[j]
+        for i = j:length(Gmax):length(Ar)
+            Ar[i] = Ar[i] * s + Gmin[j]
         end
     end
-    _reinterpret(T, A, sz)
+    return A
 end
-_reinterpret(T, A, sz) = reshape(reinterpret(T, A), sz)
 
 rand(::Type{T}, sz::Dims...) where {T<:Colorant} = _rand(ccolor(T, base_colorant_type(T){Float64}), sz...)
 

@@ -461,6 +461,9 @@ for T in (Gray{N0f8}, Gray{N2f6}, Gray{N0f16}, Gray{N2f14}, Gray{N0f32}, Gray{N2
                 zip(ColorTypes.colorfields(T),gamutmin(T),gamutmax(T)))
     @test isa(a, T)
     a = rand(T, (3, 5))
+    if isconcretetype(T)
+        @test isa(a, Array{T,2})
+    end
     for el in a
         @test all(x->x[2]<=getfield(el,x[1])<=x[3],
                     zip(ColorTypes.colorfields(T),gamutmin(T),gamutmax(T)))
