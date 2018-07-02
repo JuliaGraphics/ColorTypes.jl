@@ -55,13 +55,13 @@ end
 RGBs may be defined with two broad number types: `FloatingPoint` and
 `FixedPoint`.  `FixedPoint` come from the
 [`FixedPointNumbers`](https://github.com/JeffBezanson/FixedPointNumbers.jl)
-package, and represent fractional numbers (between 0 and 1, inclusive)
-internally using integers.  For example, `0xffuf8` creates a `Ufixed8`
-(`U8` for short) number with value equal to `1.0` but which internally
+package, and represent fractional numbers
+internally using integers.  For example, `N0f8(1)` creates a `Normed{UInt8,8}`
+(`N0f8` for short) number with value equal to `1.0` but which internally
 is represented as `0xff`.  This strategy ensures that `1` always means
 "saturated color", regardless of how that value is represented.
 Ordinary integers should not be used, although the convenience
-constructor `RGB(1,0,0)` will create a value `RGB{U8}(1.0, 0.0, 0.0)`.
+constructor `RGB(1,0,0)` will create a value `RGB{N0f8}(1.0, 0.0, 0.0)`.
 
 The analogous `BGR` type is defined as
 
@@ -80,14 +80,14 @@ are arranged internally in memory**.
 
 `RGB1` and `RGB4` seem exactly like `RGB`, but internally they insert
 one extra ("invisible") padding element; when the element type is
-`U8`, these have favorable memory alignment for interfacing with
+`N0f8`, these have favorable memory alignment for interfacing with
 libraries like OpenGL.
 
 Finally, one may represent an RGB color as 8-bit values packed into a
 32-bit integer:
 
 ```julia
-struct RGB24 <: AbstractRGB{U8}
+struct RGB24 <: AbstractRGB{N0f8}
     color::UInt32
 end
 ```
@@ -323,7 +323,7 @@ end
 
 `Gray` is a simple wrapper around a number:
 ```jl
-immutable Gray{T} <: Color{T,1}
+immutable Gray{T} <: AbstractGray{T}
     val::T
 end
 ```
@@ -338,7 +338,7 @@ types, `AGray` and `GrayA`.
 
 `Gray24` is a grayscale value encoded as a `UInt32`:
 ```jl
-immutable Gray24 <: Color{U8,1}
+immutable Gray24 <: AbstractGray{N0f8}
     color::UInt32
 end
 ```
@@ -360,15 +360,15 @@ set of trait-functions for working with color types:
   with transparency (either `ARGB` or `RGBA`, respectively).
 
 - `color_type(c)` extracts the opaque (color-only) type of the object (e.g.,
-  `RGB{U8}` from an object of type `ARGB{U8}`).
+  `RGB{N0f8}` from an object of type `ARGB{N0f8}`).
 
 - `base_color_type(c)` and `base_colorant_type(c)` extract type
   information and discard the element type (e.g.,
-  `base_colorant_type(ARGB{U8})` yields `ARGB`)
+  `base_colorant_type(ARGB{N0f8})` yields `ARGB`)
 
 - `ccolor(Cdest, Csrc)` helps pick a concrete element type for methods
   where the output may be left unstated, e.g., `convert(RGB, c)`
-  rather than `convert(RGB{U8}, c)`.
+  rather than `convert(RGB{N0f8}, c)`.
 
 All of these methods are individually documented (typically with
 greater detail); just type `?ccolor` at the REPL.
