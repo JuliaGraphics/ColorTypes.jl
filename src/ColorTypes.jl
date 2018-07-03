@@ -6,10 +6,10 @@ using FixedPointNumbers
 using Base: @pure
 
 const Fractional = Union{AbstractFloat, FixedPoint}
-Base.@deprecate_binding U8  N0f8
-Base.@deprecate_binding U16 N0f16
 
-import Base: ==, isapprox, hash, convert, eltype, length, show, oneunit, zero, reinterpret, rand, getindex
+import Base: ==, isapprox, hash, convert, eltype, length, show, oneunit, zero, reinterpret, getindex
+using Random
+import Random: rand
 
 ## Types
 export Fractional

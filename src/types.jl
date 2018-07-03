@@ -441,6 +441,9 @@ macro make_constructors(C, fields, elty)
         $C($(Tfields...)) where {T<:Integer} = $C{$elty}($(fields...))
         $C($(realfields...)) = $C{promote_eltype($C, $(fields...))}($(fields...))
         $C() = $C{$elty}($(zfields...))
+        # Conversion constructors
+        $C(x) = convert($C, x)
+        $C{T}(x) where T = convert($C{T}, x)
     end)
 end
 
@@ -460,6 +463,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     zfields       = zeros(Int, length(fields))
     Tconstr = Expr(:<:, :T, ub)
     exportexpr = Expr(:export, acol, cola)
+    convqualifier = C == :Gray ? :(x::Colorant) : :x
     esc(quote
         struct $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
             alpha::T
@@ -502,6 +506,8 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         end
         $acol(c::Color, alpha::Real) = $acol($C(c), alpha)
         $acol() = $acol{$elty}($(zfields...))
+        $acol($convqualifier) = convert($acol, x)
+        $acol{T}(x) where T = convert($acol{T}, x)
 
         $cola($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $cola{$elty}($(fields...), alpha)
         $cola(c::$C, alpha::Real=oneunit(eltype(c))) = $cola{eltype(c)}(c, alpha)
@@ -517,7 +523,9 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         end
         $cola(c::Color, alpha::Real) = $cola($C(c), alpha)
         $cola() = $cola{$elty}($(zfields...))
-    end)
+        $cola($convqualifier) = convert($cola, x)
+        $cola{T}(x) where T = convert($cola{T}, x)
+end)
 end
 
 eltype_default(::Type{C}) where {C<:AbstractRGB  } = N0f8

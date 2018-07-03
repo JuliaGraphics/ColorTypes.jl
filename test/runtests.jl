@@ -222,6 +222,12 @@ ret = @test_throws ArgumentError RGB(256, 17, 48)
 
     ac = convert(AGray, c)
     @test ac === AGray{Float64}(0.8, 1.0)
+    ac = AGray(c)
+    @test ac === AGray{Float64}(0.8, 1.0)
+    ac = AGray{Float64}(c)
+    @test ac === AGray{Float64}(0.8, 1.0)
+    ca = GrayA{Float64}(ac)
+    @test ca === GrayA{Float64}(0.8, 1.0)
 
     c = AGray(0.8)
     @test gray(c) == 0.8
@@ -259,12 +265,20 @@ for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
         @test C(c         ) == C{Float64}(1,0.8,0.6)
         @test C{Float32}(c) == C{Float32}(1,0.8,0.6)
         @test convert(A, cc) == A{Float64}(1,0.8,0.6,1)
+        @test A(cc) === A{Float64}(1,0.8,0.6,1)
+        @test A{Float64}(cc) === A{Float64}(1,0.8,0.6,1)
         @test convert(A, cc, 0.4)  == c
         @test convert(A, cc, 0x01) == A{Float64}(1,0.8,0.6,1)
         @test convert(A{Float32}, cc, 0x01) == A{Float32}(1,0.8,0.6,1)
         @test convert(C,          c) == C{Float64}(1,0.8,0.6)
         @test convert(C{Float32}, c) == C{Float32}(1,0.8,0.6)
+        @test C{Float32}(c) === C{Float32}(1,0.8,0.6)
     end
+    AC, CA = alphacolor(C), coloralpha(C)
+    @test AC(CA{Float64}(1,0.8,0.6,0.4)) == AC{Float64}(1,0.8,0.6,0.4)
+    @test AC{Float64}(CA{Float64}(1,0.8,0.6,0.4)) == AC{Float64}(1,0.8,0.6,0.4)
+    @test CA(AC{Float64}(1,0.8,0.6,0.4)) == CA{Float64}(1,0.8,0.6,0.4)
+    @test CA{Float64}(AC{Float64}(1,0.8,0.6,0.4)) == CA{Float64}(1,0.8,0.6,0.4)
 end
 ac = reinterpret(ARGB32, rand(UInt32))
 @test convert(ARGB32, ac) == ac
@@ -447,6 +461,9 @@ for T in (Gray{N0f8}, Gray{N2f6}, Gray{N0f16}, Gray{N2f14}, Gray{N0f32}, Gray{N2
                 zip(ColorTypes.colorfields(T),gamutmin(T),gamutmax(T)))
     @test isa(a, T)
     a = rand(T, (3, 5))
+    if isconcretetype(T)
+        @test isa(a, Array{T,2})
+    end
     for el in a
         @test all(x->x[2]<=getfield(el,x[1])<=x[3],
                     zip(ColorTypes.colorfields(T),gamutmin(T),gamutmax(T)))
