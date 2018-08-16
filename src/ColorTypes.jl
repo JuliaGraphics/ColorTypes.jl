@@ -14,6 +14,7 @@ export Fractional
 
 export Colorant
 export Color, TransparentColor, AlphaColor, ColorAlpha, AbstractRGB
+export AbstractGray, TransparentGray, TransparentRGB
 
 export RGB, BGR, RGB1, RGB4
 export HSV, HSB, HSL, HSI
