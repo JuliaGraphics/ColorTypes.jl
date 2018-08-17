@@ -645,6 +645,7 @@ end
     @test dispatcher(Gray(0.2)) == 1
     @test dispatcher(RGB(1.0,1.0,1.0)) == 2
     @test dispatcher(AGray(0.2,0.5)) == 3
+    @test dispatcher(alphacolor(rand(HSV))) == 4
     @test dispatcher(ARGB(0.5,1.0,1.0,1.0)) == 5
 end
 
