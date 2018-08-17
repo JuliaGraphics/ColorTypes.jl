@@ -38,6 +38,20 @@ Here is the type hierarchy used in ColorTypes:
   particularly important for interfacing with certain external
   libraries (e.g., OpenGL and Cairo).
 
+- To support generic programming, `TransparentColor` constructors
+  always take the alpha channel last, independent of their internal
+  storage order. That is, one uses
+```julia
+RGBA(red, green, blue, alpha)
+RGBA(RGB(red, green, blue), alpha)
+ARGB(red, green, blue, alpha)       # note alpha is last
+ARGB(RGB(red, green, blue), alpha)
+```
+  This way you can write code with a generic `C<:Colorant` type and
+  not worry about the proper order for supplying arguments to the
+  constructor.  See the [traits section](#traits) for some useful
+  utilities.
+
 ## Colors
 
 ### RGB plus BGR, RGB1, RGB4, and RGB24: the AbstractRGB group
@@ -347,7 +361,7 @@ The storage format is `0xAAIIIIII`, where each `II` pair (I=intensity)
 must be identical.  The `AA` is ignored, but in the corresponding
 `AGray32` type it encodes alpha.
 
-## Traits (utility functions for instances and types)
+## <a name="traits"></a>Traits (utility functions for instances and types)
 
 One of the nicest things about this package is that it provides a rich
 set of trait-functions for working with color types:
@@ -388,6 +402,13 @@ greater detail); just type `?ccolor` at the REPL.
 
 - `mapc(f, c)` executes the function `f` on each color channel of `c`,
   returning a new color in the same colorspace.
+
+- `reducec(op, v0, c)` returns a single number based on a binary
+  operator `op` across the color channels of `c`. `v0` is the initial
+  value.
+
+- `mapreducec(f, op, v0, c)` is similar to `reducec` except it applies
+  `f` to each color channel before combining values with `op`.
 
 ## Extending ColorTypes and Colors
 
