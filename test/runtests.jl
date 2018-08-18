@@ -640,13 +640,16 @@ end
     dispatcher(::TransparentGray) = 3
     dispatcher(Transparent3) = 4
     dispatcher(::TransparentRGB) = 5
-    dispatcher(::ColorantNormed) = 6
+    normeddispatcher(::ColorantNormed) = true
+    normeddispatcher(::Colorant) = false
 
     @test dispatcher(Gray(0.2)) == 1
     @test dispatcher(RGB(1.0,1.0,1.0)) == 2
     @test dispatcher(AGray(0.2,0.5)) == 3
     @test dispatcher(alphacolor(rand(HSV))) == 4
     @test dispatcher(ARGB(0.5,1.0,1.0,1.0)) == 5
+    @test normeddispatcher(RGB(1.0,1.0,1.0)) == false
+    @test normeddispatcher(RGB{N0f8}(1.0,1.0,1.0)) == true
 end
 
 nothing
