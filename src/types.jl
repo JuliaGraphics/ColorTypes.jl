@@ -64,7 +64,7 @@ alpha channel comes last in the internal storage order.
 """
 abstract type ColorAlpha{C,T,N} <: TransparentColor{C,T,N} end
 
-# These are types we'll dispatch on. Not exported.
+# These are types we'll dispatch on.
 AbstractGray{T}                    = Color{T,1}
 Color3{T}                          = Color{T,3}
 TransparentGray{C<:AbstractGray,T} = TransparentColor{C,T,2}

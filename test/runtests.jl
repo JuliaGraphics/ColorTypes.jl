@@ -632,4 +632,24 @@ end
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
 end
 
+
+### Prevent future commits from unexporting abstract types
+@testset "abstract type exports" begin
+    dispatcher(::AbstractGray) = 1
+    dispatcher(::Color3) = 2
+    dispatcher(::TransparentGray) = 3
+    dispatcher(Transparent3) = 4
+    dispatcher(::TransparentRGB) = 5
+    normeddispatcher(::ColorantNormed) = true
+    normeddispatcher(::Colorant) = false
+
+    @test dispatcher(Gray(0.2)) == 1
+    @test dispatcher(RGB(1.0,1.0,1.0)) == 2
+    @test dispatcher(AGray(0.2,0.5)) == 3
+    @test dispatcher(alphacolor(rand(HSV))) == 4
+    @test dispatcher(ARGB(0.5,1.0,1.0,1.0)) == 5
+    @test normeddispatcher(RGB(1.0,1.0,1.0)) == false
+    @test normeddispatcher(RGB{N0f8}(1.0,1.0,1.0)) == true
+end
+
 nothing
