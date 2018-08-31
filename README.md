@@ -58,7 +58,7 @@ ARGB(RGB(red, green, blue), alpha)
 
 The [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
 
-```jl
+```julia
 struct RGB{T} <: AbstractRGB{T}
     r::T # Red in [0,1]
     g::T # Green in [0,1]
@@ -297,7 +297,7 @@ to LMS space have been defined. Here the
 [CAT02](https://en.wikipedia.org/wiki/CIECAM02#CAT02) chromatic
 adaptation matrix is used.
 
-```
+```julia
 struct LMS{T} <: Color{T,3}
     l::T # Long
     m::T # Medium
