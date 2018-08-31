@@ -58,8 +58,8 @@ ARGB(RGB(red, green, blue), alpha)
 
 The [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
 
-```jl
-immutable RGB{T} <: AbstractRGB{T}
+```julia
+struct RGB{T} <: AbstractRGB{T}
     r::T # Red in [0,1]
     g::T # Green in [0,1]
     b::T # Blue in [0,1]
@@ -80,7 +80,7 @@ constructor `RGB(1,0,0)` will create a value `RGB{N0f8}(1.0, 0.0, 0.0)`.
 The analogous `BGR` type is defined as
 
 ```jl
-immutable BGR{T} <: AbstractRGB{T}
+struct BGR{T} <: AbstractRGB{T}
     b::T
     g::T
     r::T
@@ -151,8 +151,8 @@ end
 Hue, saturation, intensity, a variation of HSL and HSV commonly used
 in computer vision.
 
-```jl
-immutable HSI{T} <: Color{T,3}
+```julia
+struct HSI{T} <: Color{T,3}
     h::T
     s::T
     i::T
@@ -297,8 +297,8 @@ to LMS space have been defined. Here the
 [CAT02](https://en.wikipedia.org/wiki/CIECAM02#CAT02) chromatic
 adaptation matrix is used.
 
-```
-immutable LMS{T} <: Color{T,3}
+```julia
+struct LMS{T} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
@@ -324,7 +324,7 @@ end
 A color-encoding format common in video and digital photography.
 
 ```jl
-immutable YCbCr{T} <: Color{T,3}
+struct YCbCr{T} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -337,7 +337,7 @@ end
 
 `Gray` is a simple wrapper around a number:
 ```jl
-immutable Gray{T} <: AbstractGray{T}
+struct Gray{T} <: AbstractGray{T}
     val::T
 end
 ```
@@ -352,7 +352,7 @@ types, `AGray` and `GrayA`.
 
 `Gray24` is a grayscale value encoded as a `UInt32`:
 ```jl
-immutable Gray24 <: AbstractGray{N0f8}
+struct Gray24 <: AbstractGray{N0f8}
     color::UInt32
 end
 ```
