@@ -59,7 +59,7 @@ ARGB(RGB(red, green, blue), alpha)
 The [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
 
 ```jl
-immutable RGB{T} <: AbstractRGB{T}
+struct RGB{T} <: AbstractRGB{T}
     r::T # Red in [0,1]
     g::T # Green in [0,1]
     b::T # Blue in [0,1]
@@ -80,7 +80,7 @@ constructor `RGB(1,0,0)` will create a value `RGB{N0f8}(1.0, 0.0, 0.0)`.
 The analogous `BGR` type is defined as
 
 ```jl
-immutable BGR{T} <: AbstractRGB{T}
+struct BGR{T} <: AbstractRGB{T}
     b::T
     g::T
     r::T
