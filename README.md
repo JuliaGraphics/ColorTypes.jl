@@ -151,8 +151,8 @@ end
 Hue, saturation, intensity, a variation of HSL and HSV commonly used
 in computer vision.
 
-```jl
-immutable HSI{T} <: Color{T,3}
+```julia
+struct HSI{T} <: Color{T,3}
     h::T
     s::T
     i::T
@@ -298,7 +298,7 @@ to LMS space have been defined. Here the
 adaptation matrix is used.
 
 ```
-immutable LMS{T} <: Color{T,3}
+struct LMS{T} <: Color{T,3}
     l::T # Long
     m::T # Medium
     s::T # Short
@@ -324,7 +324,7 @@ end
 A color-encoding format common in video and digital photography.
 
 ```jl
-immutable YCbCr{T} <: Color{T,3}
+struct YCbCr{T} <: Color{T,3}
     y::T
     cb::T
     cr::T
@@ -337,7 +337,7 @@ end
 
 `Gray` is a simple wrapper around a number:
 ```jl
-immutable Gray{T} <: AbstractGray{T}
+struct Gray{T} <: AbstractGray{T}
     val::T
 end
 ```
@@ -352,7 +352,7 @@ types, `AGray` and `GrayA`.
 
 `Gray24` is a grayscale value encoded as a `UInt32`:
 ```jl
-immutable Gray24 <: AbstractGray{N0f8}
+struct Gray24 <: AbstractGray{N0f8}
     color::UInt32
 end
 ```
