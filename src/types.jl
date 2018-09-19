@@ -309,7 +309,7 @@ end
 RGB24() = reinterpret(RGB24, UInt32(0))
 _RGB24(r::UInt8, g::UInt8, b::UInt8) = reinterpret(RGB24, UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
 RGB24(r::N0f8, g::N0f8, b::N0f8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
-function RGB24(r, g, b)
+function RGB24(r::Real, g::Real, b::Real)
     checkval(N0f8, r, g, b)
     RGB24(_rem(r,N0f8), _rem(g,N0f8), _rem(b,N0f8))
 end
@@ -577,6 +577,16 @@ end
 # RGB1 and RGB4 require special handling because of the alphadummy field
 @eval @make_constructors RGB1 (r,g,b) $N0f8
 @eval @make_constructors RGB4 (r,g,b) $N0f8
+
+const GrayLike = Union{Real,AbstractGray}
+
+for C in (RGB, BGR, RGB1, RGB4, RGB24)
+    @eval (::Type{$C})(r::GrayLike, g::GrayLike, b::GrayLike) = $C(gray(r), gray(g), gray(b))
+end
+for C in (RGB, BGR, RGB1, RGB4)
+    @eval (::Type{$C{T}})(r::GrayLike, g::GrayLike, b::GrayLike) where T = $C{T}(gray(r), gray(g), gray(b))
+end
+
 alphacolor(::Type{C}) where {C<:Gray24} = AGray32
 alphacolor(::Type{C}) where {C<:RGB24} = ARGB32
 alphacolor(::Type{C}) where {C<:RGB1} = ARGB
