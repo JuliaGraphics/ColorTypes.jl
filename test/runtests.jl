@@ -652,4 +652,11 @@ end
     @test normeddispatcher(RGB{N0f8}(1.0,1.0,1.0)) == true
 end
 
+@testset "color construction from grayscale" begin
+    @test RGB(Gray(0.2), 0.3, 0.4) == RGB(0.2, 0.3, 0.4)
+    @test RGB(0.2, Gray(0.3), 0.4) == RGB(0.2, 0.3, 0.4)
+    @test RGB(0.2, 0.3, Gray(0.4)) == RGB(0.2, 0.3, 0.4)
+    @test RGB(Gray(0.2), Gray(0.3), Gray(0.4)) == RGB(0.2, 0.3, 0.4)
+end
+
 nothing
