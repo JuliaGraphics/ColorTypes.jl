@@ -15,18 +15,21 @@ red(c::AbstractRGB   ) = c.r
 red(c::TransparentRGB) = c.r
 red(c::RGB24)  = N0f8((c.color & 0x00ff0000)>>16, 0)
 red(c::ARGB32) = N0f8((c.color & 0x00ff0000)>>16, 0)
+red(c::RGB16) = (c.value & 0xf800) >> 11
 
 "`green(c)` returns the green component of an `AbstractRGB` opaque or transparent color."
 green(c::AbstractRGB   ) = c.g
 green(c::TransparentRGB) = c.g
 green(c::RGB24)  = N0f8((c.color & 0x0000ff00)>>8, 0)
 green(c::ARGB32) = N0f8((c.color & 0x0000ff00)>>8, 0)
+green(c::RGB16) = (c.value & 0x07e0) >> 5
 
 "`blue(c)` returns the blue component of an `AbstractRGB` opaque or transparent color."
 blue(c::AbstractRGB   ) = c.b
 blue(c::TransparentRGB) = c.b
 blue(c::RGB24)  = N0f8(c.color & 0x000000ff, 0)
 blue(c::ARGB32) = N0f8(c.color & 0x000000ff, 0)
+blue(c::RGB16) = c.value & 0x001f
 
 "`gray(c)` returns the gray component of a grayscale opaque or transparent color."
 gray(c::Gray)    = c.val
