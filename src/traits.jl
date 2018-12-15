@@ -15,21 +15,21 @@ red(c::AbstractRGB   ) = c.r
 red(c::TransparentRGB) = c.r
 red(c::RGB24)  = N0f8((c.color & 0x00ff0000)>>16, 0)
 red(c::ARGB32) = N0f8((c.color & 0x00ff0000)>>16, 0)
-red(c::RGB16) = (c.value & 0xf800) >> 11
+red(c::RGB16) = reinterpret(N3f5, (c.value & 0xf800) >> 11)
 
 "`green(c)` returns the green component of an `AbstractRGB` opaque or transparent color."
 green(c::AbstractRGB   ) = c.g
 green(c::TransparentRGB) = c.g
 green(c::RGB24)  = N0f8((c.color & 0x0000ff00)>>8, 0)
 green(c::ARGB32) = N0f8((c.color & 0x0000ff00)>>8, 0)
-green(c::RGB16) = (c.value & 0x07e0) >> 5
+green(c::RGB16) = reinterpret(N2f6, (c.value & 0x07e0) >> 5)
 
 "`blue(c)` returns the blue component of an `AbstractRGB` opaque or transparent color."
 blue(c::AbstractRGB   ) = c.b
 blue(c::TransparentRGB) = c.b
 blue(c::RGB24)  = N0f8(c.color & 0x000000ff, 0)
 blue(c::ARGB32) = N0f8(c.color & 0x000000ff, 0)
-blue(c::RGB16) = c.value & 0x001f
+blue(c::RGB16) = reinterpret(N3f5, c.value & 0x001f)
 
 "`gray(c)` returns the gray component of a grayscale opaque or transparent color."
 gray(c::Gray)    = c.val
@@ -304,6 +304,7 @@ for T in (RGB24, ARGB32, Gray24, AGray32)
         reinterpret(::Type{$T}, x::UInt32) = $T(x, Val{true})
     end
 end
+reinterpret(::Type{UInt16}, c::RGB16) = c.value
 ==(x::AbstractGray, y::AbstractGray) = gray(x) == gray(y)
 ==(x::Number, y::AbstractGray) = x == gray(y)
 ==(x::AbstractGray, y::Number) = ==(y, x)
