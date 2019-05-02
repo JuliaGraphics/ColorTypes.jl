@@ -160,19 +160,19 @@ struct RGB4{T<:Fractional} <: AbstractRGB{T}
 end
 RGB4(r::T, g::T, b::T) where {T<:Fractional} = RGB4{T}(r, g, b)
 
-"""`RGB16` is Red-Green-Blue colorspace represented by two bytes (16 bits).
+"""`RGB565` is Red-Green-Blue colorspace represented by two bytes (16 bits).
 
 1        |1          |        0
 5 4 3 2 1|0 9 8 7 6 5|4 3 2 1 0 
 ---------|-----------|---------
 R R R R R|G G G G G G|B B B B B
 """
-struct RGB16 <: AbstractRGB
+struct RGB565 <: AbstractRGB
     value::UInt16
 end
 
-function RGB16(r, g, b)
-    RGB16(r << 11 + g << 5 + b)
+function RGB565(r, g, b)
+    RGB565(r << 11 + g << 5 + b)
 end
 
 "`HSV` is the Hue-Saturation-Value colorspace."

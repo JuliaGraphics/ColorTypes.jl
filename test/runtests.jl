@@ -659,32 +659,32 @@ end
     @test RGB(Gray(0.2), Gray(0.3), Gray(0.4)) == RGB(0.2, 0.3, 0.4)
 end
 
-@testset "RGB16" begin
-    c = RGB16(31, 63, 31)  # white
+@testset "RGB565" begin
+    c = RGB565(31, 63, 31)  # white
     @test blue(c) == 31
     @test green(c) == 63
     @test red(c) == 31
     @test UInt16(c) == 65535
 
-    c = RGB16(0, 0, 0)  # black
+    c = RGB565(0, 0, 0)  # black
     @test UInt16(c) == 0
 
-    c = RGB16(31, 0, 0)  # red
+    c = RGB565(31, 0, 0)  # red
     @test UInt16(c) == 63488
 
-    c = RGB16(0, 63, 0)  # green
+    c = RGB565(0, 63, 0)  # green
     @test UInt16(c) == 2016
 
-    c = RGB16(0, 0, 31)  # blue
+    c = RGB565(0, 0, 31)  # blue
     @test UInt16(c) == 31
 
-    c = RGB16(16, 33, 16)  # gray
+    c = RGB565(16, 33, 16)  # gray
     @test UInt16(c) == 33840
 
-    c = RGB16(23, 34, 0)  # brown
+    c = RGB565(23, 34, 0)  # brown
     @test UInt16(c) == 48192
 
-    c = RGB16(31, 63, 0)  # yellow
+    c = RGB565(31, 63, 0)  # yellow
     @test UInt16(c) == 65504
 end
 

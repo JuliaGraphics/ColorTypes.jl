@@ -25,7 +25,7 @@ export YIQ, YCbCr
 export Gray
 
 export RGB24, ARGB32, Gray24, AGray32
-export RGB16
+export RGB565
 
 # Note: the parametric TransparentColorColors are exported
 # algorithmically, see `@make_alpha` in types.jl.
