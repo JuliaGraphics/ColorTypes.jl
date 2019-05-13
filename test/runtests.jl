@@ -1,6 +1,8 @@
 using ColorTypes, FixedPointNumbers
 using Test
 
+@testset "ColorTypes" begin
+
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
 # Support pre- and post- julia #20288
@@ -47,6 +49,21 @@ tformat(x...) = join(string.(x), ", ")
 @test @inferred(base_colorant_type(BGR{N0f8})      ) == BGR
 @test @inferred(base_colorant_type(HSV) ) == HSV
 @test @inferred(base_colorant_type(HSVA)) == HSVA
+
+@testset "floattype" begin
+    @test @inferred(floattype(RGBA{Float32})) == RGBA{Float32}
+    @test @inferred(floattype(BGR{N0f8})    ) == BGR{Float32}
+    @test @inferred(floattype(Gray{N0f8})   ) == Gray{Float32}
+    @test @inferred(floattype(N0f8)         ) == Float32
+    @test @inferred(floattype(Bool)         ) == Float32
+    @test @inferred(floattype(Float32)      ) == Float32
+    @test @inferred(floattype(Float64)      ) == Float64
+
+    @test @inferred(floattype(ARGB32)) == ARGB{Float32}
+    @test @inferred(floattype(AGray32)) == AGray{Float32}
+    @test @inferred(floattype(RGB24)) == RGB{Float32}
+    @test @inferred(floattype(Gray24)) == Gray{Float32}
+end
 
 @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) == BGR{N0f8}
 
@@ -658,5 +675,7 @@ end
     @test RGB(0.2, 0.3, Gray(0.4)) == RGB(0.2, 0.3, 0.4)
     @test RGB(Gray(0.2), Gray(0.3), Gray(0.4)) == RGB(0.2, 0.3, 0.4)
 end
+
+end # ColorTypes
 
 nothing

@@ -172,6 +172,26 @@ and the easiest to use:
 """
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
 
+"""
+    floattype(::Type{T}) where T<:Colorant
+
+Promote storage data type of colorant `T` to `AbstractFloat` while keep the
+`base_colorant_type` the same.
+
+!!! info
+
+    Non-parametric colorants will be promote to corresponding parametric
+    colorants. For example, `floattype(RGB24) == RGB{Float32}`
+"""
+floattype(::Type{T}) where T <: Colorant =
+    base_colorant_type(T){floattype(eltype(T))} # 1 parameter
+# 0 parameter
+floattype(::Type{RGB24}) = RGB{Float32}
+floattype(::Type{Gray24}) = Gray{Float32}
+floattype(::Type{ARGB32}) = ARGB{Float32}
+floattype(::Type{AGray32}) = AGray{Float32}
+
+
 colorant_string(::Type{Union{}}) = "Union{}"
 colorant_string(::Type{C}) where {C<:Colorant} = string(nameof(C))
 function colorant_string_with_eltype(::Type{C}) where {C<:Colorant}
