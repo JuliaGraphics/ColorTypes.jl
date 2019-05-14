@@ -1,0 +1,17 @@
+name = "ColorTypes"
+uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
+version = "0.8.0"
+
+[deps]
+FixedPointNumbers = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[compats]
+FixedPointNumbers = ">= 0.5"
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
