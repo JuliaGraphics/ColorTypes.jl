@@ -1,6 +1,7 @@
 module ColorTypes
 
 using FixedPointNumbers
+import FixedPointNumbers: floattype
 using Base: @pure
 
 const Fractional = Union{AbstractFloat, FixedPoint}
