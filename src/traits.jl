@@ -191,6 +191,13 @@ floattype(::Type{Gray24}) = Gray{Float32}
 floattype(::Type{ARGB32}) = ARGB{Float32}
 floattype(::Type{AGray32}) = AGray{Float32}
 
+"""
+    float(x::Colorant)
+
+convert the storage type of pixel `x` to a floating point data type.
+"""
+float(x::Colorant) = floattype(typeof(x))(x)
+float(::Type{T}) where T <: Colorant = floattype(T)
 
 colorant_string(::Type{Union{}}) = "Union{}"
 colorant_string(::Type{C}) where {C<:Colorant} = string(nameof(C))

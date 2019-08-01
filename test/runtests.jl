@@ -65,6 +65,26 @@ tformat(x...) = join(string.(x), ", ")
     @test @inferred(floattype(Gray24)) == Gray{Float32}
 end
 
+@testset "float" begin
+    # float(::Type) is equivalent to floattype
+    @test @inferred(float(RGBA{Float32})) == RGBA{Float32}
+    @test @inferred(float(BGR{N0f8})    ) == BGR{Float32}
+    @test @inferred(float(Gray{N0f8})   ) == Gray{Float32}
+    @test @inferred(float(N0f8)         ) == Float32
+    @test @inferred(float(Bool)         ) == Float32
+    @test @inferred(float(Float32)      ) == Float32
+    @test @inferred(float(Float64)      ) == Float64
+
+    @test @inferred(float(ARGB32)) == ARGB{Float32}
+    @test @inferred(float(AGray32)) == AGray{Float32}
+    @test @inferred(float(RGB24)) == RGB{Float32}
+    @test @inferred(float(Gray24)) == Gray{Float32}
+
+    # float(x::Colorant)
+    @test float(ones(Gray{N0f8}, 4, 4)) == ones(Gray{Float32}, 4, 4)
+    @test float(RGB.(ones(Gray{N0f8}, 4, 4))) == RGB.(ones(Gray{Float32}, 4, 4))
+end
+
 @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) == BGR{N0f8}
 
 @test @inferred(ccolor(RGB{Float32}, HSV{Float32})) == RGB{Float32}
