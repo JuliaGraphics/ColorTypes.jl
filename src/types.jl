@@ -587,6 +587,11 @@ for C in (RGB, BGR, RGB1, RGB4)
     @eval (::Type{$C{T}})(r::GrayLike, g::GrayLike, b::GrayLike) where T = $C{T}(gray(r), gray(g), gray(b))
 end
 
+alphacolor(::Type{C}) where {C<:AlphaColor} = base_colorant_type(C)
+alphacolor(::Type{C}) where {C<:ColorAlpha} = alphacolor(base_color_type(C))
+coloralpha(::Type{C}) where {C<:ColorAlpha} = base_colorant_type(C)
+coloralpha(::Type{C}) where {C<:AlphaColor} = coloralpha(base_color_type(C))
+
 alphacolor(::Type{C}) where {C<:Gray24} = AGray32
 alphacolor(::Type{C}) where {C<:RGB24} = ARGB32
 alphacolor(::Type{C}) where {C<:RGB1} = ARGB
