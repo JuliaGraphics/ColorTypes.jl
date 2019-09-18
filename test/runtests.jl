@@ -23,6 +23,26 @@ tformat(x...) = join(string.(x), ", ")
 @test length(ARGB32) == 4
 @test length(AGray{Float32}) == 2
 
+# coloralpha/alphacolor for `TransparentColor`s (issue #126)
+@test @inferred(coloralpha(RGBA)) == RGBA
+@test @inferred(coloralpha(ARGB)) == RGBA
+@test @inferred(coloralpha(RGBA{Float32})) == RGBA
+@test @inferred(coloralpha(ARGB{Float32})) == RGBA
+@test @inferred(coloralpha(AGray)) == GrayA
+@test @inferred(coloralpha(GrayA)) == GrayA
+@test @inferred(coloralpha(AGray{Float32})) == GrayA
+@test @inferred(coloralpha(GrayA{Float32})) == GrayA
+@test_throws MethodError coloralpha(ARGB32)
+@test @inferred(alphacolor(RGBA)) == ARGB
+@test @inferred(alphacolor(ARGB)) == ARGB
+@test @inferred(alphacolor(RGBA{Float32})) == ARGB
+@test @inferred(alphacolor(ARGB{Float32})) == ARGB
+@test @inferred(alphacolor(AGray)) == AGray
+@test @inferred(alphacolor(GrayA)) == AGray
+@test @inferred(alphacolor(AGray{Float32})) == AGray
+@test @inferred(alphacolor(GrayA{Float32})) == AGray
+@test @inferred(alphacolor(ARGB32)) == ARGB32
+
 @test @inferred(color_type(RGB{N0f8})) == RGB{N0f8}
 @test @inferred(color_type(RGB)) == RGB
 @test @inferred(color_type(RGBA{Float32})) == RGB{Float32}
@@ -328,6 +348,8 @@ acargb = convert(ARGB, ac)
 @test convert(Colorant{N0f8,3}, acargb) === crgb
 @test convert(TransparentColor, acargb) == acargb
 @test convert(Color, acargb) == crgb
+@test convert(AlphaColor, acargb) === acargb # issue #126
+@test convert(ColorAlpha, acargb) == coloralpha(acargb) # issue #126
 
 h = N0f8(0.5)
 @test Gray24(0.5) == Gray24(h)
