@@ -6,8 +6,8 @@ version = "0.8.0"
 FixedPointNumbers = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
-[compats]
-FixedPointNumbers = ">= 0.5"
+[compat]
+FixedPointNumbers = "0.5, 0.6"
 julia = "1"
 
 [extras]
