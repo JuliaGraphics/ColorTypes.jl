@@ -403,6 +403,37 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     @test rgba.b == blue(ac)
 end
 
+@testset "chroma" begin
+    for C in [Lab, DIN99, DIN99o, DIN99d, Luv]
+        @test chroma(C(60, -40, 30)) ≈ 50.0
+    end
+    @test chroma(LCHab(60, 40, 30)) ≈ 40.0
+    @test chroma(LCHuv(60, 40, 30)) ≈ 40.0
+    @test chroma(LabA(60, -40, 30, 0.5)) ≈ 50.0
+    @test chroma(ALab(60, -40, 30, 0.5)) ≈ 50.0
+    @inferred chroma(LCHab(60, 40, 30))
+    @inferred chroma(LCHuv(6f1, 4f1, 3f1))
+    @inferred chroma(LabA(60, -40, 30, 0.5))
+    @test_throws MethodError chroma(HSV(30, 0.4, 0.6))
+end
+
+@testset "hue" begin
+    @test hue(HSV(30, 0.4, 0.6)) ≈ 30.0
+    @test hue(HSL(30, 0.4, 0.6)) ≈ 30.0
+    @test hue(HSI(30, 0.4, 0.6)) ≈ 30.0
+    for C in [Lab, DIN99, DIN99o, DIN99d, Luv]
+        @test hue(C(60, -30, 30)) ≈ 135.0
+    end
+    @test hue(LCHab(60, 40, 30)) ≈ 30.0
+    @test hue(LCHuv(60, 40, 30)) ≈ 30.0
+    @test hue(LabA(60, -30, 30, 0.5)) ≈ 135.0
+    @test hue(ALab(60, -30, 30, 0.5)) ≈ 135.0
+    @inferred hue(LCHab(60, -30, 30))
+    @inferred hue(LCHuv(6f1, -3f1, 3f1))
+    @inferred hue(LabA(60, -30, 30, 0.5))
+    @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
+end
+
 @test_throws ErrorException convert(HSV, RGB(1,0,1))
 @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
 

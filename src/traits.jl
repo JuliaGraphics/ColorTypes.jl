@@ -37,6 +37,28 @@ gray(x::Number)  = x
 
 Base.real(g::Gray) = gray(g)
 
+"""
+`chroma(c)` returns the chroma of a `Lab`, `Luv` or their variants color.
+!!! note
+    The other color types (e.g. `RGB`, `HSV` or `YCbCr`) are not supported
+    because their definitions of *chroma* are not clear. Colorfulness, chroma
+    and saturation are defined as distinct aspects by the CIE.
+"""
+chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,DIN99,DIN99o,DIN99d}} = sqrt(c.a^2 + c.b^2)
+chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} = sqrt(c.u^2 + c.v^2)
+chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{LCHab,LCHuv}} = c.c
+
+"""
+`hue(c)` returns the hue in degrees. This function does not guarantee that the
+return value is in [0, 360].
+"""
+hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{HSV,HSL,HSI,LCHab,LCHuv}} = c.h
+hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,DIN99,DIN99o,DIN99d}} =
+    (h = atand(c.b, c.a); h < 0 ? h + 360 : h)
+hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} =
+    (h = atand(c.v, c.u); h < 0 ? h + 360 : h)
+
+
 # Extract the first, second, and third arguments as you'd
 # pass them to the constructor
 """
