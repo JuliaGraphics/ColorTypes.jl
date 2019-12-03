@@ -98,7 +98,7 @@ color(s), returning an output color in the same colorspace.
 
 @inline mapc(f, x::Number) = f(x)
 
-mapc(f, x, y) = _mapc(_same_colorspace(x,y), f, x, y)
+mapc(f::F, x, y) where F = _mapc(_same_colorspace(x,y), f, x, y)
 _mapc(::Type{C}, f, x::AbstractGray, y::AbstractGray) where C =
     C(f(gray(x), gray(y)))
 _mapc(::Type{C}, f, x::TransparentGray, y::TransparentGray) where C =
