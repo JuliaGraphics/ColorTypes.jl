@@ -6,27 +6,6 @@ hash(c::TransparentRGB, hx::UInt) = hash(alpha(c), hash(blue(c), hash(green(c), 
 
 Base.adjoint(c::Colorant) = c
 
-# gamut{min,max}
-gamutmax(::Type{T}) where {T<:HSV} = (360,1,1)
-gamutmin(::Type{T}) where {T<:HSV} = (0,0,0)
-gamutmax(::Type{T}) where {T<:HSL} = (360,1,1)
-gamutmin(::Type{T}) where {T<:HSL} = (0,0,0)
-gamutmax(::Type{T}) where {T<:Lab} = (100,128,128)
-gamutmin(::Type{T}) where {T<:Lab} = (0,-127,-127)
-gamutmax(::Type{T}) where {T<:LCHab} = (100,1,360)
-gamutmin(::Type{T}) where {T<:LCHab} = (0,0,0)
-gamutmax(::Type{T}) where {T<:YIQ} = (1,0.5226,0.5226)
-gamutmin(::Type{T}) where {T<:YIQ} = (0,-0.5957,-0.5957)
-
-gamutmax(::Type{T}) where {T<:AbstractGray} = (1,)
-gamutmax(::Type{T}) where {T<:TransparentGray} = (1,1)
-gamutmax(::Type{T}) where {T<:AbstractRGB} = (1,1,1)
-gamutmax(::Type{T}) where {T<:TransparentRGB} = (1,1,1,1)
-gamutmin(::Type{T}) where {T<:AbstractGray} = (0,)
-gamutmin(::Type{T}) where {T<:TransparentGray} = (0,0)
-gamutmin(::Type{T}) where {T<:AbstractRGB} = (0,0,0)
-gamutmin(::Type{T}) where {T<:TransparentRGB} = (0,0,0,0)
-
 # rand
 for t in [Float16,Float32,Float64,N0f8,N0f16,N0f32]
     @eval _rand(::Type{T}) where {T<:Union{AbstractRGB{$t},AbstractGray{$t}}} =

@@ -27,6 +27,8 @@ export Gray
 
 export RGB24, ARGB32, Gray24, AGray32
 
+export AbstractGamut, AbstractRGBGamut, Gamut_sRGB
+
 # Note: the parametric TransparentColorColors are exported
 # algorithmically, see `@make_alpha` in types.jl.
 
@@ -40,6 +42,7 @@ export comp1, comp2, comp3
 export mapc, reducec, mapreducec, gamutmax, gamutmin
 
 include("types.jl")
+include("gamut.jl")
 include("traits.jl")
 include("conversions.jl")
 include("show.jl")
