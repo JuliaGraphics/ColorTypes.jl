@@ -76,4 +76,7 @@ Concrete types:
 Use `?` to get more information about specific types or functions.
 """ ColorTypes
 
+include("precompile.jl")
+_precompile_()
+
 end # module
