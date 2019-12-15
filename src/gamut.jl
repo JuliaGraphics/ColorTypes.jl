@@ -35,7 +35,7 @@ function gamutmin(colorspace::Type{T},
     (gamutmin(color_type(T), Gamut_sRGB)..., 0)
 end
 
-function gamutin(::Type{T}, gamut::AbstractGamut) where {T<:Colorant}
+function gamutmin(::Type{T}, gamut::AbstractGamut) where {T<:Colorant}
     gamutmin(T, typeof(gamut)) # fallback
 end
 
