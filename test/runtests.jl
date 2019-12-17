@@ -16,7 +16,7 @@ tformat(x...) = join(string.(x), ", ")
 @inferred(eltype(RGB))      # just test that it doesn't error
 
 @test length(RGB)    == 3
-@test length(RGB1)   == 3
+@test length(XRGB)   == 3
 @test length(Gray)   == 1
 @test length(ARGB)   == 4
 @test length(RGB24)  == 3
@@ -230,7 +230,7 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
                 c = C(val,val,val)
                 @test_throws ArgumentError alphacolor(C){N0f8}(c)
                 @test_throws ArgumentError coloralpha(C){N0f8}(c)
-                if C != RGB1 && C != RGB4
+                if C != XRGB && C != RGBX
                     @test_throws ArgumentError alphacolor(C){N0f8}(c, 0.2)
                     @test_throws ArgumentError coloralpha(C){N0f8}(c, 0.2)
                 end
@@ -285,7 +285,7 @@ end
 @test coloralpha(ARGB(1,0,0,.8)) == RGBA{Float64}(1,0,0,.8)
 @test alphacolor(RGBA(1,0,0,.8)) == ARGB{Float64}(1,0,0,.8)
 @test coloralpha(ARGB(1,0,0,.8)) == RGBA{Float64}(1,0,0,.8)
-for C in setdiff(ColorTypes.parametric3, [RGB1,RGB4])
+for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
     for A in (alphacolor(C), coloralpha(C))
         @test eltype(A{Float32}) == Float32
         @test color_type(A) == C
@@ -521,10 +521,10 @@ for T in (Gray{N0f8}, Gray{N2f6}, Gray{N0f16}, Gray{N2f14}, Gray{N0f32}, Gray{N2
           RGB{N0f8}, RGB{N2f6}, RGB{N0f16}, RGB{N2f14}, RGB{N0f32}, RGB{N2f30},
           RGB{Float16}, RGB{Float32}, RGB{Float64},
           AGray{Float32}, GrayA{Float64},
-          RGBA{Float32}, ARGB{N0f16}, RGB1{N0f8}, RGB4{Float64},
+          RGBA{Float32}, ARGB{N0f16}, XRGB{N0f8}, RGBX{Float64},
           BGR{Float16}, ABGR{N0f32}, BGRA{N2f14},
           Gray, AGray, GrayA,
-          RGB, ARGB, RGBA, BGR, ABGR, BGRA, RGB1, RGB4,
+          RGB, ARGB, RGBA, BGR, ABGR, BGRA, XRGB, RGBX,
           HSV, HSL, Lab, LCHab, YIQ)
     a = rand(T)
     @test all(x->x[2]<=getfield(a,x[1])<=x[3],
@@ -565,8 +565,8 @@ addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
 # colorfields
 @test ColorTypes.colorfields(AGray32(.2)) == (:color,:alpha)
 @test ColorTypes.colorfields(Gray) == (:val,)
-@test ColorTypes.colorfields(RGB1) == (:r, :g, :b)
-@test ColorTypes.colorfields(RGB4) == (:r, :g, :b)
+@test ColorTypes.colorfields(XRGB) == (:r, :g, :b)
+@test ColorTypes.colorfields(RGBX) == (:r, :g, :b)
 @test ColorTypes.colorfields(BGR) == (:r, :g, :b)
 
 # UInt32 comparison
@@ -646,7 +646,7 @@ c1 = mapc(Float32, c)
 c2 = RGB(red(c1), green(c1)-0.1, blue(c1))
 @test c ≈ c2 atol=0.11
 @test !isapprox(c, c2; atol=0.09)
-@test c ≈ convert(RGB4, c)
+@test c ≈ convert(RGBX, c)
 @test !(c ≈ HSV{Float32}(140.0f0,0.75f0,0.8f0))  # the latter comes from convert when using Colors
 @test Gray(0.8N0f8) == Gray24(0.8) && Gray(0.8N0f8) ≈ Gray24(0.8)
 

@@ -141,7 +141,7 @@ color_type(::Type{C}) where {C<:Color} = C
 color_type(c::Colorant) = color_type(typeof(c))
 
 # Return the number of components in the color
-# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., RGB1)
+# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., XRGB)
 length(c::Colorant) = length(typeof(c))
 
 length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N

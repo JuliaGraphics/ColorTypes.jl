@@ -17,7 +17,7 @@ export Colorant
 export Color, TransparentColor, AlphaColor, ColorAlpha, AbstractRGB
 export AbstractGray, Color3, TransparentGray, Transparent3, TransparentRGB, ColorantNormed
 
-export RGB, BGR, RGB1, RGB4
+export RGB, BGR, XRGB, RGBX
 export HSV, HSB, HSL, HSI
 export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv
 export DIN99, DIN99d, DIN99o
@@ -45,6 +45,9 @@ include("conversions.jl")
 include("show.jl")
 include("operations.jl")
 
+Base.@deprecate_binding RGB1 XRGB
+Base.@deprecate_binding RGB4 RGBX
+
 """
 ColorTypes summary:
 
@@ -56,7 +59,7 @@ Type hierarchy:
 ```
 
 Concrete types:
-- `RGB`, `BGR`, `RGB1`, `RGB4`, `RGB24` are all subtypes of `AbstractRGB`
+- `RGB`, `BGR`, `XRGB`, `RGBX`, `RGB24` are all subtypes of `AbstractRGB`
 
 - `HSV`, `HSL`, `HSI`, `XYZ`, `xyY`, `Lab`, `LCHab`, `Luv`, `LCHuv`,
   `DIN99`, `DIN99d`, `DIN99o`, `LMS`, `YIQ`, `YCbCR` are subtypes of

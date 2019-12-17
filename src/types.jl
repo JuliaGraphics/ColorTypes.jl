@@ -117,48 +117,48 @@ end
 BGR(r::T, g::T, b::T) where {T<:Fractional} = BGR{T}(r, g, b)
 
 """
-`RGB1` is a variant of `RGB` which has a padding element inserted at
+`XRGB` is a variant of `RGB` which has a padding element inserted at
 the beginning. In some applications it may have useful
 memory-alignment properties.
 
 Like all other AbstractRGB objects, the constructor is still called
-`RGB1(r, g, b)`.
+`XRGB(r, g, b)`.
 """
-struct RGB1{T<:Fractional} <: AbstractRGB{T}
+struct XRGB{T<:Fractional} <: AbstractRGB{T}
     alphadummy::T
     r::T
     g::T
     b::T
 
-    RGB1{T}(r::T, g::T, b::T) where {T} = new{T}(oneunit(T), r, g, b)
-    function RGB1{T}(r::Real, g::Real, b::Real) where T
+    XRGB{T}(r::T, g::T, b::T) where {T} = new{T}(oneunit(T), r, g, b)
+    function XRGB{T}(r::Real, g::Real, b::Real) where T
         checkval(T, r, g, b)
         new{T}(oneunit(T), _rem(r,T), _rem(g,T), _rem(b,T))
     end
 end
-RGB1(r::T, g::T, b::T) where {T<:Fractional} = RGB1{T}(r, g, b)
+XRGB(r::T, g::T, b::T) where {T<:Fractional} = XRGB{T}(r, g, b)
 
 """
-`RGB4` is a variant of `RGB` which has a padding element inserted at
+`RGBX` is a variant of `RGB` which has a padding element inserted at
 the end. In some applications it may have useful
 memory-alignment properties.
 
 Like all other AbstractRGB objects, the constructor is still called
-`RGB4(r, g, b)`.
+`RGBX(r, g, b)`.
 """
-struct RGB4{T<:Fractional} <: AbstractRGB{T}
+struct RGBX{T<:Fractional} <: AbstractRGB{T}
     r::T
     g::T
     b::T
     alphadummy::T
 
-    RGB4{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b, oneunit(T))
-    function RGB4{T}(r::Real, g::Real, b::Real) where T
+    RGBX{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b, oneunit(T))
+    function RGBX{T}(r::Real, g::Real, b::Real) where T
         checkval(T, r, g, b)
         new{T}(_rem(r,T), _rem(g,T), _rem(b,T), oneunit(T))
     end
 end
-RGB4(r::T, g::T, b::T) where {T<:Fractional} = RGB4{T}(r, g, b)
+RGBX(r::T, g::T, b::T) where {T<:Fractional} = RGBX{T}(r, g, b)
 
 "`HSV` is the Hue-Saturation-Value colorspace."
 struct HSV{T<:AbstractFloat} <: Color{T,3}
@@ -423,8 +423,8 @@ const parametric3 = filter(x->!isa(x, DataType) || !isempty(x.parameters), color
 
 # Provide the field names in the order expected by the constructor
 colorfields(::Type{C}) where {C<:Color} = (fieldnames(C)...,)
-colorfields(::Type{C}) where {C<:RGB1} = (:r, :g, :b)
-colorfields(::Type{C}) where {C<:RGB4} = (:r, :g, :b)
+colorfields(::Type{C}) where {C<:XRGB} = (:r, :g, :b)
+colorfields(::Type{C}) where {C<:RGBX} = (:r, :g, :b)
 colorfields(::Type{C}) where {C<:BGR } = (:r, :g, :b)
 colorfields(::Type{P}) where {P<:TransparentColor} = tuple(colorfields(color_type(P))..., :alpha)
 colorfields(c::Colorant) = colorfields(typeof(c))
@@ -544,7 +544,7 @@ _promote_eltype(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:R
 _promote_eltype(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:Fractional} = T
 _promote_eltype(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:Real} = Tdef
 
-ctypes = union(setdiff(parametric3, [RGB1,RGB4]), [Gray])
+ctypes = union(setdiff(parametric3, [XRGB,RGBX]), [Gray])
 
 # the arg list for C below should be identical to ctypes above.
 for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
@@ -574,16 +574,16 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
 
-# RGB1 and RGB4 require special handling because of the alphadummy field
-@eval @make_constructors RGB1 (r,g,b) $N0f8
-@eval @make_constructors RGB4 (r,g,b) $N0f8
+# XRGB and RGBX require special handling because of the alphadummy field
+@eval @make_constructors XRGB (r,g,b) $N0f8
+@eval @make_constructors RGBX (r,g,b) $N0f8
 
 const GrayLike = Union{Real,AbstractGray}
 
-for C in (RGB, BGR, RGB1, RGB4, RGB24)
+for C in (RGB, BGR, XRGB, RGBX, RGB24)
     @eval (::Type{$C})(r::GrayLike, g::GrayLike, b::GrayLike) = $C(gray(r), gray(g), gray(b))
 end
-for C in (RGB, BGR, RGB1, RGB4)
+for C in (RGB, BGR, XRGB, RGBX)
     @eval (::Type{$C{T}})(r::GrayLike, g::GrayLike, b::GrayLike) where T = $C{T}(gray(r), gray(g), gray(b))
 end
 
@@ -594,10 +594,10 @@ coloralpha(::Type{C}) where {C<:AlphaColor} = coloralpha(base_color_type(C))
 
 alphacolor(::Type{C}) where {C<:Gray24} = AGray32
 alphacolor(::Type{C}) where {C<:RGB24} = ARGB32
-alphacolor(::Type{C}) where {C<:RGB1} = ARGB
-alphacolor(::Type{C}) where {C<:RGB4} = ARGB
-coloralpha(::Type{C}) where {C<:RGB1} = RGBA
-coloralpha(::Type{C}) where {C<:RGB4} = RGBA
+alphacolor(::Type{C}) where {C<:XRGB} = ARGB
+alphacolor(::Type{C}) where {C<:RGBX} = ARGB
+coloralpha(::Type{C}) where {C<:XRGB} = RGBA
+coloralpha(::Type{C}) where {C<:RGBX} = RGBA
 
 """
 `alphacolor(RGB)` returns `ARGB`, i.e., the corresponding transparent
