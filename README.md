@@ -54,7 +54,7 @@ ARGB(RGB(red, green, blue), alpha)
 
 ## Colors
 
-### RGB plus BGR, RGB1, RGB4, and RGB24: the AbstractRGB group
+### RGB plus BGR, XRGB, RGBX, and RGB24: the AbstractRGB group
 
 The [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
 
@@ -92,7 +92,7 @@ crucial point: **for all `AbstractRGB` types, the constructor
 accepts values in the order `(r,g,b)` regardless of how they
 are arranged internally in memory**.
 
-`RGB1` and `RGB4` seem exactly like `RGB`, but internally they insert
+`XRGB` and `RGBX` seem exactly like `RGB`, but internally they insert
 one extra ("invisible") padding element; when the element type is
 `N0f8`, these have favorable memory alignment for interfacing with
 libraries like OpenGL.
