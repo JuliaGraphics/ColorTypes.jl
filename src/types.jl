@@ -71,6 +71,10 @@ TransparentGray{C<:AbstractGray,T} = TransparentColor{C,T,2}
 Transparent3{C<:Color3,T}          = TransparentColor{C,T,4}
 TransparentRGB{C<:AbstractRGB,T}   = TransparentColor{C,T,4}
 ColorantNormed{T<:Normed,N}        = Colorant{T,N}
+AbstractAGray{C<:AbstractGray,T}   = AlphaColor{C,T,2}
+AbstractGrayA{C<:AbstractGray,T}   = ColorAlpha{C,T,2}
+AbstractARGB{C<:AbstractRGB,T}     = AlphaColor{C,T,4}
+AbstractRGBA{C<:AbstractRGB,T}     = ColorAlpha{C,T,4}
 
 """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
@@ -325,7 +329,7 @@ you can still extract the individual components with `alpha(c)`,
 `red(c)`, `green(c)`, `blue(c)`.  You can construct them directly from
 a `UInt32`, or as `ARGB32(r, g, b, alpha)`.
 """
-struct ARGB32 <: AlphaColor{RGB24, N0f8, 4}
+struct ARGB32 <: AbstractARGB{RGB24, N0f8}
     color::UInt32
 
     ARGB32(col::UInt32, ::Type{Val{true}}) = new(col)
@@ -384,7 +388,7 @@ You can extract the single gray value with `gray(c)` and the alpha as
 `AGray32(i,alpha)`. Note that `i` and `alpha` are interpreted on a
 scale from 0 (black) to 1 (white).
 """
-struct AGray32 <: AlphaColor{Gray24, N0f8, 2}
+struct AGray32 <: AbstractAGray{Gray24, N0f8}
     color::UInt32
 
     AGray32(c::UInt32, ::Type{Val{true}}) = new(c)
