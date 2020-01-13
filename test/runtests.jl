@@ -8,6 +8,18 @@ using Test
 # Support pre- and post- julia #20288
 tformat(x...) = join(string.(x), ", ")
 
+# compatibility/regression tests for ARGB32 and AGray32
+@test ARGB32 <: AlphaColor{RGB24, N0f8, 4}
+@test ARGB32 <: AbstractARGB
+@test !(ARGB32 <: AbstractRGBA)
+@test AGray32 <: AlphaColor{Gray24, N0f8, 2}
+@test AGray32 <: AbstractAGray
+@test !(AGray32 <: AbstractGrayA)
+@test supertype(ARGB32) === AlphaColor{RGB24, N0f8, 4} # v0.9 or earlier
+@test supertype(ARGB32) === AbstractARGB{RGB24, N0f8}
+@test supertype(AGray32) === AlphaColor{Gray24, N0f8, 2} # v0.9 or earlier
+@test supertype(AGray32) === AbstractAGray{Gray24, N0f8}
+
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 @test @inferred(eltype(Color{N0f8})) == N0f8
 @test @inferred(eltype(RGB{Float32})) == Float32
