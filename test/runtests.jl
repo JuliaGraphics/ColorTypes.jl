@@ -5,8 +5,9 @@ using Test
 
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
-# Support pre- and post- julia #20288
-tformat(x...) = join(string.(x), ", ")
+@testset "show" begin
+    include("show.jl")
+end
 
 # compatibility/regression tests for ARGB32 and AGray32
 @test ARGB32 <: AlphaColor{RGB24, N0f8, 4}
@@ -256,10 +257,10 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
 end
 
 ret = @test_throws ArgumentError RGB(255, 17, 48)
-@test occursin(tformat(255,17,48), ret.value.msg)
+@test occursin("255, 17, 48", ret.value.msg)
 @test occursin("0-255", ret.value.msg)
 ret = @test_throws ArgumentError RGB(256, 17, 48)
-@test occursin(tformat(256,17,48), ret.value.msg)
+@test occursin("256, 17, 48", ret.value.msg)
 @test !occursin("0-255", ret.value.msg)
 
 @testset "Test some Gray stuff" begin
@@ -470,31 +471,6 @@ x = N0f8(0.3)
 @test promote(RGB{N0f8}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{N0f8}(0.2,0.3,0.4), RGB{N0f8}(0.3,0.8,0.1))
 @test promote(RGB{Float32}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{Float32}(0.2,0.3,0.4), RGB{Float32}(N0f8(0.3),N0f8(0.8),N0f8(0.1)))
 
-iob = IOBuffer()
-cf = RGB{Float32}(0.32218,0.14983,0.87819)
-c  = convert(RGB{N0f8}, cf)
-show(iob, c)
-@test String(take!(iob)) == "RGB{N0f8}(0.322,0.149,0.878)"
-c = RGB{N0f16}(0.32218,0.14983,0.87819)
-show(iob, c)
-@test String(take!(iob)) == "RGB{N0f16}(0.32218,0.14983,0.87819)"
-c = RGBA{N0f8}(0.32218,0.14983,0.87819,0.99241)
-show(iob, c)
-@test String(take!(iob)) == "RGBA{N0f8}(0.322,0.149,0.878,0.992)"
-show(IOContext(iob, :compact => true), c)
-@test String(take!(iob)) == "RGBA{N0f8}(0.322,0.149,0.878,0.992)"
-show(iob, cf)
-@test String(take!(iob)) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
-show(IOContext(iob, :compact => true), cf)
-@test String(take!(iob)) == "RGB{Float32}(0.32218,0.14983,0.87819)"
-show(iob, Gray24(0.4))
-@test String(take!(iob)) == "Gray24(0.4N0f8)"
-show(iob, RGB24(0.4,0.2,0.8))
-@test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
-show(iob, ARGB32(0.4,0.2,0.8,1.0))
-@test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
-summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
-@test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype Gray{Normed{UInt8,8}}"
 @test ColorTypes.colorant_string(Union{})   == "Union{}"
 @test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
 @test ColorTypes.colorant_string(RGB24)     == "RGB24"
@@ -511,15 +487,6 @@ summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
 
 @test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
 @test zero(Gray{N0f8}) == Gray{N0f8}(0)
-
-c = Gray(0.8)
-@test c == 0.8
-show(iob, c)
-@test String(take!(iob)) == "Gray{Float64}(0.8)"
-show(iob, AGray(0.8))
-@test String(take!(iob)) == "AGray{Float64}(0.8,1.0)"
-show(iob, AGray32(0.8))
-@test String(take!(iob)) == "AGray32{N0f8}(0.8,1.0)"
 
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
@@ -742,5 +709,3 @@ end
 end
 
 end # ColorTypes
-
-nothing
