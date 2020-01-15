@@ -9,6 +9,10 @@ using Test
     include("show.jl")
 end
 
+@testset "traits" begin
+    include("traits.jl")
+end
+
 # compatibility/regression tests for ARGB32 and AGray32
 @test ARGB32 <: AlphaColor{RGB24, N0f8, 4}
 @test ARGB32 <: AbstractARGB
@@ -179,17 +183,6 @@ for C in ColorTypes.parametric3
     @test C(C()) == C()  # no StackOverflowError
 end
 
-# Specifically test the AbstractRGB types
-# This checks that the constructor order is the same, even if the
-# storage order is not
-for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
-    c = C(1, 0.5, 0)
-    C == RGB24 && continue
-    @test red(c)   == c.r == 1
-    @test green(c) == c.g == 0.5
-    @test blue(c)  == c.b == 0
-end
-
 # #80
 z = N0f8(0)
 @test HSV(z, z, z) === HSV{Float32}(0, 0, 0)
@@ -265,8 +258,7 @@ ret = @test_throws ArgumentError RGB(256, 17, 48)
 
 @testset "Test some Gray stuff" begin
     c = Gray(0.8)
-    @test gray(c) == real(c) == 0.8
-    @test gray(0.8) == 0.8
+    @test real(c) == 0.8
     c = convert(Gray, 0.8)
     @test c === Gray{Float64}(0.8)
 
@@ -280,13 +272,7 @@ ret = @test_throws ArgumentError RGB(256, 17, 48)
     @test ca === GrayA{Float64}(0.8, 1.0)
 
     c = AGray(0.8)
-    @test gray(c) == 0.8
     @test color(c) == Gray(0.8)
-
-    c = convert(Gray, true)
-    @test c === Gray{Bool}(true)
-    @test gray(c) === true
-    @test gray(false) === false
 end
 
 # Transparency
@@ -390,9 +376,6 @@ ac2 = convert(ARGB32, c)
 @test reinterpret(UInt32, reinterpret(ARGB32, 0x01020304)) == 0x01020304
 ac3 = convert(RGBA, ac)
 @test convert(RGB24, ac3) == c
-ac4 = AGray32(.2,.8)
-@test alpha(ac4) == .8
-@test gray(ac4) == .2
 
 for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     rgb = convert(C, c)
@@ -414,37 +397,6 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     @test rgba.r == red(ac)
     @test rgba.g == green(ac)
     @test rgba.b == blue(ac)
-end
-
-@testset "chroma" begin
-    for C in [Lab, DIN99, DIN99o, DIN99d, Luv]
-        @test chroma(C(60, -40, 30)) ≈ 50.0
-    end
-    @test chroma(LCHab(60, 40, 30)) ≈ 40.0
-    @test chroma(LCHuv(60, 40, 30)) ≈ 40.0
-    @test chroma(LabA(60, -40, 30, 0.5)) ≈ 50.0
-    @test chroma(ALab(60, -40, 30, 0.5)) ≈ 50.0
-    @inferred chroma(LCHab(60, 40, 30))
-    @inferred chroma(LCHuv(6f1, 4f1, 3f1))
-    @inferred chroma(LabA(60, -40, 30, 0.5))
-    @test_throws MethodError chroma(HSV(30, 0.4, 0.6))
-end
-
-@testset "hue" begin
-    @test hue(HSV(30, 0.4, 0.6)) ≈ 30.0
-    @test hue(HSL(30, 0.4, 0.6)) ≈ 30.0
-    @test hue(HSI(30, 0.4, 0.6)) ≈ 30.0
-    for C in [Lab, DIN99, DIN99o, DIN99d, Luv]
-        @test hue(C(60, -30, 30)) ≈ 135.0
-    end
-    @test hue(LCHab(60, 40, 30)) ≈ 30.0
-    @test hue(LCHuv(60, 40, 30)) ≈ 30.0
-    @test hue(LabA(60, -30, 30, 0.5)) ≈ 135.0
-    @test hue(ALab(60, -30, 30, 0.5)) ≈ 135.0
-    @inferred hue(LCHab(60, -30, 30))
-    @inferred hue(LCHuv(6f1, -3f1, 3f1))
-    @inferred hue(LabA(60, -30, 30, 0.5))
-    @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
 end
 
 @test_throws ErrorException convert(HSV, RGB(1,0,1))
