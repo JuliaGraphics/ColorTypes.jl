@@ -141,3 +141,28 @@ end
     @test ColorTypes.colorant_string_with_eltype(RGB{Union{}}) == "RGB{Union{}}"
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
+
+@testset "identities for Gray" begin
+    @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
+    @test zero(Gray{N0f8}) === Gray{N0f8}(0)
+    @test oneunit(Gray) === Gray{N0f8}(1)
+    @test zero(Gray) === Gray{N0f8}(0)
+
+    @test_throws MethodError oneunit(Gray24)
+    @test_throws MethodError zero(Gray24)
+    @test_throws MethodError oneunit(AGray32)
+    @test_throws MethodError zero(AGray32)
+    @test_throws MethodError oneunit(AGray{N0f8})
+    @test_throws MethodError zero(AGray{N0f8})
+    @test_throws MethodError oneunit(GrayA{Float32})
+    @test_throws MethodError zero(GrayA{Float32})
+
+    @test_throws MethodError oneunit(RGB{N0f8})
+    @test_throws MethodError zero(RGB{N0f8})
+
+    g = Gray{Float32}(0.8)
+    @test_throws MethodError oneunit(g)
+    @test_throws MethodError zero(g)
+
+    @test_broken one(Gray{Float32}) * g == g * one(Gray{Float32}) == g
+end

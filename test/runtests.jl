@@ -413,9 +413,6 @@ x = N0f8(0.3)
 @test promote(RGB{N0f8}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{N0f8}(0.2,0.3,0.4), RGB{N0f8}(0.3,0.8,0.1))
 @test promote(RGB{Float32}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{Float32}(0.2,0.3,0.4), RGB{Float32}(N0f8(0.3),N0f8(0.8),N0f8(0.1)))
 
-@test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
-@test zero(Gray{N0f8}) == Gray{N0f8}(0)
-
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
 @test Set(ColorTypes.ctypes) ==
