@@ -47,33 +47,6 @@ end
 @test @inferred(alphacolor(GrayA{Float32})) == AGray
 @test @inferred(alphacolor(ARGB32)) == ARGB32
 
-@test @inferred(color_type(RGB{N0f8})) == RGB{N0f8}
-@test @inferred(color_type(RGB)) == RGB
-@test @inferred(color_type(RGBA{Float32})) == RGB{Float32}
-@test @inferred(color_type(GrayA{N0f8})) == Gray{N0f8}
-@test @inferred(color_type(RGBA)) == RGB
-@test @inferred(color_type(RGB24) ) == RGB24
-@test @inferred(color_type(ARGB32)) == RGB24
-@test @inferred(color_type(TransparentColor{RGB})) == RGB
-@test @inferred(color_type(TransparentColor{RGB,Float64})) == RGB
-@test @inferred(color_type(TransparentColor{RGB{Float64},Float64})) == RGB{Float64}
-@test color_type(TransparentColor) <: Color
-@test Color <: color_type(TransparentColor)
-@test_throws MethodError color_type(Colorant{N0f8})
-
-@test @inferred(base_color_type(RGBA{Float32})) == RGB
-@test @inferred(base_color_type(ARGB{Float32})) == RGB
-@test @inferred(base_color_type(BGR{N0f8})      ) == BGR
-@test @inferred(base_color_type(HSV) ) == HSV
-@test @inferred(base_color_type(HSVA)) == HSV
-@test @inferred(base_color_type(TransparentColor{RGB{Float64},Float64})) == RGB
-
-@test @inferred(base_colorant_type(RGBA{Float32})) == RGBA
-@test @inferred(base_colorant_type(ARGB{Float32})) == ARGB
-@test @inferred(base_colorant_type(BGR{N0f8})      ) == BGR
-@test @inferred(base_colorant_type(HSV) ) == HSV
-@test @inferred(base_colorant_type(HSVA)) == HSVA
-
 @testset "floattype" begin
     @test @inferred(floattype(RGBA{Float32})) == RGBA{Float32}
     @test @inferred(floattype(BGR{N0f8})    ) == BGR{Float32}
@@ -110,16 +83,6 @@ end
 
 @test @inferred(ccolor(RGB,  RGB))  == RGB
 @test @inferred(ccolor(Gray, Gray)) == Gray
-
-# Traits for instances (and their constructors)
-
-@test @inferred(color_type(RGB{N0f8}(1,0,0))) == RGB{N0f8}
-@test @inferred(color_type(ARGB(1.0,0.8,0.6,0.4))) == RGB{Float64}
-@test @inferred(color_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB{Float32}
-
-@test @inferred(base_color_type(RGB{N0f8}(1,0,0))) == RGB
-@test @inferred(base_color_type(ARGB(1.0,0.8,0.6,0.4))) == RGB
-@test @inferred(base_color_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGB
 
 @test @inferred(base_colorant_type(RGB{N0f8}(1,0,0))) == RGB
 @test @inferred(base_colorant_type(ARGB(1.0,0.8,0.6,0.4))) == ARGB
