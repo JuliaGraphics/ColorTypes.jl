@@ -32,14 +32,6 @@ end
 # @test eltype(RGB) == TypeVar(:T, Fractional)
 @inferred(eltype(RGB))      # just test that it doesn't error
 
-@test length(RGB)    == 3
-@test length(XRGB)   == 3
-@test length(Gray)   == 1
-@test length(ARGB)   == 4
-@test length(RGB24)  == 3
-@test length(ARGB32) == 4
-@test length(AGray{Float32}) == 2
-
 # coloralpha/alphacolor for `TransparentColor`s (issue #126)
 @test @inferred(coloralpha(RGBA)) == RGBA
 @test @inferred(coloralpha(ARGB)) == RGBA
@@ -130,8 +122,6 @@ end
 @test @inferred(eltype(ARGB(1.0,0.8,0.6,0.4))) == Float64
 @test @inferred(eltype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == Float32
 @test @inferred(eltype(RGB(0x01,0x00,0x00))) == N0f8
-
-@test length(ARGB(1.0,0.8,0.6,0.4)) == 4
 
 @test @inferred(color_type(RGB{N0f8}(1,0,0))) == RGB{N0f8}
 @test @inferred(color_type(ARGB(1.0,0.8,0.6,0.4))) == RGB{Float64}

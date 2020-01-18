@@ -101,6 +101,20 @@ end
     @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
 end
 
+@testset "length" begin
+    @test length(RGB) == 3
+    @test length(XRGB) == 3
+    @test length(ARGB) == 4
+    @test length(RGB24) == 3
+    @test length(ARGB32) == 4
+    @test length(Gray) == 1
+    @test length(Gray24) == 1
+    @test length(AGray32) == 2
+    @test length(AGray{Float32}) == 2
+
+    @test length(ARGB(1.0,0.8,0.6,0.4)) == 4
+end
+
 # TODO: move `colorant_string` to `show.jl`
 @testset "colorant_string" begin
     @test ColorTypes.colorant_string(Union{}) == "Union{}"
