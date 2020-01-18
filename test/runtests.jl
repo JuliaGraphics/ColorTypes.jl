@@ -423,20 +423,6 @@ x = N0f8(0.3)
 @test promote(RGB{N0f8}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{N0f8}(0.2,0.3,0.4), RGB{N0f8}(0.3,0.8,0.1))
 @test promote(RGB{Float32}(0.2,0.3,0.4), RGB24(0.3,0.8,0.1)) === (RGB{Float32}(0.2,0.3,0.4), RGB{Float32}(N0f8(0.3),N0f8(0.8),N0f8(0.1)))
 
-@test ColorTypes.colorant_string(Union{})   == "Union{}"
-@test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
-@test ColorTypes.colorant_string(RGB24)     == "RGB24"
-@test ColorTypes.colorant_string(ARGB32)    == "ARGB32"
-@test ColorTypes.colorant_string(Gray24)    == "Gray24"
-@test ColorTypes.colorant_string(AGray32)   == "AGray32"
-@test ColorTypes.colorant_string_with_eltype(Union{})   == "Union{}"
-@test ColorTypes.colorant_string_with_eltype(RGB{N0f8}) == "RGB{N0f8}"
-@test ColorTypes.colorant_string_with_eltype(RGB24)     == "RGB24"
-@test ColorTypes.colorant_string_with_eltype(ARGB32)    == "ARGB32"
-@test ColorTypes.colorant_string_with_eltype(Gray24)    == "Gray24"
-@test ColorTypes.colorant_string_with_eltype(AGray32)   == "AGray32"
-
-
 @test oneunit(Gray{N0f8}) == Gray{N0f8}(1)
 @test zero(Gray{N0f8}) == Gray{N0f8}(0)
 

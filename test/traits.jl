@@ -100,3 +100,30 @@ end
     @inferred hue(LabA(60, -30, 30, 0.5))
     @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
 end
+
+# TODO: move `colorant_string` to `show.jl`
+@testset "colorant_string" begin
+    @test ColorTypes.colorant_string(Union{}) == "Union{}"
+    @test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
+    @test ColorTypes.colorant_string(HSV{Float32}) == "HSV"
+    @test ColorTypes.colorant_string(RGB24) == "RGB24"
+    @test ColorTypes.colorant_string(ARGB32) == "ARGB32"
+    @test ColorTypes.colorant_string(Gray24) == "Gray24"
+    @test ColorTypes.colorant_string(AGray32) == "AGray32"
+    @test ColorTypes.colorant_string(RGB) == "RGB"
+    @test_throws MethodError ColorTypes.colorant_string(Float32)
+end
+
+# TODO: move `colorant_string_with_eltype` to `show.jl`
+@testset "colorant_string_with_eltype" begin
+    @test ColorTypes.colorant_string_with_eltype(Union{}) == "Union{}"
+    @test ColorTypes.colorant_string_with_eltype(RGB{N0f8}) == "RGB{N0f8}"
+    @test ColorTypes.colorant_string_with_eltype(HSV{Float32}) == "HSV{Float32}"
+    @test ColorTypes.colorant_string_with_eltype(RGB24) == "RGB24"
+    @test ColorTypes.colorant_string_with_eltype(ARGB32) == "ARGB32"
+    @test ColorTypes.colorant_string_with_eltype(Gray24) == "Gray24"
+    @test ColorTypes.colorant_string_with_eltype(AGray32) == "AGray32"
+    @test_broken ColorTypes.colorant_string_with_eltype(RGB) != "RGB{Any}" # TODO: define the appropriate expression
+    @test ColorTypes.colorant_string_with_eltype(RGB{Union{}}) == "RGB{Union{}}"
+    @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
+end
