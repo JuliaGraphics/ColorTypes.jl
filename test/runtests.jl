@@ -26,11 +26,6 @@ end
 @test supertype(AGray32) === AbstractAGray{Gray24, N0f8}
 
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
-@test @inferred(eltype(Color{N0f8})) == N0f8
-@test @inferred(eltype(RGB{Float32})) == Float32
-@test @inferred(eltype(RGBA{Float64})) == Float64
-# @test eltype(RGB) == TypeVar(:T, Fractional)
-@inferred(eltype(RGB))      # just test that it doesn't error
 
 # coloralpha/alphacolor for `TransparentColor`s (issue #126)
 @test @inferred(coloralpha(RGBA)) == RGBA
@@ -117,11 +112,6 @@ end
 @test @inferred(ccolor(Gray, Gray)) == Gray
 
 # Traits for instances (and their constructors)
-@test @inferred(eltype(RGB{N0f8}(1,0,0))) == N0f8
-@test @inferred(eltype(RGB(1.0,0,0))) == Float64
-@test @inferred(eltype(ARGB(1.0,0.8,0.6,0.4))) == Float64
-@test @inferred(eltype(RGBA{Float32}(1.0,0.8,0.6,0.4))) == Float32
-@test @inferred(eltype(RGB(0x01,0x00,0x00))) == N0f8
 
 @test @inferred(color_type(RGB{N0f8}(1,0,0))) == RGB{N0f8}
 @test @inferred(color_type(ARGB(1.0,0.8,0.6,0.4))) == RGB{Float64}
@@ -134,8 +124,6 @@ end
 @test @inferred(base_colorant_type(RGB{N0f8}(1,0,0))) == RGB
 @test @inferred(base_colorant_type(ARGB(1.0,0.8,0.6,0.4))) == ARGB
 @test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
-
-@test N0f8 <: ColorTypes.eltypes_supported(RGB(1,0,0))
 
 # Constructors
 for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
@@ -157,7 +145,6 @@ for val in (1.2, 1.2f0, N4f12(1.2), Gray{N4f12}(1.2), 2)
     @test_throws ArgumentError AGray32(val)
     @test_throws ArgumentError AGray32(val, 0.8)
 end
-@test eltype(Gray()) == N0f8
 @test Gray(Gray()) == Gray()  # no StackOverflowError
 @test eltype(broadcast(Gray, rand(5))) == Gray{Float64}
 @test eltype(broadcast(Gray, rand(Float32,5))) == Gray{Float32}

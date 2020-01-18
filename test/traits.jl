@@ -115,6 +115,35 @@ end
     @test length(ARGB(1.0,0.8,0.6,0.4)) == 4
 end
 
+@testset "eltype" begin
+    @test @inferred(eltype(Color{N0f8})) === N0f8
+    @test @inferred(eltype(RGB{Float32})) === Float32
+    @test @inferred(eltype(RGBA{Float64})) === Float64
+    @test @inferred(eltype(RGB24)) === N0f8
+    # @test eltype(RGB) == TypeVar(:T, Fractional)
+    @inferred(eltype(RGB))      # just test that it doesn't error
+
+    # for instances
+    @test @inferred(eltype(RGB{N0f8}(1,0,0))) === N0f8
+    @test @inferred(eltype(RGB(0x01,0x00,0x00))) === N0f8
+    @test @inferred(eltype(RGB(1.0,0,0))) === Float64
+    @test @inferred(eltype(ARGB(1.0,0.8,0.6,0.4))) === Float64
+    @test @inferred(eltype(RGBA{Float32}(1.0,0.8,0.6,0.4))) === Float32
+    @test @inferred(eltype(RGB24(1,0.5,0))) === N0f8
+    @test @inferred(eltype(ARGB32(1,0.5,0,0.8))) === N0f8
+
+    @test @inferred(eltype(Gray(1))) === N0f8
+    @test @inferred(eltype(Gray(1.0))) === Float64
+    @test @inferred(eltype(Gray24(0.8))) === N0f8
+    @test @inferred(eltype(AGray32(0.8))) === N0f8
+
+    @test @inferred(eltype(HSV(30,1,0))) === Float32
+    @test @inferred(eltype(HSV(30,1.0,0.0))) === Float64
+
+    # eltypes_supported
+    @test N0f8 <: ColorTypes.eltypes_supported(RGB(1,0,0))
+end
+
 # TODO: move `colorant_string` to `show.jl`
 @testset "colorant_string" begin
     @test ColorTypes.colorant_string(Union{}) == "Union{}"
