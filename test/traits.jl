@@ -267,6 +267,75 @@ end
     @test @inferred(base_color_type(1N0f8)) === Gray
 end
 
+@testset "base_colorant_type" begin
+    @test @inferred(base_colorant_type(RGB)) === RGB
+    @test @inferred(base_colorant_type(RGBA)) === RGBA
+    @test @inferred(base_colorant_type(ARGB)) === ARGB
+    @test @inferred(base_colorant_type(RGB{N0f8})) === RGB
+    @test @inferred(base_colorant_type(RGBA{Float32})) === RGBA
+    @test @inferred(base_colorant_type(ARGB{Float64})) === ARGB
+    @test @inferred(base_colorant_type(RGB24)) === RGB24
+    @test @inferred(base_colorant_type(ARGB32)) === ARGB32
+
+    @test @inferred(base_colorant_type(BGR)) === BGR
+    @test @inferred(base_colorant_type(BGR{N0f8})) === BGR
+    @test @inferred(base_colorant_type(XRGB)) === XRGB
+    @test @inferred(base_colorant_type(RGBX)) === RGBX
+
+    @test @inferred(base_colorant_type(Gray)) === Gray
+    @test @inferred(base_colorant_type(GrayA)) === GrayA
+    @test @inferred(base_colorant_type(AGray)) === AGray
+    @test @inferred(base_colorant_type(Gray{N0f8})) === Gray
+    @test @inferred(base_colorant_type(GrayA{Float32})) === GrayA
+    @test @inferred(base_colorant_type(AGray{Float64})) === AGray
+    @test @inferred(base_colorant_type(Gray24)) === Gray24
+    @test @inferred(base_colorant_type(AGray32)) === AGray32
+
+    @test @inferred(base_colorant_type(HSV)) === HSV
+    @test @inferred(base_colorant_type(HSVA)) === HSVA
+    @test @inferred(base_colorant_type(AHSV)) === AHSV
+    @test @inferred(base_colorant_type(HSV{Float16})) === HSV
+    @test @inferred(base_colorant_type(HSVA{Float32})) === HSVA
+    @test @inferred(base_colorant_type(AHSV{Float64})) === AHSV
+
+    @test @inferred(base_colorant_type(AbstractRGB)) === AbstractRGB
+    @test @inferred(base_colorant_type(AbstractRGBA)) === ColorAlpha # FIXME
+    @test @inferred(base_colorant_type(AbstractARGB)) === AlphaColor # FIXME
+    @test_broken @inferred(base_colorant_type(AbstractRGBA)) === AbstractRGBA
+    @test_broken @inferred(base_colorant_type(AbstractARGB)) === AbstractARGB
+    @test @inferred(base_colorant_type(AbstractRGB{N0f8})) === AbstractRGB
+    @test @inferred(base_colorant_type(AbstractRGBA{RGB,Float32})) === ColorAlpha # FIXME
+    @test @inferred(base_colorant_type(AbstractARGB{RGB{Float64},Float64})) === AlphaColor # FIXME
+    @test_broken @inferred(base_colorant_type(AbstractRGBA{RGB,Float32})) === RGBA
+    @test_broken @inferred(base_colorant_type(AbstractARGB{RGB{Float64},Float64})) === ARGB
+    @test @inferred(base_colorant_type(TransparentRGB)) === TransparentColor # FIXME
+    @test_broken @inferred(base_colorant_type(TransparentRGB)) === TransparentRGB
+
+    @test_broken @inferred(base_colorant_type(AbstractGrayA)) === AbstractGrayA
+    @test_broken @inferred(base_colorant_type(AbstractAGray)) === AbstractAGray
+    @test_broken @inferred(base_colorant_type(TransparentGray)) === TransparentGray
+
+    @test_broken @inferred(base_colorant_type(Color3)) === Color3
+    @test_broken @inferred(base_colorant_type(Transparent3)) === Transparent3
+    @test @inferred(base_colorant_type(Color)) === Color
+    @test @inferred(base_colorant_type(TransparentColor)) === TransparentColor
+    @test @inferred(base_colorant_type(TransparentColor{RGB})) === TransparentColor # FIXME
+    @test @inferred(base_colorant_type(TransparentColor{RGB,Float64})) === TransparentColor # FIXME
+    @test @inferred(base_colorant_type(TransparentColor{RGB{Float64},Float64})) === TransparentColor # FIXME
+    @test_broken @inferred(base_colorant_type(TransparentColor{RGB})) === TransparentRGB
+    @test_broken @inferred(base_colorant_type(TransparentColor{RGB,Float64})) === TransparentRGB
+    @test_broken @inferred(base_colorant_type(TransparentColor{RGB{Float64},Float64})) === TransparentRGB
+    @test_throws MethodError color_type(Colorant{N0f8})
+
+    @test_broken @inferred(base_colorant_type(N0f8)) === Gray
+
+    # for instances
+    @test @inferred(base_colorant_type(RGB{N0f8}(1,0,0))) === RGB
+    @test @inferred(base_colorant_type(ARGB(1.0,0.8,0.6,0.4))) === ARGB
+    @test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) === RGBA
+    @test_broken @inferred(base_colorant_type(1N0f8)) === Gray
+end
+
 # TODO: move `colorant_string` to `show.jl`
 @testset "colorant_string" begin
     @test ColorTypes.colorant_string(Union{}) == "Union{}"

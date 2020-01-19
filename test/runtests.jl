@@ -84,10 +84,6 @@ end
 @test @inferred(ccolor(RGB,  RGB))  == RGB
 @test @inferred(ccolor(Gray, Gray)) == Gray
 
-@test @inferred(base_colorant_type(RGB{N0f8}(1,0,0))) == RGB
-@test @inferred(base_colorant_type(ARGB(1.0,0.8,0.6,0.4))) == ARGB
-@test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) == RGBA
-
 # Constructors
 for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
             Gray{N0f8}(0.2), Gray{N4f12}(0.2), Gray24(0.2))
