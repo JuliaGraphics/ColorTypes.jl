@@ -47,21 +47,6 @@ end
 @test @inferred(alphacolor(GrayA{Float32})) == AGray
 @test @inferred(alphacolor(ARGB32)) == ARGB32
 
-@testset "floattype" begin
-    @test @inferred(floattype(RGBA{Float32})) == RGBA{Float32}
-    @test @inferred(floattype(BGR{N0f8})    ) == BGR{Float32}
-    @test @inferred(floattype(Gray{N0f8})   ) == Gray{Float32}
-    @test @inferred(floattype(N0f8)         ) == Float32
-    @test @inferred(floattype(Bool)         ) == Float32
-    @test @inferred(floattype(Float32)      ) == Float32
-    @test @inferred(floattype(Float64)      ) == Float64
-
-    @test @inferred(floattype(ARGB32)) == ARGB{Float32}
-    @test @inferred(floattype(AGray32)) == AGray{Float32}
-    @test @inferred(floattype(RGB24)) == RGB{Float32}
-    @test @inferred(floattype(Gray24)) == Gray{Float32}
-end
-
 @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) == BGR{N0f8}
 
 @test @inferred(ccolor(RGB{Float32}, HSV{Float32})) == RGB{Float32}

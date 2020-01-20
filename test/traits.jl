@@ -336,6 +336,26 @@ end
     @test_broken @inferred(base_colorant_type(1N0f8)) === Gray
 end
 
+@testset "floattype" begin
+    @test @inferred(floattype(RGBA{Float32})) === RGBA{Float32}
+    @test @inferred(floattype(BGR{N0f8})    ) === BGR{Float32}
+    @test @inferred(floattype(Gray{N0f8})   ) === Gray{Float32}
+    @test @inferred(floattype(Gray{Bool})   ) === Gray{Float32}
+    @test @inferred(floattype(N0f8)         ) === Float32
+    @test @inferred(floattype(Bool)         ) === Float32
+    @test @inferred(floattype(Float32)      ) === Float32
+    @test @inferred(floattype(Float64)      ) === Float64
+
+    @test @inferred(floattype(ARGB32)) == ARGB{Float32}
+    @test @inferred(floattype(AGray32)) == AGray{Float32}
+    @test @inferred(floattype(RGB24)) == RGB{Float32}
+    @test @inferred(floattype(Gray24)) == Gray{Float32}
+
+    @test_throws MethodError @inferred(floattype(RGB))
+
+    @test_throws MethodError @inferred(floattype(RGB{N0f8}(1,0,0)))
+end
+
 # TODO: move `colorant_string` to `show.jl`
 @testset "colorant_string" begin
     @test ColorTypes.colorant_string(Union{}) == "Union{}"
