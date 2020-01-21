@@ -47,27 +47,12 @@ end
 @test @inferred(alphacolor(GrayA{Float32})) == AGray
 @test @inferred(alphacolor(ARGB32)) == ARGB32
 
-@test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) == BGR{N0f8}
-
-@test @inferred(ccolor(RGB{Float32}, HSV{Float32})) == RGB{Float32}
-@test @inferred(ccolor(RGB{N0f8},      HSV{Float32})) == RGB{N0f8}
-@test @inferred(ccolor(RGB,          HSV{Float32})) == RGB{Float32}
-@test @inferred(ccolor(ARGB{Float32}, HSV{Float32})) == ARGB{Float32}
-@test @inferred(ccolor(ARGB{N0f8},      HSV{Float32})) == ARGB{N0f8}
-@test @inferred(ccolor(ARGB,          HSV{Float32})) == ARGB{Float32}
-
-@test @inferred(ccolor(Gray{N0f8}, Bool)) === Gray{N0f8}
-@test @inferred(ccolor(Gray,     Bool)) === Gray{Bool}
-@test @inferred(ccolor(Gray,     Int))  === Gray{N0f8}
 # This tests the same thing as the last, but in a user-observable way
 let a = Array{Gray}(undef, 1)
     a[1] = Gray(0)
     a[1] = 1
     @test a[1] === Gray(1)
 end
-
-@test @inferred(ccolor(RGB,  RGB))  == RGB
-@test @inferred(ccolor(Gray, Gray)) == Gray
 
 # Constructors
 for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),

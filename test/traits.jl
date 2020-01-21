@@ -383,6 +383,74 @@ end
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
 
+@testset "ccolor" begin
+    @test @inferred(ccolor(Colorant, XRGB{N0f8})) === XRGB{N0f8}
+    @test @inferred(ccolor(Colorant{N0f8}, RGBX{Float32})) === RGBX{N0f8}
+    @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) === BGR{N0f8}
+
+    @test @inferred(ccolor(AbstractRGB, HSV{Float32})) === AbstractRGB{Float32} # is not concrete type
+    @test @inferred(ccolor(AbstractRGB{N0f8}, HSV{Float32})) === AbstractRGB{N0f8} # is not concrete type
+    @test @inferred(ccolor(AbstractRGB, RGB24)) === RGB24
+    @test_broken @inferred(ccolor(AbstractRGB{Float32}, RGB24))
+
+    @test @inferred(ccolor(RGB, RGB)) == RGB # with symbol `S` instead of `T`
+    @test @inferred(ccolor(RGB, HSV)) == RGB # with symbol `S` instead of `T`
+    @test @inferred(ccolor(Gray, Gray)) == Gray # with symbol `S` instead of `T`
+    @test @inferred(ccolor(Gray, HSV)) == Gray # with symbol `S` instead of `T`
+
+    @test @inferred(ccolor(RGB{Float32}, HSV{Float32})) === RGB{Float32}
+    @test @inferred(ccolor(RGB{N0f8}, HSV{Float32})) === RGB{N0f8}
+    @test @inferred(ccolor(RGB, HSV{Float32})) === RGB{Float32}
+
+    @test @inferred(ccolor(ARGB{Float32}, HSV{Float32})) === ARGB{Float32}
+    @test @inferred(ccolor(ARGB{N0f8}, HSV{Float32})) === ARGB{N0f8}
+    @test @inferred(ccolor(ARGB, HSV{Float32})) === ARGB{Float32}
+
+    @test @inferred(ccolor(RGB{Float32}, AHSV{Float32})) === RGB{Float32}
+    @test @inferred(ccolor(RGB{N0f8}, AHSV{Float32})) === RGB{N0f8}
+    @test @inferred(ccolor(RGB, AHSV{Float32})) === RGB{Float32}
+
+    @test @inferred(ccolor(RGBA{Float32}, AHSV{Float32})) === RGBA{Float32}
+    @test @inferred(ccolor(RGBA{N0f8}, AHSV{Float32})) === RGBA{N0f8}
+    @test @inferred(ccolor(RGBA, AHSV{Float32})) === RGBA{Float32}
+
+    @test @inferred(ccolor(HSV{Float32}, RGB{N0f8})) === HSV{Float32}
+    @test @inferred(ccolor(HSV, RGB{N0f8})) === HSV{Float32}
+
+    @test @inferred(ccolor(Gray{N0f8}, Bool)) === Gray{N0f8}
+    @test @inferred(ccolor(Gray, Bool)) === Gray{Bool}
+    @test @inferred(ccolor(Gray, Int)) === Gray{N0f8}
+    @test @inferred(ccolor(Gray, Float32)) === Gray{Float32}
+
+    @test @inferred(ccolor(RGB24, HSV{Float32})) === RGB24
+    @test @inferred(ccolor(ARGB32, HSV{Float32})) === ARGB32
+    @test @inferred(ccolor(Gray24, HSV{Float32})) === Gray24
+    @test @inferred(ccolor(AGray32, HSV{Float32})) === AGray32
+
+    @test @inferred(ccolor(RGB{N0f8}, RGB24)) === RGB{N0f8}
+    @test @inferred(ccolor(ARGB{N0f8}, ARGB32)) === ARGB{N0f8}
+    @test @inferred(ccolor(Gray{N0f8}, Gray24)) === Gray{N0f8}
+    @test @inferred(ccolor(AGray{N0f8}, AGray32)) === AGray{N0f8}
+
+    @test @inferred(ccolor(TransparentColor, AHSV{Float32})) === AHSV{Float32}
+
+    # Ambiguous storage order, choose AlphaColor or ColorAlpha
+    @test_throws ErrorException ccolor(TransparentColor, HSV{Float32})
+    @test_throws ErrorException ccolor(TransparentColor{RGB}, HSV{Float32})
+    @test_throws ErrorException ccolor(TransparentColor{RGB,Float64}, HSV{Float32})
+    @test_throws ErrorException ccolor(TransparentColor{RGB{Float64},Float64}, HSV{Float32})
+    @test_throws ErrorException ccolor(TransparentColor{RGB{Float64},Float64,4}, HSV{Float32})
+
+    @test @inferred(ccolor(AlphaColor, RGB)) === ARGB
+    @test_broken @inferred(ccolor(AlphaColor, RGB{N0f8})) === ARGB{N0f8}
+    @test @inferred(ccolor(AlphaColor, RGB24)) === ARGB32
+    @test_broken @inferred(ccolor(AbstractARGB, RGB)) === ARGB
+    @test_broken @inferred(ccolor(AbstractARGB, RGB{N0f8})) === ARGB{N0f8}
+    @test_broken @inferred(ccolor(AbstractARGB, RGB24)) === ARGB32
+
+    @test_throws MethodError ccolor(RGB, RGB{N0f8}(1,0,0))
+end
+
 @testset "identities for Gray" begin
     @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
     @test zero(Gray{N0f8}) === Gray{N0f8}(0)
