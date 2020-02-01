@@ -13,17 +13,9 @@ end
     include("traits.jl")
 end
 
-# compatibility/regression tests for ARGB32 and AGray32
-@test ARGB32 <: AlphaColor{RGB24, N0f8, 4}
-@test ARGB32 <: AbstractARGB
-@test !(ARGB32 <: AbstractRGBA)
-@test AGray32 <: AlphaColor{Gray24, N0f8, 2}
-@test AGray32 <: AbstractAGray
-@test !(AGray32 <: AbstractGrayA)
-@test supertype(ARGB32) === AlphaColor{RGB24, N0f8, 4} # v0.9 or earlier
-@test supertype(ARGB32) === AbstractARGB{RGB24, N0f8}
-@test supertype(AGray32) === AlphaColor{Gray24, N0f8, 2} # v0.9 or earlier
-@test supertype(AGray32) === AbstractAGray{Gray24, N0f8}
+@testset "types" begin
+    include("types.jl")
+end
 
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 
@@ -520,26 +512,6 @@ end
     @test_throws ArgumentError RGB24[0x00000000,0x00808080]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
-end
-
-
-### Prevent future commits from unexporting abstract types
-@testset "abstract type exports" begin
-    dispatcher(::AbstractGray) = 1
-    dispatcher(::Color3) = 2
-    dispatcher(::TransparentGray) = 3
-    dispatcher(Transparent3) = 4
-    dispatcher(::TransparentRGB) = 5
-    normeddispatcher(::ColorantNormed) = true
-    normeddispatcher(::Colorant) = false
-
-    @test dispatcher(Gray(0.2)) == 1
-    @test dispatcher(RGB(1.0,1.0,1.0)) == 2
-    @test dispatcher(AGray(0.2,0.5)) == 3
-    @test dispatcher(alphacolor(rand(HSV))) == 4
-    @test dispatcher(ARGB(0.5,1.0,1.0,1.0)) == 5
-    @test normeddispatcher(RGB(1.0,1.0,1.0)) == false
-    @test normeddispatcher(RGB{N0f8}(1.0,1.0,1.0)) == true
 end
 
 @testset "color construction from grayscale" begin
