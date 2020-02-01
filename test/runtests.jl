@@ -19,26 +19,6 @@ end
 
 @test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 
-# coloralpha/alphacolor for `TransparentColor`s (issue #126)
-@test @inferred(coloralpha(RGBA)) == RGBA
-@test @inferred(coloralpha(ARGB)) == RGBA
-@test @inferred(coloralpha(RGBA{Float32})) == RGBA
-@test @inferred(coloralpha(ARGB{Float32})) == RGBA
-@test @inferred(coloralpha(AGray)) == GrayA
-@test @inferred(coloralpha(GrayA)) == GrayA
-@test @inferred(coloralpha(AGray{Float32})) == GrayA
-@test @inferred(coloralpha(GrayA{Float32})) == GrayA
-@test_throws MethodError coloralpha(ARGB32)
-@test @inferred(alphacolor(RGBA)) == ARGB
-@test @inferred(alphacolor(ARGB)) == ARGB
-@test @inferred(alphacolor(RGBA{Float32})) == ARGB
-@test @inferred(alphacolor(ARGB{Float32})) == ARGB
-@test @inferred(alphacolor(AGray)) == AGray
-@test @inferred(alphacolor(GrayA)) == AGray
-@test @inferred(alphacolor(AGray{Float32})) == AGray
-@test @inferred(alphacolor(GrayA{Float32})) == AGray
-@test @inferred(alphacolor(ARGB32)) == ARGB32
-
 # This tests the same thing as the last, but in a user-observable way
 let a = Array{Gray}(undef, 1)
     a[1] = Gray(0)

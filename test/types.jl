@@ -60,3 +60,73 @@ end
     @test normeddispatcher(RGB{N0f8}(1.0,1.0,1.0)) == true
     @test normeddispatcher(ARGB32(1.0,1.0,1.0)) == true
 end
+
+@testset "coloralpha for types" begin
+    @test @inferred(coloralpha(RGB)) === RGBA
+    @test @inferred(coloralpha(RGBA)) === RGBA
+    @test @inferred(coloralpha(ARGB)) === RGBA
+    @test @inferred(coloralpha(RGB{N0f8})) === RGBA
+    @test @inferred(coloralpha(RGBA{Float32})) === RGBA
+    @test @inferred(coloralpha(ARGB{Float64})) === RGBA
+    @test_throws MethodError coloralpha(RGB24)
+    @test_throws MethodError coloralpha(ARGB32)
+
+    @test @inferred(coloralpha(BGR)) === BGRA
+    @test @inferred(coloralpha(BGR{N0f8})) === BGRA
+    @test @inferred(coloralpha(XRGB)) === RGBA
+    @test @inferred(coloralpha(RGBX)) === RGBA
+
+    @test @inferred(coloralpha(Gray)) === GrayA
+    @test @inferred(coloralpha(GrayA)) === GrayA
+    @test @inferred(coloralpha(AGray)) === GrayA
+    @test @inferred(coloralpha(Gray{N0f8})) === GrayA
+    @test @inferred(coloralpha(GrayA{Float32})) === GrayA
+    @test @inferred(coloralpha(AGray{Float64})) === GrayA
+    @test_throws MethodError coloralpha(Gray24)
+    @test_throws MethodError coloralpha(AGray32)
+
+    @test @inferred(coloralpha(HSV)) === HSVA
+    @test @inferred(coloralpha(HSVA)) === HSVA
+    @test @inferred(coloralpha(AHSV)) === HSVA
+    @test @inferred(coloralpha(HSV{Float16})) === HSVA
+    @test @inferred(coloralpha(HSVA{Float32})) === HSVA
+    @test @inferred(coloralpha(AHSV{Float64})) === HSVA
+
+    @test_throws MethodError coloralpha(AbstractRGB)
+    @test_throws MethodError coloralpha(N0f8)
+end
+
+@testset "alphacolor for types" begin
+    @test @inferred(alphacolor(RGB)) === ARGB
+    @test @inferred(alphacolor(RGBA)) === ARGB
+    @test @inferred(alphacolor(ARGB)) === ARGB
+    @test @inferred(alphacolor(RGB{N0f8})) === ARGB
+    @test @inferred(alphacolor(RGBA{Float32})) === ARGB
+    @test @inferred(alphacolor(ARGB{Float64})) === ARGB
+    @test @inferred(alphacolor(RGB24)) === ARGB32
+    @test @inferred(alphacolor(ARGB32)) === ARGB32
+
+    @test @inferred(alphacolor(BGR)) === ABGR
+    @test @inferred(alphacolor(BGR{N0f8})) === ABGR
+    @test @inferred(alphacolor(XRGB)) === ARGB
+    @test @inferred(alphacolor(RGBX)) === ARGB
+
+    @test @inferred(alphacolor(Gray)) === AGray
+    @test @inferred(alphacolor(GrayA)) === AGray
+    @test @inferred(alphacolor(AGray)) === AGray
+    @test @inferred(alphacolor(Gray{N0f8})) === AGray
+    @test @inferred(alphacolor(GrayA{Float32})) === AGray
+    @test @inferred(alphacolor(AGray{Float64})) === AGray
+    @test @inferred(alphacolor(Gray24)) === AGray32
+    @test @inferred(alphacolor(AGray32)) === AGray32
+
+    @test @inferred(alphacolor(HSV)) === AHSV
+    @test @inferred(alphacolor(HSVA)) === AHSV
+    @test @inferred(alphacolor(AHSV)) === AHSV
+    @test @inferred(alphacolor(HSV{Float16})) === AHSV
+    @test @inferred(alphacolor(HSVA{Float32})) === AHSV
+    @test @inferred(alphacolor(AHSV{Float64})) === AHSV
+
+    @test_throws MethodError alphacolor(AbstractRGB)
+    @test_throws MethodError alphacolor(N0f8)
+end
