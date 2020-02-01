@@ -353,14 +353,6 @@ end
 addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
 @test addred.([RGB(1,0,0)], RGB(1.0,0,0)) == [2]
 
-
-# colorfields
-@test ColorTypes.colorfields(AGray32(.2)) == (:color,:alpha)
-@test ColorTypes.colorfields(Gray) == (:val,)
-@test ColorTypes.colorfields(XRGB) == (:r, :g, :b)
-@test ColorTypes.colorfields(RGBX) == (:r, :g, :b)
-@test ColorTypes.colorfields(BGR) == (:r, :g, :b)
-
 # UInt32 comparison
 @test reinterpret(UInt32, Gray24()) == 0x00000000
 @test reinterpret(UInt32, Gray24(.2)) == 0x00333333

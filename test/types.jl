@@ -61,6 +61,40 @@ end
     @test normeddispatcher(ARGB32(1.0,1.0,1.0)) == true
 end
 
+@testset "colorfields" begin
+    @test ColorTypes.colorfields(RGB) == (:r, :g, :b)
+    @test ColorTypes.colorfields(RGBA) == (:r, :g, :b, :alpha)
+    @test ColorTypes.colorfields(ARGB) == (:r, :g, :b, :alpha)
+    @test ColorTypes.colorfields(RGB{N0f8}) == (:r, :g, :b)
+    @test ColorTypes.colorfields(RGBA{Float32}) == (:r, :g, :b, :alpha)
+    @test ColorTypes.colorfields(ARGB{Float64}) == (:r, :g, :b, :alpha)
+    @test ColorTypes.colorfields(RGB24) == (:color,)
+    @test ColorTypes.colorfields(ARGB32) == (:color, :alpha)
+
+    @test ColorTypes.colorfields(BGR) == (:r, :g, :b)
+    @test ColorTypes.colorfields(XRGB) == (:r, :g, :b)
+    @test ColorTypes.colorfields(RGBX) == (:r, :g, :b)
+
+    @test ColorTypes.colorfields(Gray) == (:val,)
+    @test ColorTypes.colorfields(GrayA) == (:val, :alpha)
+    @test ColorTypes.colorfields(AGray) == (:val, :alpha)
+    @test ColorTypes.colorfields(Gray24) == (:color,)
+    @test ColorTypes.colorfields(AGray32) == (:color, :alpha)
+
+    @test ColorTypes.colorfields(HSV) == (:h, :s, :v)
+    @test ColorTypes.colorfields(HSVA) == (:h, :s, :v, :alpha)
+    @test ColorTypes.colorfields(AHSV) == (:h, :s, :v, :alpha)
+
+    @test_throws ArgumentError ColorTypes.colorfields(AbstractRGB)
+    @test_throws MethodError ColorTypes.colorfields(N0f8)
+
+    # for instances
+    @test ColorTypes.colorfields(RGB{N0f8}(1,0,0)) == (:r, :g, :b)
+    @test ColorTypes.colorfields(ARGB(1.0,0.8,0.6,0.4)) == (:r, :g, :b, :alpha)
+    @test ColorTypes.colorfields(RGBA{Float32}(1.0,0.8,0.6,0.4)) == (:r, :g, :b, :alpha)
+    @test_throws MethodError ColorTypes.colorfields(1N0f8)
+end
+
 @testset "coloralpha for types" begin
     @test @inferred(coloralpha(RGB)) === RGBA
     @test @inferred(coloralpha(RGBA)) === RGBA
