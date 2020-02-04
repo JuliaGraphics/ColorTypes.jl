@@ -157,8 +157,6 @@ ac2 = convert(ARGB32, c)
 @test alpha(c) == N0f8(1)
 @test alpha(ac) == N0f8(ac.color>>24, 0)
 @test alpha(ac2) == N0f8(1)
-@test reinterpret(UInt32, reinterpret(RGB24,  0xff020304)) == 0xff020304
-@test reinterpret(UInt32, reinterpret(ARGB32, 0x01020304)) == 0x01020304
 ac3 = convert(RGBA, ac)
 @test convert(RGB24, ac3) == c
 
@@ -196,11 +194,6 @@ x = N0f8(0.3)
 @test convert(AGray{N0f8}, .2) == AGray{N0f8}(.2)
 @test Gray{N0f8}(0.37).val           == N0f8(0.37)
 @test convert(Gray{N0f8}, 0.37).val  == N0f8(0.37)
-@test reinterpret(UInt32, Gray24(reinterpret(N0f8, 0x0d)))           == 0x000d0d0d
-@test reinterpret(UInt32, convert(Gray24, reinterpret(N0f8, 0x0d)))  == 0x000d0d0d
-@test reinterpret(UInt32, AGray32(reinterpret(N0f8, 0x0d)))          == 0xff0d0d0d
-@test reinterpret(UInt32, convert(AGray32, reinterpret(N0f8, 0x0d))) == 0xff0d0d0d
-@test reinterpret(UInt32, AGray32(reinterpret(N0f8, 0x0d), reinterpret(N0f8, 0x80))) == 0x800d0d0d
 @test convert(Gray{N0f16}, Gray24(reinterpret(N0f8, 0x0d))) == Gray{N0f16}(0.05098)
 
 @test promote(Gray{N0f8}(0.2), Gray24(0.3)) === (Gray{N0f8}(0.2), Gray{N0f8}(0.3))
@@ -259,18 +252,6 @@ end
 @test eltype(broadcast(RGB, [BGR(1,0,0)])) == RGB{N0f8}
 addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
 @test addred.([RGB(1,0,0)], RGB(1.0,0,0)) == [2]
-
-# UInt32 comparison
-@test reinterpret(UInt32, Gray24()) == 0x00000000
-@test reinterpret(UInt32, Gray24(.2)) == 0x00333333
-@test reinterpret(UInt32, Gray24(reinterpret(N0f8, 0x23))) == 0x00232323
-@test reinterpret(UInt32, AGray32()) == 0xff000000
-@test reinterpret(UInt32, AGray32(.2)) == 0xff333333
-@test reinterpret(UInt32, convert(AGray32, .2, 0.)) == 0x00333333
-@test reinterpret(UInt32, AGray32(reinterpret(N0f8, 0x23))) == 0xff232323
-@test reinterpret(UInt32, RGB24()) == 0x00000000
-@test reinterpret(UInt32, ARGB32()) == 0xff000000
-@test reinterpret(UInt32, ARGB32(1,.2,.3)) == 0xffff334c
 
 @test @inferred(mapc(sqrt, Gray{N0f8}(0.04))) == Gray(sqrt(N0f8(0.04)))
 @test @inferred(mapc(sqrt, AGray{N0f8}(0.04, 0.4))) == AGray(sqrt(N0f8(0.04)), sqrt(N0f8(0.4)))
