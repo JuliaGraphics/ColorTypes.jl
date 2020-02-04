@@ -39,16 +39,6 @@ for C in ColorTypes.parametric3
     @test eltype(C{Float32}(1,0,0)) == Float32
 end
 
-for C in filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
-    for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
-        for val2 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
-            c = C(val1,val2,val1)
-            @test alphacolor(c, 0.2) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 0.2))
-            @test coloralpha(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
-        end
-    end
-end
-
 @testset "Test some Gray stuff" begin
     c = Gray(0.8)
     ac = convert(AGray, c)
@@ -64,14 +54,6 @@ end
 end
 
 # Transparency
-@test alphacolor(Gray24(.2), .8) == AGray32(.2,.8)
-@test alphacolor(RGB24(1,0,0), .8) == ARGB32(1,0,0,.8)
-@test alphacolor(RGB(1,0,0), .8) == ARGB{N0f8}(1,0,0,.8)
-@test coloralpha(RGB(1,0,0), .8) == RGBA{N0f8}(1,0,0,.8)
-@test alphacolor(RGBA(1,0,0,.8)) == ARGB{Float64}(1,0,0,.8)
-@test coloralpha(ARGB(1,0,0,.8)) == RGBA{Float64}(1,0,0,.8)
-@test alphacolor(RGBA(1,0,0,.8)) == ARGB{Float64}(1,0,0,.8)
-@test coloralpha(ARGB(1,0,0,.8)) == RGBA{Float64}(1,0,0,.8)
 for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
     for A in (alphacolor(C), coloralpha(C))
         @test eltype(A{Float32}) == Float32
@@ -98,11 +80,6 @@ for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
         @test convert(C{Float32}, c) == C{Float32}(1,0.8,0.6)
         @test C{Float32}(c) === C{Float32}(1,0.8,0.6)
     end
-    AC, CA = alphacolor(C), coloralpha(C)
-    @test AC(CA{Float64}(1,0.8,0.6,0.4)) == AC{Float64}(1,0.8,0.6,0.4)
-    @test AC{Float64}(CA{Float64}(1,0.8,0.6,0.4)) == AC{Float64}(1,0.8,0.6,0.4)
-    @test CA(AC{Float64}(1,0.8,0.6,0.4)) == CA{Float64}(1,0.8,0.6,0.4)
-    @test CA{Float64}(AC{Float64}(1,0.8,0.6,0.4)) == CA{Float64}(1,0.8,0.6,0.4)
 end
 ac = reinterpret(ARGB32, rand(UInt32))
 @test convert(ARGB32, ac) == ac

@@ -191,6 +191,66 @@ end
     @test_throws ErrorException convert(RGB, Gray(0.8))
 end
 
+@testset "alphacolor/coloralpha for instances" begin
+    Cp3 = ColorTypes.parametric3
+    @testset "alphacolor/coloralpha: $C" for C in Cp3
+        cf64, cf32 = C{Float64}(1, 0.6, 0), C{Float32}(1, 0.6, 0)
+        for f in (alphacolor, coloralpha)
+            A = f(C)
+            @test f(cf64) === A{Float64}(1, 0.6, 0, 1)
+            @test f(cf64, 0.8) === A{Float64}(1, 0.6, 0, 0.8)
+            @test f(cf32, 0.8) === A{Float32}(1, 0.6, 0, 0.8)
+            @test f(cf32, 0.8N0f8) === A{Float32}(1, 0.6, 0, 0.8N0f8)
+        end
+    end
+    Ct3 = unique(vcat(coloralpha.(Cp3), alphacolor.(Cp3)))
+    @testset "alphacolor/coloralpha: $C" for C in Ct3
+        cf64, cf32 = C{Float64}(1, 0.6, 0, 0.4), C{Float32}(1, 0.6, 0, 0.4)
+        for f in (alphacolor, coloralpha)
+            A = f(C)
+            @test f(cf64) === A{Float64}(1, 0.6, 0, 0.4)
+            @test f(cf64, 0.8) === A{Float64}(1, 0.6, 0, 0.8)
+            @test f(cf32, 0.8) === A{Float32}(1, 0.6, 0, 0.8)
+            @test f(cf32, 0.8N0f8) === A{Float32}(1, 0.6, 0, 0.8N0f8)
+        end
+    end
+    @testset "alphacolor/coloralpha: $C" for C in (Gray, AGray, GrayA)
+        cf64 = C === Gray ? Gray(0.6)   : C{Float64}(0.6, 0.4)
+        cf32 = C === Gray ? Gray(0.6f0) : C{Float32}(0.6, 0.4)
+        for f in (alphacolor, coloralpha)
+            A = f(C)
+            @test f(cf64) === A{Float64}(0.6, C === Gray ? 1 : 0.4)
+            @test f(cf64, 0.8) === A{Float64}(0.6, 0.8)
+            @test f(cf32, 0.8) === A{Float32}(0.6, 0.8)
+            @test f(cf32, 0.8N0f8) === A{Float32}(0.6, 0.8N0f8)
+        end
+    end
+
+    @test alphacolor(RGB{N0f8}(1,0.6,0), 0.8) === ARGB{N0f8}(1,0.6,0,0.8)
+    @test coloralpha(RGB{N0f8}(1,0.6,0), 0.8) === RGBA{N0f8}(1,0.6,0,0.8)
+
+    @test alphacolor(RGB24(1,0.6,0)) === ARGB32(1,0.6,0, 1)
+    @test alphacolor(RGB24(1,0.6,0), 0.8) === ARGB32(1,0.6,0, 0.8)
+    @test_throws MethodError coloralpha(RGB24(1,0.6,0))
+    @test_throws MethodError coloralpha(RGB24(1,0.6,0), 0.8)
+
+    @test alphacolor(ARGB32(1,0.6,0)) === ARGB32(1,0.6,0, 1)
+    @test alphacolor(ARGB32(1,0.6,0), 0.8) === ARGB32(1,0.6,0, 0.8)
+    @test_throws MethodError coloralpha(ARGB32(1,0.6,0))
+    @test_throws MethodError coloralpha(ARGB32(1,0.6,0), 0.8)
+
+    @test alphacolor(Gray24(0.6)) === AGray32(0.6, 1)
+    @test alphacolor(Gray24(0.6), 0.8) === AGray32(0.6, 0.8)
+    @test_throws MethodError coloralpha(Gray24(0.6))
+    @test_throws MethodError coloralpha(Gray24(0.6), 0.8)
+
+    @test alphacolor(AGray32(0.6)) === AGray32(0.6, 1)
+    @test alphacolor(AGray32(0.6), 0.8) === AGray32(0.6, 0.8)
+    @test_throws MethodError coloralpha(AGray32(0.6))
+    @test_throws MethodError coloralpha(AGray32(0.6), 0.8)
+end
+
+
 ### Prevent ambiguous definitions
 
 # Certain types, like Gray24, reinterpret a UInt32 as having a
