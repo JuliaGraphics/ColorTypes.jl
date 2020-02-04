@@ -5,6 +5,10 @@ using Test
 
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
+@testset "conversions" begin
+    include("conversions.jl")
+end
+
 @testset "show" begin
     include("show.jl")
 end
@@ -110,35 +114,6 @@ ac = reinterpret(ARGB32, rand(UInt32))
 c = convert(RGB24, ac)
 @test convert(RGB24, c) == c
 
-crgb   = convert(RGB, c)
-acargb = convert(ARGB, ac)
-@test convert(Colorant,       crgb) === crgb
-@test convert(Colorant{N0f8},   crgb) === crgb
-@test convert(Colorant{Float32},       crgb) === convert(RGB{Float32}, crgb)
-@test convert(Color,          crgb) === crgb
-@test convert(Color{N0f8},      crgb) === crgb
-@test convert(Color{Float32}, crgb) === convert(RGB{Float32}, crgb)
-@test_throws ErrorException convert(TransparentColor, crgb)
-@test_throws ErrorException convert(TransparentColor{RGB{N0f8}}, crgb)
-@test_throws ErrorException convert(TransparentColor{RGB{N0f8},N0f8}, crgb)
-@test_throws ErrorException convert(TransparentColor{RGB{N0f8},N0f8,2}, crgb)
-@test convert(AlphaColor, crgb) === alphacolor(crgb)
-@test convert(AlphaColor{RGB{N0f8}}, crgb) === alphacolor(crgb)
-@test convert(AlphaColor{RGB{N0f8},N0f8}, crgb) === alphacolor(crgb)
-@test convert(AlphaColor{RGB{N0f8},N0f8,4}, crgb) === alphacolor(crgb)
-@test convert(ColorAlpha, crgb) === coloralpha(crgb)
-@test convert(ColorAlpha{RGB{N0f8}}, crgb) === coloralpha(crgb)
-@test convert(ColorAlpha{RGB{N0f8},N0f8}, crgb) === coloralpha(crgb)
-@test convert(ColorAlpha{RGB{N0f8},N0f8,4}, crgb) === coloralpha(crgb)
-
-@test convert(Colorant, acargb) === acargb
-@test convert(Colorant{N0f8},   acargb) === acargb
-@test convert(Colorant{N0f8,3}, acargb) === crgb
-@test convert(TransparentColor, acargb) == acargb
-@test convert(Color, acargb) == crgb
-@test convert(AlphaColor, acargb) === acargb # issue #126
-@test convert(ColorAlpha, acargb) == coloralpha(acargb) # issue #126
-
 h = N0f8(0.5)
 @test convert(Gray24, 0.5) == Gray24(h)
 @test convert(AGray, Gray24(h)) === AGray{N0f8}(h, 1)
@@ -165,8 +140,6 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     C == RGB24 && continue
     @test ccolor(Gray24, C) == Gray24
     @test ccolor(AGray32, C) == AGray32
-    @test convert(AbstractRGB, c) == c
-    @test convert(AbstractRGB{Float64}, rgb) === convert(C{Float64}, c)
     argb = convert(alphacolor(C), ac)
     rgba = convert(coloralpha(C), ac)
     @test rgb.r == red(c)
