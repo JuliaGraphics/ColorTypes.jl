@@ -117,18 +117,68 @@ end
     end
 end
 
-@testset "RGB24 constructor" begin
+@testset "transparent rgb constructors" begin
+    Crgb = filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
+    # all(T -> alphacolor(T) === ARGB, (RGB, XRGB, RGBX))
+    Ctransparent = unique(vcat(coloralpha.(Crgb), alphacolor.(Crgb)))
+    @testset "$C constructor" for C in Ctransparent
+        C0 = color_type(C)
+
+        for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
+            for val2 in (0.6, 0.6f0, N0f8(0.6), N4f12(0.6), N0f16(0.6))
+                c0 = C0(val1,val2,val1)
+                et = eltype(c0)
+                @test isa(C(val1,val2,val1), C)
+                @test isa(C(val1,val2,val1,0.8), C)
+                @test C(c0) === C(val1,val2,val1,convert(et, 1))
+                @test C(c0) === C{et}(val1,val2,val1,1)
+                @test C(c0,0.8) === C(val1,val2,val1,convert(et, 0.8))
+                @test C{N0f8}(val1,val2,val1) === C(0.2N0f8,0.6N0f8,0.2N0f8,1N0f8)
+                @test C{N0f16}(val1,val2,val1,0.8) === C(0.2N0f16,0.6N0f16,0.2N0f16,0.8N0f16)
+            end
+        end
+
+        @test_throws ArgumentError C(2,1,0) # integers
+        @test_throws ArgumentError C(2,1,0,1) # integers
+
+        for val in (1.2, 1.2f0, N4f12(1.2), -0.2)
+            c0 = C0(val,val,val)
+            @test_throws ArgumentError C{N0f8}(val,val,val)
+            @test_throws ArgumentError C{N0f16}(val,val,val,0.8)
+            @test_throws ArgumentError C{N0f8}(c0)
+            @test_throws ArgumentError C{N0f16}(c0,0.8)
+            @test isa(C(val,val,val), C)
+            @test isa(C(val,val,val,0.8), C)
+            @test isa(C(val,val,val,val), C) # no exception thrown
+        end
+    end
+end
+
+@testset "RGB24/ARGB32 constructors" begin
     for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
         for val2 in (0.6, 0.6f0, N0f8(0.6), N4f12(0.6), N0f16(0.6))
             @test RGB24(val1,val2,val1) === RGB24(0.2,0.6,0.2)
+            @test ARGB32(val1,val2,val1) === ARGB32(0.2,0.6,0.2,1)
+            @test ARGB32(val1,val2,val1,0.8) === ARGB32(0.2,0.6,0.2,0.8)
+            c0 = RGB24(val1,val2,val1)
+            @test ARGB32(c0) === ARGB32(val1,val2,val1,1)
+            @test ARGB32(c0,0.8) === ARGB32(val1,val2,val1,0.8)
         end
         @test RGB24(val1) === RGB24(0.2,0.2,0.2)
+        @test ARGB32(val1) === ARGB32(0.2,0.2,0.2,1)
     end
 
     @test_throws ArgumentError RGB24(2,1,0) # integers
+    @test_throws ArgumentError ARGB32(2,1,0) # integers
+    @test_throws ArgumentError ARGB32(2,1,0,1) # integers
 
     for val in (1.2, 1.2f0, N4f12(1.2), -0.2)
         @test_throws ArgumentError RGB24(val,val,val)
+        @test_throws ArgumentError ARGB32(val,val,val)
+        @test_throws ArgumentError ARGB32(val,val,val,0.8)
+        c0 = RGB(val,val,val)
+        @test_throws ArgumentError ARGB32(c0)
+        @test_throws ArgumentError ARGB32(c0,0.8)
     end
 end
 
@@ -194,6 +244,33 @@ end
         @test isa(C{Float32}(1, 0.5, 0), C{Float32})
         @test C(1N0f8, 0.6N0f8, 0N0f8) === C{et}(1, 0.6, 0) # issue #80
         @test C() === C{et}(0,0,0)
+        @test C(C()) === C()  # no StackOverflowError
+    end
+end
+
+@testset "transparent3 constructors" begin
+    Cp3 = ColorTypes.parametric3
+    Ctransparent = unique(vcat(coloralpha.(Cp3), alphacolor.(Cp3)))
+    @testset "transparent3 constructors: $C" for C in Ctransparent
+        et = (C <: TransparentRGB) ? N0f8 : Float32
+        @test isa(C(1,0,0), C)
+        @test isa(C(1,0,0), C{et})
+        @test isa(C{Float32}(1, 0.5, 0), C{Float32})
+        @test C(1,0,0,0.8) === C{Float64}(1,0,0,0.8)
+        if C === BGRA || C === ABGR
+            # issue #157
+            @test_broken C(1,0,0) === C{et}(1,0,0,1)
+            @test_broken C(1,0,0,1) === C{et}(1,0,0,1)
+        else
+            @test C(1,0,0) === C{et}(1,0,0,1)
+            @test C(1,0,0,1) === C{et}(1,0,0,1)
+        end
+        if C <: TransparentRGB
+            @test C(1N0f8, 0.6N0f8, 0N0f8) === C{et}(1, 0.6, 0, 1)
+        else
+            @test_broken C(1N0f8, 0.6N0f8, 0N0f8) === C{et}(1, 0.6, 0, 1) # issue #156
+        end
+        @test C() === C{et}(0,0,0,1)
         @test C(C()) === C()  # no StackOverflowError
     end
 end
