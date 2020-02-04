@@ -258,32 +258,4 @@ addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
 @test @inferred(mapreducec(x->!x, &, true, false))
 @test !@inferred(mapreducec(x->!x, &, false, false))
 
-
-### Prevent ambiguous definitions
-
-# Certain types, like Gray24, reinterpret a UInt32 as having a
-# particular color meaning. The problem with defining `convert`
-# methods is that a UInt32 has a value, e.g., 0 = black and 1 = white.
-# Users who want to interpret a UInt32 as a bit pattern should
-# explicitly use `reinterpret`.
-@testset "bit pattern ambiguities" begin
-    @test_throws MethodError convert(UInt32, RGB24(1,1,1))
-    @test_throws MethodError convert(UInt32, ARGB32(1,1,1,0))
-    @test convert(UInt32, Gray24(1)) == 1
-    @test_throws InexactError convert(UInt32, Gray24(0.5))
-    @test_throws MethodError convert(UInt32, AGray32(1,0))
-    @test !(RGB24(1,1,1) == 0x00ffffff)
-    @test !(ARGB32(1,1,1,0) == 0x00ffffff)
-    @test Gray24(1) == 1
-    @test !(Gray24(1) == 0x00ffffff)
-    @test !(AGray32(1,0) == 0x00ffffff)
-    @test_throws ArgumentError RGB24(0x00ffffff)
-    @test_throws ArgumentError ARGB32(0x00ffffff)
-    @test_throws ArgumentError Gray24(0x00ffffff)
-    @test_throws ArgumentError AGray32(0x00ffffff)
-    @test_throws ArgumentError RGB24[0x00000000,0x00808080]
-    @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff]
-    @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
-end
-
 end # ColorTypes
