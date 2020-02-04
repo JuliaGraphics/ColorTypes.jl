@@ -82,46 +82,19 @@ for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
     end
 end
 ac = reinterpret(ARGB32, rand(UInt32))
-@test convert(ARGB32, ac) == ac
 c = convert(RGB24, ac)
-@test convert(RGB24, c) == c
 
 h = N0f8(0.5)
 @test convert(AGray, Gray24(h)) === AGray{N0f8}(h, 1)
 @test convert(AGray, Gray24(h), 0.8)  === AGray{N0f8}(h, 0.8)
 @test convert(AGray, AGray32(h, 0.8)) === AGray{N0f8}(h, 0.8)
 
-@test red(c)   == red(ac)
-@test green(c) == green(ac)
-@test blue(c)  == blue(ac)
-ac2 = convert(ARGB32, c)
-@test reinterpret(UInt32, ac2) == (c.color | 0xff000000)
 @test color(c) == c
 @test color(ac) == c
-@test alpha(c) == N0f8(1)
-@test alpha(ac) == N0f8(ac.color>>24, 0)
-@test alpha(ac2) == N0f8(1)
-ac3 = convert(RGBA, ac)
-@test convert(RGB24, ac3) == c
 
 for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
-    rgb = convert(C, c)
-    C == RGB24 && continue
     @test ccolor(Gray24, C) == Gray24
     @test ccolor(AGray32, C) == AGray32
-    argb = convert(alphacolor(C), ac)
-    rgba = convert(coloralpha(C), ac)
-    @test rgb.r == red(c)
-    @test rgb.g == green(c)
-    @test rgb.b == blue(c)
-    @test argb.alpha == alpha(ac)
-    @test argb.r == red(ac)
-    @test argb.g == green(ac)
-    @test argb.b == blue(ac)
-    @test rgba.alpha == alpha(ac)
-    @test rgba.r == red(ac)
-    @test rgba.g == green(ac)
-    @test rgba.b == blue(ac)
 end
 
 # if the test below fails, please extend the list of types at the call to

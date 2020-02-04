@@ -249,6 +249,34 @@ end
     @test_throws MethodError convert(RGB, 0.6)
 end
 
+@testset "conversions from rgb to rgb" begin
+    Crgb = filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
+    Ctransparent = unique(vcat(coloralpha.(Crgb), alphacolor.(Crgb)))
+    @testset "$C conversions" for C in Crgb
+        @test convert(C, C{Float64}(1,0.6,0)) === C{Float64}(1,0.6,0)
+        @test convert(C{N0f8}, C{Float64}(1,0.6,0)) === C{N0f8}(1,0.6,0)
+        @test convert(C, RGB24(1,0.6,0)) === C{N0f8}(1,0.6,0)
+        @test convert(RGB24, C(1,0.6,0)) === RGB24(1,0.6,0)
+        @test convert(C, ARGB32(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0)
+        @test convert(ARGB32, C(1,0.6,0)) === ARGB32(1,0.6,0)
+        @test_broken convert(ARGB32, C(1,0.6,0), 0.2) === ARGB32(1,0.6,0,0.2)
+    end
+    @testset "$C conversions" for C in Ctransparent
+        @test convert(C, C{Float64}(1,0.6,0,0.8)) === C{Float64}(1,0.6,0,0.8)
+        @test convert(C{N0f8}, C{Float64}(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0,0.8)
+        @test convert(C, RGB24(1,0.6,0)) === C{N0f8}(1,0.6,0,1)
+        @test_broken convert(C, RGB24(1,0.6,0), 0.2) === C{N0f8}(1,0.6,0,0.2)
+        @test convert(RGB24, C(1,0.6,0,0.8)) === RGB24(1,0.6,0)
+        @test convert(C, ARGB32(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0,0.8)
+        @test convert(ARGB32, C(1,0.6,0,0.8)) === ARGB32(1,0.6,0,0.8)
+    end
+    @test convert(RGB24, RGB24(1,0.6,0)) === RGB24(1,0.6,0)
+    @test convert(ARGB32, RGB24(1,0.6,0)) === ARGB32(1,0.6,0,1)
+    @test convert(ARGB32, RGB24(1,0.6,0), 0.2) === ARGB32(1,0.6,0,0.2)
+    @test convert(RGB24, ARGB32(1,0.6,0,0.8)) === RGB24(1,0.6,0)
+    @test convert(ARGB32, ARGB32(1,0.6,0,0.8)) === ARGB32(1,0.6,0,0.8)
+end
+
 @testset "conversions between different spaces" begin
     @test_throws ErrorException convert(HSV, RGB(1,0,1))
     @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
