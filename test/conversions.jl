@@ -182,6 +182,15 @@ end
     @test_throws MethodError convert(RGB, 0.6)
 end
 
+@testset "conversions between different spaces" begin
+    @test_throws ErrorException convert(HSV, RGB(1,0,1))
+    @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
+
+    # issue #144
+    @test_throws ErrorException convert(RGB24, Gray24(0.8))
+    @test_throws ErrorException convert(RGB, Gray(0.8))
+end
+
 ### Prevent ambiguous definitions
 
 # Certain types, like Gray24, reinterpret a UInt32 as having a

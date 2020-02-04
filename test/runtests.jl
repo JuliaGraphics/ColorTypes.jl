@@ -147,9 +147,6 @@ for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
     @test rgba.b == blue(ac)
 end
 
-@test_throws ErrorException convert(HSV, RGB(1,0,1))
-@test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
-
 
 @test promote(Gray{N0f8}(0.2), Gray24(0.3)) === (Gray{N0f8}(0.2), Gray{N0f8}(0.3))
 @test promote(Gray(0.2f0), Gray24(0.3)) === (Gray{Float32}(0.2), Gray{Float32}(N0f8(0.3)))
