@@ -95,6 +95,52 @@ end
     @test_throws MethodError ColorTypes.colorfields(1N0f8)
 end
 
+@testset "gray constructors" begin
+    for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
+                Gray{N0f8}(0.2), Gray{N4f12}(0.2), Gray24(0.2))
+        @test isa(Gray(val), Gray)
+        @test Gray{N0f8}(val) === Gray{N0f8}(0.2)
+        @test Gray{N0f16}(val) === Gray{N0f16}(0.2)
+        @test Gray24(val) === Gray24(0.2)
+        @test GrayA{N0f8}(val) === GrayA{N0f8}(0.2, 1)
+        @test AGray{N0f16}(val) === AGray{N0f16}(0.2, 1)
+        @test AGray32(val) === AGray32(0.2, 1)
+        @test AGray32(val, 0.8) === AGray32(0.2, 0.8)
+    end
+    for val in (1.2, 1.2f0, N4f12(1.2), Gray{N4f12}(1.2), 2, -0.2)
+        !isa(val, Int) && @test isa(Gray(val), Gray)
+        @test_throws ArgumentError Gray{N0f8}(val)
+        @test_throws ArgumentError Gray{N0f16}(val)
+        @test_throws ArgumentError Gray24(val)
+        @test_throws ArgumentError GrayA{N0f8}(val)
+        @test_throws ArgumentError AGray{N0f16}(val)
+        @test_throws ArgumentError AGray32(val)
+        @test_throws ArgumentError AGray32(val, 0.8)
+    end
+    @test Gray() === Gray{N0f8}(0)
+    @test Gray(Gray()) === Gray()  # no StackOverflowError
+    @test Gray(1) === Gray{N0f8}(1)
+    @test Gray(true) === Gray{Bool}(1)
+    @test Gray(GrayA(0.2,0.8)) === Gray{Float64}(0.2)
+    @test Gray(AGray32(0.2,0.8)) === Gray{N0f8}(0.2)
+    @test Gray24(AGray(0.2,0.8)) === Gray24(0.2)
+    @test Gray24(AGray32(0.2,0.8)) === Gray24(0.2)
+    @test eltype(broadcast(Gray, rand(5))) == Gray{Float64}
+    @test eltype(broadcast(Gray, rand(Float32,5))) == Gray{Float32}
+end
+
+@testset "parametric3 constructors" begin
+    @testset "$C constructor" for C in ColorTypes.parametric3
+        et = (C <: AbstractRGB) ? N0f8 : Float32
+        @test isa(C(1,0,0), C)
+        @test isa(C(1,0,0), C{et})
+        @test isa(C{Float32}(1, 0.5, 0), C{Float32})
+        @test C(1N0f8, 0.6N0f8, 0N0f8) === C{et}(1, 0.6, 0) # issue #80
+        @test C() === C{et}(0,0,0)
+        @test C(C()) === C()  # no StackOverflowError
+    end
+end
+
 @testset "coloralpha for types" begin
     @test @inferred(coloralpha(RGB)) === RGBA
     @test @inferred(coloralpha(RGBA)) === RGBA

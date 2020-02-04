@@ -27,43 +27,15 @@ let a = Array{Gray}(undef, 1)
 end
 
 # Constructors
-for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
-            Gray{N0f8}(0.2), Gray{N4f12}(0.2), Gray24(0.2))
-    @test isa(Gray(val), Gray)
-    @test Gray{N0f8}(val) === Gray{N0f8}(0.2)
-    @test Gray{N0f16}(val) === Gray{N0f16}(0.2)
-    @test Gray24(val) === Gray24(0.2)
-    @test AGray32(val) === AGray32(0.2, 1)
-    @test AGray32(val, 0.8) === AGray32(0.2, 0.8)
-end
-for val in (1.2, 1.2f0, N4f12(1.2), Gray{N4f12}(1.2), 2)
-    !isa(val, Int) && @test isa(Gray(val), Gray)
-    @test_throws ArgumentError Gray{N0f8}(val)
-    @test_throws ArgumentError Gray{N0f16}(val)
-    @test_throws ArgumentError Gray24(val) == Gray24(0.2)
-    @test_throws ArgumentError GrayA{N0f8}(val)
-    @test_throws ArgumentError AGray{N0f8}(val)
-    @test_throws ArgumentError AGray32(val)
-    @test_throws ArgumentError AGray32(val, 0.8)
-end
-@test Gray(Gray()) == Gray()  # no StackOverflowError
-@test eltype(broadcast(Gray, rand(5))) == Gray{Float64}
-@test eltype(broadcast(Gray, rand(Float32,5))) == Gray{Float32}
 
 for C in ColorTypes.parametric3
     @test eltype(C{Float32}) == Float32
     et = (C <: AbstractRGB) ? N0f8 : Float32
-    @test eltype(C(1,0,0)) == et
     @test color_type(C(1,0,0)) == C{et}
     @test color_type(C) == C
     @test color_type(C{Float32}) == C{Float32}
     @test eltype(C{Float32}(1,0,0)) == Float32
-    @test C(C()) == C()  # no StackOverflowError
 end
-
-# #80
-z = N0f8(0)
-@test HSV(z, z, z) === HSV{Float32}(0, 0, 0)
 
 # Check various input types and values
 for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
@@ -229,12 +201,10 @@ acargb = convert(ARGB, ac)
 @test convert(ColorAlpha, acargb) == coloralpha(acargb) # issue #126
 
 h = N0f8(0.5)
-@test Gray24(0.5) == Gray24(h)
 @test convert(Gray24, 0.5) == Gray24(h)
 @test convert(AGray, Gray24(h)) === AGray{N0f8}(h, 1)
 @test convert(AGray, Gray24(h), 0.8)  === AGray{N0f8}(h, 0.8)
 @test convert(AGray, AGray32(h, 0.8)) === AGray{N0f8}(h, 0.8)
-@test AGray32(0.5) == AGray32(h, 1)
 @test convert(AGray32, 0.5, 0.8) == AGray32(h, N0f8(0.8))
 @test RGB24(0.5) == RGB24(h, h, h)
 @test convert(RGB24, 0.5) == RGB24(h, h, h)
