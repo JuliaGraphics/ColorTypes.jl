@@ -303,49 +303,6 @@ addred(x1::AbstractRGB, x2::AbstractRGB) = red(x1) + red(x2)
 @test @inferred(mapreducec(x->!x, &, true, false))
 @test !@inferred(mapreducec(x->!x, &, false, false))
 
-@test Gray(0.8) ≈ Gray(0.8 + eps())
-@test Gray(0.8) ≈ 0.8 + eps()
-@test 0.8 + eps() ≈ Gray(0.8)
-@test GrayA(0.8, 0.4) ≈ GrayA(0.8 + eps(), 0.4)
-@test RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.4)
-@test RGBA(0.2, 0.8, 0.4, 0.2) ≈ RGBA(0.2, 0.8 + eps(), 0.4, 0.2 - eps())
-@test !(Gray(0.8) ≈ Gray(0.6))
-@test !(RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.5))
-@test Gray(0.8f0) ≈ Gray(Float64(0.8f0 + eps(0.8f0)))
-c = RGB{N0f8}(0.2, 0.8, 0.4)
-c1 = mapc(Float32, c)
-@test c == c1 && c ≈ c1
-c2 = RGB(red(c1), green(c1)-0.1, blue(c1))
-@test c ≈ c2 atol=0.11
-@test !isapprox(c, c2; atol=0.09)
-@test c ≈ convert(RGBX, c)
-@test !(c ≈ HSV{Float32}(140.0f0,0.75f0,0.8f0))  # the latter comes from convert when using Colors
-@test Gray(0.8N0f8) == Gray24(0.8) && Gray(0.8N0f8) ≈ Gray24(0.8)
-
-# issue #52
-@test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
-@test RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5) == RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5)
-
-for (a, b) in ((Gray(1.0), Gray(1)),
-               (GrayA(0.8, 0.6), AGray(0.8, 0.6)),
-               (RGB(1, 0.5, 0), BGR(1, 0.5, 0)),
-               (RGBA(1, 0.5, 0, 0.8), ABGR(1, 0.5, 0, 0.8)))
-    local a, b
-    @test a == b
-    @test hash(a) == hash(b)
-end
-for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 0.9)),)
-    local a, b
-    @test a != b
-    @test hash(a) != hash(b)
-end
-# It's not obvious whether we want these to compare as equal, but
-# whatever happens, you want hashing and equality-testing to yield the
-# same result
-for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),)
-    local a, b
-    @test (a == b) == (hash(a) == hash(b))
-end
 
 ### Prevent ambiguous definitions
 

@@ -484,6 +484,79 @@ end
     @test_throws ErrorException reinterpret(ARGB{N0f8}, 0x12345678)
 end
 
+@testset "comparisons" begin
+    Cp3 = ColorTypes.parametric3
+    for C in unique(vcat(Cp3, coloralpha.(Cp3), alphacolor.(Cp3)))
+        @test C{Float64}(1,0,0) == C{Float32}(1,0,0)
+        @test C{Float32}(1,0,0) != C{Float32}(1,0,0.1)
+    end
+
+    for (a, b) in ((Gray(1.0), Gray(1)),
+                   (GrayA(0.8, 0.6), AGray(0.8, 0.6)),
+                   (RGB(1, 0.5, 0), BGR(1, 0.5, 0)),
+                   (RGBA(1, 0.5, 0, 0.8), ABGR(1, 0.5, 0, 0.8)),
+                   (Gray(0.8N0f8), Gray24(0.8)))
+        local a, b
+        @test a !== b
+        @test a == b
+        @test hash(a) == hash(b)
+    end
+    for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 0.9)),
+                   (RGB(0.5, 0.5, 0.5), Gray(0.5)),
+                   (HSV(0, 0, 0.5), HSV(100, 0, 0.5)), # grays
+                   (Lab(70, 0, 60), LCHab(70, 60, 90)))
+        local a, b
+        @test a != b
+        @test hash(a) != hash(b)
+    end
+    # It's not obvious whether we want these to compare as equal, but
+    # whatever happens, you want hashing and equality-testing to yield the
+    # same result
+    for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 1)),
+                   (HSV(100, 0.4, 0.6), AHSV(100, 0.4, 0.6, 1)))
+        local a, b
+        @test (a == b) == (hash(a) == hash(b))
+    end
+end
+
+@testset "BigFloat comparisons" begin
+    # issue #52
+    @test AGray{BigFloat}(0.5,0.25) == AGray{BigFloat}(0.5,0.25)
+    @test RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5) == RGBA{BigFloat}(0.5, 0.25, 0.5, 0.5)
+end
+
+@testset "isapprox" begin
+    @test Gray(0.8) ≈ Gray(0.8)
+    @test Gray(0.8) ≈ Gray(0.8 + eps())
+    @test Gray(0.8) ≈ Gray(0.8 - eps())
+    @test !(Gray(0.8) ≈ Gray(0.80000002))
+    @test Gray(0.8f0) ≈ Gray(0.80000002)
+    @test Gray(0.8N0f8) ≈ Gray24(0.8)
+
+    @test Gray(0.8) ≈ 0.8 + eps()
+    @test 0.8 + eps() ≈ Gray(0.8)
+
+    @test GrayA(0.8, 0.4) ≈ GrayA(0.8 + eps(), 0.4)
+    @test GrayA(0.8, 0.4) ≈ GrayA(0.8, 0.4 + eps())
+    @test GrayA(0.8, 0.4) ≈ GrayA(0.8 + eps(), 0.4 + eps())
+
+    @test RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.4)
+    @test RGBA(0.2, 0.8, 0.4, 0.2) ≈ RGBA(0.2, 0.8 + eps(), 0.4, 0.2 - eps())
+
+    c_n0f8 = RGB{N0f8}(0.2, 0.69, 0.4)
+    c_f32 = RGB{Float32}(0.2, 0.69, 0.4)
+    @test c_n0f8 != c_f32 && c_n0f8 ≈ c_f32
+
+    c1 = RGB(0.2, 0.8, 0.4)
+    c2 = RGB(0.2, 0.7, 0.4)
+    @test c1 ≈ c2 atol=0.11
+    @test !isapprox(c1, c2; atol=0.09)
+    @test c1 ≈ RGBX(0.2, 0.8, 0.4)
+    @test !(c1 ≈ HSV(140.0f0,0.75f0,0.8f0))  # the latter comes from convert when using Colors
+    @test !(HSV(0,0,0.5) ≈ HSV(100,0,0.5))
+    @test HSVA(100,0.4,0.6,0.8) ≈ HSVA{Float32}(100,0.4,0.6,0.8)
+end
+
 @testset "identities for Gray" begin
     @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
     @test zero(Gray{N0f8}) === Gray{N0f8}(0)
