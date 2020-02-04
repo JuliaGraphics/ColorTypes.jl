@@ -51,10 +51,6 @@ end
 
 @testset "Test some Gray stuff" begin
     c = Gray(0.8)
-    @test real(c) == 0.8
-    c = convert(Gray, 0.8)
-    @test c === Gray{Float64}(0.8)
-
     ac = convert(AGray, c)
     @test ac === AGray{Float64}(0.8, 1.0)
     ac = AGray(c)
@@ -64,8 +60,7 @@ end
     ca = GrayA{Float64}(ac)
     @test ca === GrayA{Float64}(0.8, 1.0)
 
-    c = AGray(0.8)
-    @test color(c) == Gray(0.8)
+    @test color(ac) == Gray(0.8)
 end
 
 # Transparency
@@ -115,12 +110,9 @@ c = convert(RGB24, ac)
 @test convert(RGB24, c) == c
 
 h = N0f8(0.5)
-@test convert(Gray24, 0.5) == Gray24(h)
 @test convert(AGray, Gray24(h)) === AGray{N0f8}(h, 1)
 @test convert(AGray, Gray24(h), 0.8)  === AGray{N0f8}(h, 0.8)
 @test convert(AGray, AGray32(h, 0.8)) === AGray{N0f8}(h, 0.8)
-@test convert(AGray32, 0.5, 0.8) == AGray32(h, N0f8(0.8))
-@test convert(RGB24, 0.5) == RGB24(h, h, h)
 
 @test red(c)   == red(ac)
 @test green(c) == green(ac)
@@ -158,16 +150,6 @@ end
 @test_throws ErrorException convert(HSV, RGB(1,0,1))
 @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
 
-@test convert(Float64, Gray(.3)) === .3
-@test Float64(Gray(0.3)) === 0.3
-@test float(Gray(0.3))   === 0.3
-x = N0f8(0.3)
-@test convert(N0f8, Gray24(0.3)) === x
-@test convert(GrayA{N0f8}, .2) == GrayA{N0f8}(.2)
-@test convert(AGray{N0f8}, .2) == AGray{N0f8}(.2)
-@test Gray{N0f8}(0.37).val           == N0f8(0.37)
-@test convert(Gray{N0f8}, 0.37).val  == N0f8(0.37)
-@test convert(Gray{N0f16}, Gray24(reinterpret(N0f8, 0x0d))) == Gray{N0f16}(0.05098)
 
 @test promote(Gray{N0f8}(0.2), Gray24(0.3)) === (Gray{N0f8}(0.2), Gray{N0f8}(0.3))
 @test promote(Gray(0.2f0), Gray24(0.3)) === (Gray{Float32}(0.2), Gray{Float32}(N0f8(0.3)))

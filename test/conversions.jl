@@ -132,3 +132,52 @@ end
     @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, ca, 0.2)
     @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, agray32, 0.2)
 end
+
+@testset "conversions from/to real numbers" begin
+    @test convert(Float64, Gray(0.6)) === 0.6
+    @test Float32(Gray(0.6)) === 0.6f0
+    @test float(Gray(0.6)) === 0.6
+    @test real(Gray(0.6)) === 0.6
+
+    @test convert(N0f8, Gray24(0.6)) === N0f8(0.6)
+    @test convert(Float64, Gray24(0.6)) === 0.6
+
+    @test convert(Gray, 0.6) === Gray{Float64}(0.6)
+    @test convert(Gray, 0.6f0) === Gray{Float32}(0.6)
+    @test convert(Gray, 0.6N0f8) === Gray{N0f8}(0.6)
+    @test convert(Gray, true) === Gray{Bool}(1)
+    @test convert(Gray, false) === Gray{Bool}(0)
+    @test convert(Gray, 1) === Gray{N0f8}(1)
+
+    @test convert(Gray{N0f16}, 0.6) === Gray{N0f16}(0.6)
+    @test convert(Gray{N0f16}, 0.6f0) === Gray{N0f16}(0.6)
+    @test convert(Gray{N0f16}, 0.6N0f8) === Gray{N0f16}(0.6)
+
+    @test convert(GrayA{N0f8}, 0.6) === GrayA{N0f8}(0.6, 1)
+    @test convert(AGray{N0f8}, 0.6) === AGray{N0f8}(0.6, 1)
+
+    @test convert(Gray24, 0.6) === Gray24(0.6)
+    @test convert(Gray24, 0.6f0) === Gray24(0.6)
+    @test convert(Gray24, 0.6N0f8) === Gray24(0.6)
+
+    @test convert(AGray32, 0.6) === AGray32(0.6, 1)
+    @test convert(AGray32, 0.6f0) === AGray32(0.6, 1)
+    @test convert(AGray32, 0.6N0f8) === AGray32(0.6, 1)
+    @test convert(AGray32, 0.6, 0.8) === AGray32(0.6, 0.8)
+    @test convert(AGray32, 0, 1) === AGray32(0, 1)
+
+    @test_throws MethodError convert(Colorant, 0.6)
+    @test_throws MethodError convert(Color, 0.6)
+    @test_throws ErrorException convert(Color{N0f8,1}, 0.6)
+
+    @test_throws MethodError convert(GrayA, 0.6, 0.8)
+    @test_throws MethodError convert(AGray, 0, 1)
+
+    @test convert(Gray, 2.0) === Gray{Float64}(2.0)
+    @test_throws ArgumentError convert(Gray, 2)
+
+    @test convert(RGB24, 0.6) === RGB24(0.6, 0.6, 0.6)
+    @test convert(ARGB32, 0.6) === ARGB32(0.6, 0.6, 0.6, 1)
+
+    @test_throws MethodError convert(RGB, 0.6)
+end
