@@ -76,3 +76,59 @@ using Test
     @test_throws ErrorException convert(AbstractARGB{RGB,N0f8}, rgb24, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, argb32, 0.2)
 end
+
+@testset "gray conversions with abstract types" begin
+    c = Gray(0.4)
+    @test convert(Colorant, c) === Gray{Float64}(0.4)
+    @test convert(Colorant{N0f8}, c) === Gray{N0f8}(0.4)
+    @test_broken convert(Colorant{Float32,1}, c) === Gray{Float32}(0.4)
+    @test convert(Color, c) === Gray{Float64}(0.4)
+    @test_throws ErrorException convert(TransparentColor, c)
+    @test convert(AlphaColor, c) === AGray{Float64}(0.4, 1)
+    @test convert(ColorAlpha, c) === GrayA{Float64}(0.4, 1)
+
+    ac = AGray(0.4, 0.8)
+    @test convert(Colorant, ac) === AGray{Float64}(0.4, 0.8)
+    @test convert(Colorant{N0f8}, ac) === AGray{N0f8}(0.4, 0.8)
+    @test_broken convert(Colorant{Float32,1}, ac) === Gray{Float32}(0.4, 0.8)
+    @test convert(Color, ac) === Gray{Float64}(0.4)
+    @test convert(TransparentColor, ac) == AGray{Float64}(0.4, 0.8)
+    @test convert(AlphaColor, ac) === AGray{Float64}(0.4, 0.8)
+    @test convert(ColorAlpha, ac) === GrayA{Float64}(0.4, 0.8)
+
+    ca = GrayA(0.4, 0.8)
+    @test convert(Colorant, ca) === GrayA{Float64}(0.4, 0.8)
+    @test convert(Colorant{N0f8}, ca) === GrayA{N0f8}(0.4, 0.8)
+    @test_broken convert(Colorant{Float32,1}, ca) === Gray{Float32}(0.4)
+    @test convert(Color, ca) === Gray{Float64}(0.4)
+    @test convert(TransparentColor, ca) == GrayA{Float64}(0.4, 0.8)
+    @test convert(AlphaColor, ca) === AGray{Float64}(0.4, 0.8)
+    @test convert(ColorAlpha, ca) === GrayA{Float64}(0.4, 0.8)
+
+    gray24 = Gray24(0.4)
+    @test convert(Colorant, gray24) === Gray24(0.4)
+    @test convert(Colorant{N0f8}, gray24) === Gray24(0.4)
+    @test_broken convert(Colorant{Float32,1}, gray24) === Gray{Float32}(0.4)
+    @test convert(Color, gray24) === Gray24(0.4)
+    @test_throws ErrorException convert(TransparentColor, gray24)
+    @test convert(AlphaColor, gray24) === AGray32(0.4, 1)
+    @test_throws MethodError convert(ColorAlpha, gray24) # TODO: need docs
+
+    agray32 = AGray32(0.4, 0.8)
+    @test convert(Colorant, agray32) === AGray32(0.4, 0.8)
+    @test convert(Colorant{N0f8}, agray32) === AGray32(0.4, 0.8)
+    @test_broken convert(Colorant{Float32,1}, agray32) === Gray{Float32}(0.4)
+    @test convert(Color, agray32) === Gray24(0.4)
+    @test convert(TransparentColor, agray32) === AGray32(0.4, 0.8)
+    @test convert(AlphaColor, agray32) === AGray32(0.4, 0.8)
+    @test_throws MethodError convert(ColorAlpha, agray32) # TODO: need docs
+
+    @test convert(AbstractAGray{Gray,N0f8}, c, 0.2) === AGray{N0f8}(0.4, 0.2)
+    @test convert(AbstractGrayA{Gray,N0f8}, c, 0.2) === GrayA{N0f8}(0.4, 0.2)
+    # the following is ok, but not consistent with the case of RGB24
+    @test convert(AbstractAGray{Gray,N0f8}, gray24, 0.2) === AGray{N0f8}(0.4, 0.2)
+    @test_broken convert(AbstractAGray{Gray24,N0f8}, gray24, 0.2) === AGray32(0.4, 0.2)
+    @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, ac, 0.2)
+    @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, ca, 0.2)
+    @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, agray32, 0.2)
+end
