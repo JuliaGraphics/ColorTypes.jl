@@ -1,6 +1,73 @@
 using ColorTypes, FixedPointNumbers
 using Test
 
+@testset "rgb promotions" begin
+    @test        promote( RGB{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === ( RGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8),  RGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote( RGB{N0f8}(0.2,0.3,0.4), RGBA(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
+    @test_broken promote( RGB{N0f8}(0.2,0.3,0.4), ARGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote(RGBA{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
+    @test_broken promote(RGBA{N0f8}(0.2,0.3,0.4), RGBA(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
+    @test_broken promote(ARGB{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote(ARGB{N0f8}(0.2,0.3,0.4), ARGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+
+    @test        promote( RGB24(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === ( RGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8),  RGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote( RGB24(0.2,0.3,0.4), RGBA(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
+    @test_broken promote( RGB24(0.2,0.3,0.4), ARGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4), ARGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+
+    @test        promote( RGB24(0.2,0.3,0.4),  RGB{N0f8}(0.3,0.8,0.1)) === ( RGB{N0f8}(0.2,0.3,0.4),  RGB{N0f8}(0.3,0.8,0.1))
+    @test_broken promote( RGB24(0.2,0.3,0.4), RGBA{N0f8}(0.3,0.8,0.1)) === (RGBA{N0f8}(0.2,0.3,0.4), RGBA{N0f8}(0.3,0.8,0.1))
+    @test_broken promote( RGB24(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1)) === (ARGB{N0f8}(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4),  RGB{N0f8}(0.3,0.8,0.1)) === (ARGB{N0f8}(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1)) === (ARGB{N0f8}(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1))
+
+    @test_broken promote(RGBX{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === (RGBX{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBX{Float64}(0.3,0.8,0.1))
+    @test_broken promote(RGBX{N0f8}(0.2,0.3,0.4), RGBA(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
+    @test_broken promote(RGBX{N0f8}(0.2,0.3,0.4), ARGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote(XRGB{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === (XRGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), XRGB{Float64}(0.3,0.8,0.1))
+    @test_broken promote(XRGB{N0f8}(0.2,0.3,0.4), RGBA(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
+    @test_broken promote(XRGB{N0f8}(0.2,0.3,0.4), ARGB(0.3,0.8,0.1)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.3,0.8,0.1))
+
+    @test_broken promote(RGBX(0.2,0.3,0.4),  RGB{N0f8}(0.3,0.8,0.1)) === (RGBX{Float64}(0.2,0.3,0.4), RGBX{Float64}(0.3N0f8,0.8N0f8,0.1N0f8))
+    @test_broken promote(RGBX(0.2,0.3,0.4), RGBA{N0f8}(0.3,0.8,0.1)) === (RGBA{Float64}(0.2,0.3,0.4), RGBA{Float64}(0.3N0f8,0.8N0f8,0.1N0f8))
+    @test_broken promote(RGBX(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1)) === (ARGB{Float64}(0.2,0.3,0.4), ARGB{Float64}(0.3N0f8,0.8N0f8,0.1N0f8))
+    @test_broken promote(XRGB(0.2,0.3,0.4),  RGB{N0f8}(0.3,0.8,0.1)) === (XRGB{Float64}(0.2,0.3,0.4), XRGB{Float64}(0.3N0f8,0.8N0f8,0.1N0f8))
+    @test_broken promote(XRGB(0.2,0.3,0.4), RGBA{N0f8}(0.3,0.8,0.1)) === (RGBA{Float64}(0.2,0.3,0.4), RGBA{Float64}(0.3N0f8,0.8N0f8,0.1N0f8))
+    @test_broken promote(XRGB(0.2,0.3,0.4), ARGB{N0f8}(0.3,0.8,0.1)) === (ARGB{Float64}(0.2,0.3,0.4), ARGB{Float64}(0.3N0f8,0.8N0f8,0.1N0f8))
+end
+
+@testset "hsv promotions" begin
+    @test_broken promote( HSV{Float32}(100,0.3,0.4),  HSV(200,0.8,0.1)) === ( HSV{Float64}(100,0.3f0,0.4f0),  HSV{Float64}(200,0.8,0.1))
+    @test_broken promote( HSV{Float32}(100,0.3,0.4), HSVA(200,0.8,0.1)) === (HSVA{Float64}(100,0.3f0,0.4f0), HSVA{Float64}(200,0.8,0.1))
+    @test_broken promote( HSV{Float32}(100,0.3,0.4), AHSV(200,0.8,0.1)) === (AHSV{Float64}(100,0.3f0,0.4f0), AHSV{Float64}(200,0.8,0.1))
+    @test_broken promote(HSVA{Float32}(100,0.3,0.4),  HSV(200,0.8,0.1)) === (HSVA{Float64}(100,0.3f0,0.4f0), HSVA{Float64}(200,0.8,0.1))
+    @test_broken promote(HSVA{Float32}(100,0.3,0.4), HSVA(200,0.8,0.1)) === (HSVA{Float64}(100,0.3f0,0.4f0), HSVA{Float64}(200,0.8,0.1))
+    @test_broken promote(AHSV{Float32}(100,0.3,0.4),  HSV(200,0.8,0.1)) === (AHSV{Float64}(100,0.3f0,0.4f0), AHSV{Float64}(200,0.8,0.1))
+    @test_broken promote(AHSV{Float32}(100,0.3,0.4), AHSV(200,0.8,0.1)) === (AHSV{Float64}(100,0.3f0,0.4f0), AHSV{Float64}(200,0.8,0.1))
+end
+
+@testset "gray promotions" begin
+    @test        promote( Gray{N0f8}(0.2),  Gray(0.3)) === ( Gray{Float64}(0.2N0f8),  Gray{Float64}(0.3))
+    @test_broken promote( Gray{N0f8}(0.2), GrayA(0.3)) === (GrayA{Float64}(0.2N0f8), GrayA{Float64}(0.3))
+    @test_broken promote( Gray{N0f8}(0.2), AGray(0.3)) === (AGray{Float64}(0.2N0f8), AGray{Float64}(0.3))
+    @test_broken promote(GrayA{N0f8}(0.2),  Gray(0.3)) === (GrayA{Float64}(0.2N0f8), GrayA{Float64}(0.3))
+    @test_broken promote(GrayA{N0f8}(0.2), GrayA(0.3)) === (GrayA{Float64}(0.2N0f8), GrayA{Float64}(0.3))
+    @test_broken promote(AGray{N0f8}(0.2),  Gray(0.3)) === (AGray{Float64}(0.2N0f8), AGray{Float64}(0.3))
+    @test_broken promote(AGray{N0f8}(0.2), AGray(0.3)) === (AGray{Float64}(0.2N0f8), AGray{Float64}(0.3))
+
+    @test        promote( Gray24(0.2),  Gray(0.3)) === ( Gray{Float64}(0.2N0f8),  Gray{Float64}(0.3))
+    @test_broken promote( Gray24(0.2), GrayA(0.3)) === (GrayA{Float64}(0.2N0f8), GrayA{Float64}(0.3))
+    @test_broken promote( Gray24(0.2), AGray(0.3)) === (AGray{Float64}(0.2N0f8), AGray{Float64}(0.3))
+    @test_broken promote(AGray32(0.2),  Gray(0.3)) === (AGray{Float64}(0.2N0f8), AGray{Float64}(0.3))
+    @test_broken promote(AGray32(0.2), AGray(0.3)) === (AGray{Float64}(0.2N0f8), AGray{Float64}(0.3))
+    @test        promote( Gray24(0.2),  Gray{N0f8}(0.3)) === ( Gray{N0f8}(0.2),  Gray{N0f8}(0.3))
+    @test_broken promote( Gray24(0.2), GrayA{N0f8}(0.3)) === (GrayA{N0f8}(0.2), GrayA{N0f8}(0.3))
+    @test_broken promote( Gray24(0.2), AGray{N0f8}(0.3)) === (AGray{N0f8}(0.2), AGray{N0f8}(0.3))
+    @test_broken promote(AGray32(0.2),  Gray{N0f8}(0.3)) === (AGray{N0f8}(0.2), AGray{N0f8}(0.3))
+    @test_broken promote(AGray32(0.2), AGray{N0f8}(0.3)) === (AGray{N0f8}(0.2), AGray{N0f8}(0.3))
+end
+
 @testset "rgb conversions with abstract types" begin
     c = RGB(1, 0.6, 0)
     @test convert(Colorant, c) === RGB{Float64}(1, 0.6, 0)
