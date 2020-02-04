@@ -38,73 +38,53 @@ for C in ColorTypes.parametric3
 end
 
 # Check various input types and values
-for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
+for C in filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
     for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
         for val2 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
             c = C(val1,val2,val1)
-            @test isa(c, C)
             @test isa(alphacolor(C)(val1,val2,val1), alphacolor(C))
             @test isa(alphacolor(C)(val1,val2,val1,0.2), alphacolor(C))
             @test alphacolor(C)(c) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 1))
             @test alphacolor(C)(c, 0.2) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 0.2))
             @test alphacolor(c, 0.2) === alphacolor(C)(val1,val2,val1,convert(eltype(c), 0.2))
-            if C !== RGB24
-                @test isa(coloralpha(C)(val1,val2,val1), coloralpha(C))
-                @test isa(coloralpha(C)(val1,val2,val1,0.2), coloralpha(C))
-                @test C{N0f8}(val1,val2,val1) === C{N0f8}(0.2,0.2,0.2)
-                @test C{N0f16}(val1,val2,val1) === C{N0f16}(0.2,0.2,0.2)
-                @test alphacolor(C){N0f8}(val1,val2,val1) === alphacolor(C){N0f8}(0.2,0.2,0.2,1)
-                @test alphacolor(C){N0f8}(val1,val2,val1,0.2) === alphacolor(C){N0f8}(0.2,0.2,0.2,0.2)
-                @test coloralpha(C){N0f8}(val1,val2,val1) === coloralpha(C){N0f8}(0.2,0.2,0.2,1)
-                @test coloralpha(C){N0f8}(val1,val2,val1,0.2) === coloralpha(C){N0f8}(0.2,0.2,0.2,0.2)
-                @test coloralpha(C)(c) === coloralpha(C){eltype(c)}(val1,val2,val1,1)
-                @test coloralpha(C)(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
-                @test coloralpha(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
-            end
+
+            @test isa(coloralpha(C)(val1,val2,val1), coloralpha(C))
+            @test isa(coloralpha(C)(val1,val2,val1,0.2), coloralpha(C))
+
+            @test alphacolor(C){N0f8}(val1,val2,val1) === alphacolor(C){N0f8}(0.2,0.2,0.2,1)
+            @test alphacolor(C){N0f8}(val1,val2,val1,0.2) === alphacolor(C){N0f8}(0.2,0.2,0.2,0.2)
+            @test coloralpha(C){N0f8}(val1,val2,val1) === coloralpha(C){N0f8}(0.2,0.2,0.2,1)
+            @test coloralpha(C){N0f8}(val1,val2,val1,0.2) === coloralpha(C){N0f8}(0.2,0.2,0.2,0.2)
+            @test coloralpha(C)(c) === coloralpha(C){eltype(c)}(val1,val2,val1,1)
+            @test coloralpha(C)(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
+            @test coloralpha(c, 0.2) === coloralpha(C)(val1,val2,val1,convert(eltype(c), 0.2))
         end
     end
-    @test isa(C(1,0,1), C)
-    @test C() === C(0,0,0)
     @test isa(alphacolor(C)(1,0,1), alphacolor(C))
     @test alphacolor(C)() === alphacolor(C)(0,0,0,1)
-    if C != RGB24
-        @test C(1,0,1) === C{N0f8}(1,0,1)
-        @test alphacolor(C)(1,0,1) === alphacolor(C){N0f8}(1,0,1,1)
-        @test alphacolor(C)(1,0,1,0.2) === alphacolor(C){Float64}(1,0,1,0.2)
-        @test coloralpha(C)(1,0,1) === coloralpha(C){N0f8}(1,0,1,1)
-        @test coloralpha(C)(1,0,1,0.2) === coloralpha(C){Float64}(1,0,1,0.2)
-        @test coloralpha(C)() === coloralpha(C)(0,0,0,1)
-    end
+
+    @test alphacolor(C)(1,0,1) === alphacolor(C){N0f8}(1,0,1,1)
+    @test alphacolor(C)(1,0,1,0.2) === alphacolor(C){Float64}(1,0,1,0.2)
+    @test coloralpha(C)(1,0,1) === coloralpha(C){N0f8}(1,0,1,1)
+    @test coloralpha(C)(1,0,1,0.2) === coloralpha(C){Float64}(1,0,1,0.2)
+    @test coloralpha(C)() === coloralpha(C)(0,0,0,1)
+
     for val in (1.2, 1.2f0, N4f12(1.2), 2)
-        if C !== RGB24
-            @test_throws ArgumentError C{N0f8}(val,val,val)
-            @test_throws ArgumentError C{N0f16}(val,val,val)
-            @test_throws ArgumentError alphacolor(C){N0f8}(val,val,val)
-            @test_throws ArgumentError coloralpha(C){N0f8}(val,val,val)
-            if val != 2
-                @test isa(C(val,val,val), C)
-                c = C(val,val,val)
-                @test_throws ArgumentError alphacolor(C){N0f8}(c)
-                @test_throws ArgumentError coloralpha(C){N0f8}(c)
-                if C != XRGB && C != RGBX
-                    @test_throws ArgumentError alphacolor(C){N0f8}(c, 0.2)
-                    @test_throws ArgumentError coloralpha(C){N0f8}(c, 0.2)
-                end
-            end
-        end
-        if C == RGB24 || isa(val, Int)
-            @test_throws ArgumentError C(val,val,val)
+        @test_throws ArgumentError alphacolor(C){N0f8}(val,val,val)
+        @test_throws ArgumentError coloralpha(C){N0f8}(val,val,val)
+        if isa(val, Int)
             @test_throws ArgumentError alphacolor(C)(val,val,val)
+        else
+            c = C(val,val,val)
+            @test_throws ArgumentError alphacolor(C){N0f8}(c)
+            @test_throws ArgumentError coloralpha(C){N0f8}(c)
+            if C != XRGB && C != RGBX
+                @test_throws ArgumentError alphacolor(C){N0f8}(c, 0.2)
+                @test_throws ArgumentError coloralpha(C){N0f8}(c, 0.2)
+            end
         end
     end
 end
-
-ret = @test_throws ArgumentError RGB(255, 17, 48)
-@test occursin("255, 17, 48", ret.value.msg)
-@test occursin("0-255", ret.value.msg)
-ret = @test_throws ArgumentError RGB(256, 17, 48)
-@test occursin("256, 17, 48", ret.value.msg)
-@test !occursin("0-255", ret.value.msg)
 
 @testset "Test some Gray stuff" begin
     c = Gray(0.8)
@@ -454,13 +434,6 @@ end
     @test_throws ArgumentError RGB24[0x00000000,0x00808080]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
-end
-
-@testset "color construction from grayscale" begin
-    @test RGB(Gray(0.2), 0.3, 0.4) == RGB(0.2, 0.3, 0.4)
-    @test RGB(0.2, Gray(0.3), 0.4) == RGB(0.2, 0.3, 0.4)
-    @test RGB(0.2, 0.3, Gray(0.4)) == RGB(0.2, 0.3, 0.4)
-    @test RGB(Gray(0.2), Gray(0.3), Gray(0.4)) == RGB(0.2, 0.3, 0.4)
 end
 
 end # ColorTypes

@@ -95,6 +95,63 @@ end
     @test_throws MethodError ColorTypes.colorfields(1N0f8)
 end
 
+@testset "rgb constructors" begin
+    Crgb = filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
+    @testset "$C constructor" for C in Crgb
+        for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
+            for val2 in (0.6, 0.6f0, N0f8(0.6), N4f12(0.6), N0f16(0.6))
+                c = C(val1,val2,val1)
+                @test isa(c, C)
+                @test C{N0f8}(val1,val2,val1) === C(0.2N0f8,0.6N0f8,0.2N0f8)
+                @test C{N0f16}(val1,val2,val1) === C(0.2N0f16,0.6N0f16,0.2N0f16)
+            end
+        end
+
+        @test_throws ArgumentError C(2,1,0) # integers
+
+        for val in (1.2, 1.2f0, N4f12(1.2), -0.2)
+            @test_throws ArgumentError C{N0f8}(val,val,val)
+            @test_throws ArgumentError C{N0f16}(val,val,val)
+            @test isa(C(val,val,val), C)
+        end
+    end
+end
+
+@testset "RGB24 constructor" begin
+    for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
+        for val2 in (0.6, 0.6f0, N0f8(0.6), N4f12(0.6), N0f16(0.6))
+            @test RGB24(val1,val2,val1) === RGB24(0.2,0.6,0.2)
+        end
+        @test RGB24(val1) === RGB24(0.2,0.2,0.2)
+    end
+
+    @test_throws ArgumentError RGB24(2,1,0) # integers
+
+    for val in (1.2, 1.2f0, N4f12(1.2), -0.2)
+        @test_throws ArgumentError RGB24(val,val,val)
+    end
+end
+
+@testset "RGB construction with integer arguments" begin
+    ret = @test_throws ArgumentError RGB(255, 17, 48)
+    @test occursin("255, 17, 48", ret.value.msg)
+    @test occursin("0-255", ret.value.msg)
+    ret = @test_throws ArgumentError RGB(256, 17, 48)
+    @test occursin("256, 17, 48", ret.value.msg)
+    @test !occursin("0-255", ret.value.msg)
+end
+
+@testset "color construction from grayscale" begin
+    @test RGB(Gray(0.2), 0.3, 0.4) === RGB(0.2, 0.3, 0.4)
+    @test RGB(0.2, Gray(0.3), 0.4) === RGB(0.2, 0.3, 0.4)
+    @test RGB(0.2, 0.3, Gray(0.4)) === RGB(0.2, 0.3, 0.4)
+    @test RGB(Gray(0.2), Gray(0.3), Gray(0.4)) === RGB(0.2, 0.3, 0.4)
+    @test RGB24(Gray(0.2), 0.3, 0.4) === RGB24(0.2, 0.3, 0.4)
+    @test ARGB32(0.2, 0.3, 0.4, Gray(0.5)) === ARGB32(0.2, 0.3, 0.4, 0.5)
+    @test RGB(0.2, Gray24(0.3), 0.4) === RGB(0.2, 0.3N0f8, 0.4)
+    @test_throws MethodError HSV(0.2, 0.3, Gray(0.4))
+end
+
 @testset "gray constructors" begin
     for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
                 Gray{N0f8}(0.2), Gray{N4f12}(0.2), Gray24(0.2))
