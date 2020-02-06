@@ -303,6 +303,23 @@ end
     @test convert(AGray32, AGray32(0.4,0.8)) === AGray32(0.4,0.8)
 end
 
+@testset "conversions from hsv to hsv" begin
+    @testset "HSV conversions" begin
+        @test convert(HSV, HSV{Float64}(100,0.4,0.6)) === HSV{Float64}(100,0.4,0.6)
+        @test convert(HSV{Float32}, HSV{Float64}(100,0.4,0.6)) === HSV{Float32}(100,0.4,0.6)
+        @test convert(HSV, HSVA{Float64}(100,0.4,0.6,0.8)) === HSV{Float64}(100,0.4,0.6)
+        @test convert(HSV, AHSV{Float32}(100,0.4,0.6,0.8)) === HSV{Float32}(100,0.4,0.6)
+    end
+    @testset "$C conversions" for C in (AHSV, HSVA)
+        @test convert(C, HSVA{Float64}(100,0.4,0.6,0.8)) === C{Float64}(100,0.4,0.6,0.8)
+        @test convert(C, AHSV{Float32}(100,0.4,0.6,0.8)) === C{Float32}(100,0.4,0.6,0.8)
+        @test convert(C{Float32}, HSVA{Float64}(100,0.4,0.6,0.8)) === C{Float32}(100,0.4,0.6,0.8)
+        @test convert(C{Float32}, AHSV{Float32}(100,0.4,0.6,0.8)) === C{Float32}(100,0.4,0.6,0.8)
+        @test convert(C, HSV{Float64}(100,0.4,0.6)) === C{Float64}(100,0.4,0.6,1)
+        @test convert(C, HSV{Float32}(100,0.4,0.6), 0.2) === C{Float32}(100,0.4,0.6,0.2)
+    end
+end
+
 @testset "conversions between different spaces" begin
     @test_throws ErrorException convert(HSV, RGB(1,0,1))
     @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
