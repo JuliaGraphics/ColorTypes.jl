@@ -83,12 +83,6 @@ for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
 end
 ac = reinterpret(ARGB32, rand(UInt32))
 c = convert(RGB24, ac)
-
-h = N0f8(0.5)
-@test convert(AGray, Gray24(h)) === AGray{N0f8}(h, 1)
-@test convert(AGray, Gray24(h), 0.8)  === AGray{N0f8}(h, 0.8)
-@test convert(AGray, AGray32(h, 0.8)) === AGray{N0f8}(h, 0.8)
-
 @test color(c) == c
 @test color(ac) == c
 

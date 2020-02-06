@@ -277,6 +277,32 @@ end
     @test convert(ARGB32, ARGB32(1,0.6,0,0.8)) === ARGB32(1,0.6,0,0.8)
 end
 
+@testset "conversions from gray to gray" begin
+    @testset "Gray conversions" begin
+        @test convert(Gray, Gray{Float64}(0.4)) === Gray{Float64}(0.4)
+        @test convert(Gray{N0f8}, Gray{Float64}(0.4)) === Gray{N0f8}(0.4)
+        @test convert(Gray, Gray24(0.4)) === Gray{N0f8}(0.4)
+        @test convert(Gray24, Gray(0.4)) === Gray24(0.4)
+        @test convert(Gray, AGray32(0.4,0.8)) === Gray{N0f8}(0.4)
+        @test convert(AGray32, Gray(0.4)) === AGray32(0.4)
+        @test convert(AGray32, Gray(0.4), 0.2) === AGray32(0.4, 0.2)
+    end
+    @testset "$C conversions" for C in (AGray, GrayA)
+        @test convert(C, C{Float64}(0.4,0.8)) === C{Float64}(0.4,0.8)
+        @test convert(C{N0f8}, C{Float64}(0.4,0.8)) === C{N0f8}(0.4,0.8)
+        @test convert(C, Gray24(0.4)) === C{N0f8}(0.4,1)
+        @test convert(C, Gray24(0.4), 0.2) === C{N0f8}(0.4,0.2)
+        @test convert(Gray24, C(0.4,0.8)) === Gray24(0.4)
+        @test convert(C, AGray32(0.4,0.8)) === C{N0f8}(0.4,0.8)
+        @test convert(AGray32, C(0.4,0.8)) === AGray32(0.4,0.8)
+    end
+    @test convert(Gray24, Gray24(0.4)) === Gray24(0.4)
+    @test convert(AGray32, Gray24(0.4)) === AGray32(0.4,1)
+    @test convert(AGray32, Gray24(0.4), 0.2) === AGray32(0.4,0.2)
+    @test convert(Gray24, AGray32(0.4,0.8)) === Gray24(0.4)
+    @test convert(AGray32, AGray32(0.4,0.8)) === AGray32(0.4,0.8)
+end
+
 @testset "conversions between different spaces" begin
     @test_throws ErrorException convert(HSV, RGB(1,0,1))
     @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
