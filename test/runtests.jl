@@ -86,11 +86,6 @@ c = convert(RGB24, ac)
 @test color(c) == c
 @test color(ac) == c
 
-for C in filter(T -> T <: AbstractRGB, ColorTypes.color3types)
-    @test ccolor(Gray24, C) == Gray24
-    @test ccolor(AGray32, C) == AGray32
-end
-
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
 @test Set(ColorTypes.ctypes) ==

@@ -448,6 +448,13 @@ end
     @test_broken @inferred(ccolor(AbstractARGB, RGB{N0f8})) === ARGB{N0f8}
     @test_broken @inferred(ccolor(AbstractARGB, RGB24)) === ARGB32
 
+    for C in filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
+        @test @inferred(ccolor(RGB24, C)) === RGB24
+        @test @inferred(ccolor(ARGB32, C)) === ARGB32
+        @test @inferred(ccolor(Gray24, C)) === Gray24
+        @test @inferred(ccolor(AGray32, C)) === AGray32
+    end
+
     @test_throws MethodError ccolor(RGB, RGB{N0f8}(1,0,0))
 end
 
