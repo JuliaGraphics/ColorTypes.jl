@@ -119,6 +119,18 @@ end
     @test color(AGray32(0.2, 0.8)) === Gray24(0.2)
 end
 
+@testset "to_top" begin
+    @test ColorTypes.to_top(RGB{N0f8}) === Colorant{N0f8,3}
+    @test ColorTypes.to_top(RGB24) === Colorant{N0f8,3}
+    @test ColorTypes.to_top(Gray24) === Colorant{N0f8,1}
+    @test ColorTypes.to_top(HSVA{Float32}) === Colorant{Float32,4}
+    @test_throws MethodError ColorTypes.to_top(RGB)
+
+    # for instances
+    @test ColorTypes.to_top(RGB(1, 0.5, 0)) === Colorant{Float64,3}
+    @test ColorTypes.to_top(AGray32(.8)) === Colorant{N0f8,2}
+end
+
 @testset "length" begin
     @test length(RGB) == 3
     @test length(XRGB) == 3

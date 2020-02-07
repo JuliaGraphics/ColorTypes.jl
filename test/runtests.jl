@@ -25,7 +25,6 @@ end
     include("types.jl")
 end
 
-@test ColorTypes.to_top(AGray32(.8)) == ColorTypes.Colorant{FixedPointNumbers.Normed{UInt8,8},2}
 
 # This tests the same thing as the last, but in a user-observable way
 let a = Array{Gray}(undef, 1)
