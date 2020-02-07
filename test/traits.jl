@@ -101,6 +101,24 @@ end
     @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
 end
 
+@testset "color" begin
+    @test color(RGB(1, 0.5, 0)) === RGB{Float64}(1, 0.5, 0)
+    @test color(RGBA{N0f8}(1, 0.5, 0, 0.8)) === RGB{N0f8}(1, 0.5, 0)
+    @test color(ARGB{Float32}(1, 0.5, 0, 0.8)) === RGB{Float32}(1, 0.5, 0)
+    @test color(RGB24(1, 0.5, 0)) === RGB24(1, 0.5, 0)
+    @test color(ARGB32(1, 0.5, 0, 0.8)) === RGB24(1, 0.5, 0)
+
+    @test color(HSV(100, 0.4, 0.6)) === HSV{Float64}(100, 0.4, 0.6)
+    @test color(HSVA(100, 0.4, 0.6, 0.8)) === HSV{Float64}(100, 0.4, 0.6)
+    @test color(AHSV{Float32}(100, 0.4, 0.6, 0.8)) === HSV{Float32}(100, 0.4, 0.6)
+
+    @test color(Gray(0.2)) === Gray{Float64}(0.2)
+    @test color(GrayA{N0f8}(0.2, 0.8)) === Gray{N0f8}(0.2)
+    @test color(AGray{Float32}(0.2, 0.8)) === Gray{Float32}(0.2)
+    @test color(Gray24(0.2)) === Gray24(0.2)
+    @test color(AGray32(0.2, 0.8)) === Gray24(0.2)
+end
+
 @testset "length" begin
     @test length(RGB) == 3
     @test length(XRGB) == 3

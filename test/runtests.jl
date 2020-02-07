@@ -43,20 +43,6 @@ for C in ColorTypes.parametric3
     @test eltype(C{Float32}(1,0,0)) == Float32
 end
 
-@testset "Test some Gray stuff" begin
-    c = Gray(0.8)
-    ac = convert(AGray, c)
-    @test ac === AGray{Float64}(0.8, 1.0)
-    ac = AGray(c)
-    @test ac === AGray{Float64}(0.8, 1.0)
-    ac = AGray{Float64}(c)
-    @test ac === AGray{Float64}(0.8, 1.0)
-    ca = GrayA{Float64}(ac)
-    @test ca === GrayA{Float64}(0.8, 1.0)
-
-    @test color(ac) == Gray(0.8)
-end
-
 # Transparency
 for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
     for A in (alphacolor(C), coloralpha(C))
@@ -85,10 +71,6 @@ for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
         @test C{Float32}(c) === C{Float32}(1,0.8,0.6)
     end
 end
-ac = reinterpret(ARGB32, rand(UInt32))
-c = convert(RGB24, ac)
-@test color(c) == c
-@test color(ac) == c
 
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
