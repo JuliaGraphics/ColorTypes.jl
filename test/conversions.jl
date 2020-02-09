@@ -68,6 +68,60 @@ end
     @test_broken promote(AGray32(0.2), AGray{N0f8}(0.3)) === (AGray{N0f8}(0.2), AGray{N0f8}(0.3))
 end
 
+@testset "rgb and gray promotions" begin
+    @test promote( RGB(0.2,0.3,0.4),  Gray(0.8)) === (RGB{Float64}(0.2,0.3,0.4), RGB{Float64}(0.8,0.8,0.8))
+    @test promote( RGB(0.2,0.3,0.4), GrayA(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote( RGB(0.2,0.3,0.4), AGray(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8,0.8,0.8,1))
+    @test promote(RGBA(0.2,0.3,0.4),  Gray(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote(RGBA(0.2,0.3,0.4), GrayA(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote(RGBA(0.2,0.3,0.4), AGray(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote(ARGB(0.2,0.3,0.4),  Gray(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8,0.8,0.8,1))
+    @test promote(ARGB(0.2,0.3,0.4), GrayA(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8,0.8,0.8,1))
+    @test promote(ARGB(0.2,0.3,0.4), AGray(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8,0.8,0.8,1))
+
+    @test promote( RGB{N0f8}(0.2,0.3,0.4),  Gray(0.8)) === (RGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGB{Float64}(0.8,0.8,0.8))
+    @test promote( RGB{N0f8}(0.2,0.3,0.4), GrayA(0.8)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote( RGB{N0f8}(0.2,0.3,0.4), AGray(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), ARGB{Float64}(0.8,0.8,0.8,1))
+    @test promote(RGBA{N0f8}(0.2,0.3,0.4),  Gray(0.8)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote(RGBA{N0f8}(0.2,0.3,0.4), GrayA(0.8)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote(RGBA{N0f8}(0.2,0.3,0.4), AGray(0.8)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), RGBA{Float64}(0.8,0.8,0.8,1))
+    @test promote(ARGB{N0f8}(0.2,0.3,0.4),  Gray(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), ARGB{Float64}(0.8,0.8,0.8,1))
+    @test promote(ARGB{N0f8}(0.2,0.3,0.4), GrayA(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), ARGB{Float64}(0.8,0.8,0.8,1))
+    @test promote(ARGB{N0f8}(0.2,0.3,0.4), AGray(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8,1), ARGB{Float64}(0.8,0.8,0.8,1))
+
+    @test promote( RGB(0.2,0.3,0.4),  Gray{N0f8}(0.8)) === (RGB{Float64}(0.2,0.3,0.4), RGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8))
+    @test promote( RGB(0.2,0.3,0.4), GrayA{N0f8}(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote( RGB(0.2,0.3,0.4), AGray{N0f8}(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(RGBA(0.2,0.3,0.4),  Gray{N0f8}(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(RGBA(0.2,0.3,0.4), GrayA{N0f8}(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(RGBA(0.2,0.3,0.4), AGray{N0f8}(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(ARGB(0.2,0.3,0.4),  Gray{N0f8}(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(ARGB(0.2,0.3,0.4), GrayA{N0f8}(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(ARGB(0.2,0.3,0.4), AGray{N0f8}(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+
+    @test_broken promote( RGB24(0.2,0.3,0.4),  Gray(0.8)) === ( RGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8),  RGB{Float64}(0.8,0.8,0.8,0.1))
+    @test_broken promote( RGB24(0.2,0.3,0.4), GrayA(0.8)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.8,0.8,0.8,0.1))
+    @test_broken promote( RGB24(0.2,0.3,0.4), AGray(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.8,0.8,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4),  Gray(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.8,0.8,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4), GrayA(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.8,0.8,0.8,0.1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4), AGray(0.8)) === (ARGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), ARGB{Float64}(0.8,0.8,0.8,0.1))
+
+    @test promote( RGB(0.2,0.3,0.4),  Gray24(0.8)) === (RGB{Float64}(0.2,0.3,0.4), RGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8))
+    @test promote( RGB(0.2,0.3,0.4), AGray32(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(RGBA(0.2,0.3,0.4),  Gray24(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(RGBA(0.2,0.3,0.4), AGray32(0.8)) === (RGBA{Float64}(0.2,0.3,0.4,1), RGBA{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(ARGB(0.2,0.3,0.4),  Gray24(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+    @test promote(ARGB(0.2,0.3,0.4), AGray32(0.8)) === (ARGB{Float64}(0.2,0.3,0.4,1), ARGB{Float64}(0.8N0f8,0.8N0f8,0.8N0f8,1))
+
+    @test_broken promote( RGB24(0.2,0.3,0.4),  Gray24(0.8)) === (RGB24(0.2,0.3,0.4), RGB24(0.8,0.8,0.8))
+    @test_broken promote( RGB24(0.2,0.3,0.4), AGray32(0.8)) === (ARGB32(0.2,0.3,0.4,1), ARGB32(0.8,0.8,0.8,1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4),  Gray24(0.8)) === (ARGB32(0.2,0.3,0.4,1), ARGB32(0.8,0.8,0.8,1))
+    @test_broken promote(ARGB32(0.2,0.3,0.4), AGray32(0.8)) === (ARGB32(0.2,0.3,0.4,1), ARGB32(0.8,0.8,0.8,1))
+
+    @test promote(RGB(0.2,0.3,0.4), Gray{Bool}(1)) === (RGB{Float64}(0.2,0.3,0.4), RGB{Float64}(1,1,1))
+    @test promote(RGB{N0f8}(0.2,0.3,0.4), Gray{Bool}(1)) === (RGB{N0f8}(0.2,0.3,0.4), RGB{N0f8}(1,1,1))
+end
+
 @testset "rgb conversions with abstract types" begin
     c = RGB(1, 0.6, 0)
     @test convert(Colorant, c) === RGB{Float64}(1, 0.6, 0)
@@ -320,13 +374,77 @@ end
     end
 end
 
+@testset "conversions from gray to rgb" begin
+    Crgb = filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
+    Ctransparent = unique(vcat(coloralpha.(Crgb), alphacolor.(Crgb)))
+    @testset "$C conversions" for C in Crgb
+        @test convert(C,  Gray{N0f8}(0.4)    ) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C, GrayA{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C, AGray{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8},  Gray{N0f8}(0.4)    ) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8}, GrayA{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8}, AGray{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{Float32},  Gray{N0f8}(0.4)    ) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8)
+        @test convert(C{Float32}, GrayA{N0f8}(0.4,0.8)) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8)
+        @test convert(C{Float32}, AGray{N0f8}(0.4,0.8)) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8)
+        @test convert(C{N0f8},  Gray{Float32}(0.4)    ) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8}, GrayA{Float32}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8}, AGray{Float32}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C,  Gray24(0.4)    ) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C, AGray32(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8},  Gray24(0.4)    ) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{N0f8}, AGray32(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4)
+        @test convert(C{Float32},  Gray24(0.4)    ) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8)
+        @test convert(C{Float32}, AGray32(0.4,0.8)) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8)
+    end
+    @testset "$C conversions" for C in Ctransparent
+        @test convert(C,  Gray{N0f8}(0.4)    ) === C{N0f8}(0.4,0.4,0.4,1)
+        @test convert(C,  Gray{N0f8}(0.4),0.2) === C{N0f8}(0.4,0.4,0.4,0.2)
+        @test convert(C, GrayA{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C, AGray{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C{N0f8},  Gray{N0f8}(0.4)    ) === C{N0f8}(0.4,0.4,0.4,1)
+        @test convert(C{N0f8},  Gray{N0f8}(0.4),0.2) === C{N0f8}(0.4,0.4,0.4,0.2)
+        @test convert(C{N0f8}, GrayA{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C{N0f8}, AGray{N0f8}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C{Float32},  Gray{N0f8}(0.4)    ) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,1)
+        @test convert(C{Float32},  Gray{N0f8}(0.4),0.2) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,0.2)
+        @test convert(C{Float32}, GrayA{N0f8}(0.4,0.8)) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,0.8N0f8)
+        @test convert(C{Float32}, AGray{N0f8}(0.4,0.8)) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,0.8N0f8)
+        @test convert(C{N0f8},  Gray{Float32}(0.4)    ) === C{N0f8}(0.4,0.4,0.4,1)
+        @test convert(C{N0f8},  Gray{Float32}(0.4),0.2) === C{N0f8}(0.4,0.4,0.4,0.2)
+        @test convert(C{N0f8}, GrayA{Float32}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C{N0f8}, AGray{Float32}(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C,  Gray24(0.4)    ) === C{N0f8}(0.4,0.4,0.4,1)
+        @test convert(C,  Gray24(0.4),0.2) === C{N0f8}(0.4,0.4,0.4,0.2)
+        @test convert(C, AGray32(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C{N0f8},  Gray24(0.4)    ) === C{N0f8}(0.4,0.4,0.4,1)
+        @test convert(C{N0f8},  Gray24(0.4),0.2) === C{N0f8}(0.4,0.4,0.4,0.2)
+        @test convert(C{N0f8}, AGray32(0.4,0.8)) === C{N0f8}(0.4,0.4,0.4,0.8)
+        @test convert(C{Float32},  Gray24(0.4)    ) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,1)
+        @test convert(C{Float32},  Gray24(0.4),0.2) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,0.2)
+        @test convert(C{Float32}, AGray32(0.4,0.8)) === C{Float32}(0.4N0f8,0.4N0f8,0.4N0f8,0.8N0f8)
+    end
+    @testset "RGB24 conversions" begin
+        @test convert(RGB24,  Gray{N0f8}(0.4)    ) === RGB24(0.4,0.4,0.4)
+        @test convert(RGB24, GrayA{N0f8}(0.4,0.8)) === RGB24(0.4,0.4,0.4)
+        @test convert(RGB24, AGray{Float32}(0.4,0.8)) === RGB24(0.4,0.4,0.4)
+        @test convert(RGB24,  Gray24(0.4)    ) === RGB24(0.4,0.4,0.4)
+        @test convert(RGB24, AGray32(0.4,0.8)) === RGB24(0.4,0.4,0.4)
+    end
+    @testset "ARGB32 conversions" begin
+        @test convert(ARGB32,  Gray{N0f8}(0.4)    ) === ARGB32(0.4,0.4,0.4,1)
+        @test convert(ARGB32,  Gray{N0f8}(0.4),0.2) === ARGB32(0.4,0.4,0.4,0.2)
+        @test convert(ARGB32, GrayA{N0f8}(0.4,0.8)) === ARGB32(0.4,0.4,0.4,0.8)
+        @test convert(ARGB32, AGray{Float32}(0.4,0.8)) === ARGB32(0.4,0.4,0.4,0.8)
+        @test convert(ARGB32,  Gray24(0.4)    ) === ARGB32(0.4,0.4,0.4,1)
+        @test convert(ARGB32,  Gray24(0.4),0.2) === ARGB32(0.4,0.4,0.4,0.2)
+        @test convert(ARGB32, AGray32(0.4,0.8)) === ARGB32(0.4,0.4,0.4,0.8)
+    end
+end
+
 @testset "conversions between different spaces" begin
     @test_throws ErrorException convert(HSV, RGB(1,0,1))
     @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
-
-    # issue #144
-    @test_throws ErrorException convert(RGB24, Gray24(0.8))
-    @test_throws ErrorException convert(RGB, Gray(0.8))
 end
 
 @testset "alphacolor/coloralpha for instances" begin

@@ -1,6 +1,13 @@
 Base.promote_rule(::Type{T1}, ::Type{T2}) where {T1<:AbstractGray,T2<:AbstractGray} = Gray{promote_type(eltype(T1), eltype(T2))}
 Base.promote_rule(::Type{T1}, ::Type{T2}) where {T1<:AbstractRGB,T2<:AbstractRGB} = RGB{promote_type(eltype(T1), eltype(T2))}
 
+Base.promote_rule(::Type{C3}, ::Type{Cgray}) where {C3<:Color3,Cgray<:AbstractGray} = base_colorant_type(C3){promote_type(eltype(C3), eltype(Cgray))}
+Base.promote_rule(::Type{C3}, ::Type{Cagray}) where {C3<:Color3,Cagray<:AbstractAGray} = alphacolor(base_colorant_type(C3)){promote_type(eltype(C3), eltype(Cagray))}
+Base.promote_rule(::Type{C3}, ::Type{Cgraya}) where {C3<:Color3,Cgraya<:AbstractGrayA} = coloralpha(base_colorant_type(C3)){promote_type(eltype(C3), eltype(Cgraya))}
+
+Base.promote_rule(::Type{C3}, ::Type{Cgray}) where {C3<:Transparent3,Cgray<:AbstractGray} = base_colorant_type(C3){promote_type(eltype(C3), eltype(Cgray))}
+Base.promote_rule(::Type{C3}, ::Type{Cgray}) where {C3<:Transparent3,Cgray<:TransparentGray} = base_colorant_type(C3){promote_type(eltype(C3), eltype(Cgray))}
+
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
 convert(::Type{C}, c::C) where {C<:Colorant} = c
@@ -37,8 +44,10 @@ _convert(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha) where {A<:Transparent3
 
 # Grayscale
 _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray} = Cout(gray(c))
-_convert(::Type{A}, ::Type{C1}, ::Type{C2}, c) where {A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray} = A(gray(c), alpha(c))
-_convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha) where {A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray} = A(gray(c), alpha)
+_convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray} = A(gray(c), alpha)
+
+_convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(Cout), gray(c)); Cout(g, g, g))
+_convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(A), gray(c)); A(g, g, g, alpha))
 
 convert(::Type{RGB24},   x::Real) = RGB24(x, x, x)
 convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x, 1)
