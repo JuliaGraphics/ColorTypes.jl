@@ -385,3 +385,6 @@ function Base.one(::Type{C}) where {C<:Gray}
 end
 
 Base.broadcastable(x::Colorant) = Ref(x)
+
+Base.isless(a::AbstractGray, b::AbstractGray) =
+    isless(gray(a), gray(b))
