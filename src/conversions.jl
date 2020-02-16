@@ -1,12 +1,105 @@
-Base.promote_rule(::Type{T1}, ::Type{T2}) where {T1<:AbstractGray,T2<:AbstractGray} = Gray{promote_type(eltype(T1), eltype(T2))}
-Base.promote_rule(::Type{T1}, ::Type{T2}) where {T1<:AbstractRGB,T2<:AbstractRGB} = RGB{promote_type(eltype(T1), eltype(T2))}
 
-Base.promote_rule(::Type{C3}, ::Type{Cgray}) where {C3<:Color3,Cgray<:AbstractGray} = base_colorant_type(C3){promote_type(eltype(C3), eltype(Cgray))}
-Base.promote_rule(::Type{C3}, ::Type{Cagray}) where {C3<:Color3,Cagray<:AbstractAGray} = alphacolor(base_colorant_type(C3)){promote_type(eltype(C3), eltype(Cagray))}
-Base.promote_rule(::Type{C3}, ::Type{Cgraya}) where {C3<:Color3,Cgraya<:AbstractGrayA} = coloralpha(base_colorant_type(C3)){promote_type(eltype(C3), eltype(Cgraya))}
+function _promote_et(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant}
+    T1 = isconcretetype(eltype(C1)) ? eltype(C1) : eltypes_supported(C1)
+    T2 = isconcretetype(eltype(C2)) ? eltype(C2) : eltypes_supported(C2)
+    promote_type(T1, T2)
+end
 
-Base.promote_rule(::Type{C3}, ::Type{Cgray}) where {C3<:Transparent3,Cgray<:AbstractGray} = base_colorant_type(C3){promote_type(eltype(C3), eltype(Cgray))}
-Base.promote_rule(::Type{C3}, ::Type{Cgray}) where {C3<:Transparent3,Cgray<:TransparentGray} = base_colorant_type(C3){promote_type(eltype(C3), eltype(Cgray))}
+_with_et(C::UnionAll, et) = isconcretetype(et) ? C{et} : C
+function _transparentcolor_with_et(::Type{C0}, et) where {N, C0<:TransparentColorN{N}}
+    if isconcretetype(et)
+        C0 <: AlphaColor && return AlphaColor{C,et,N} where {C<:Color{et,N-1}}
+        C0 <: ColorAlpha && return ColorAlpha{C,et,N} where {C<:Color{et,N-1}}
+        return TransparentColor{C,et,N} where {C<:Color{et,N-1}}
+    else
+        # Note that the constraint between the element type `T` and the element
+        # type of the base color type `C`.
+        # The element types should be the same, but there is no such a constraint in
+        # the definition of `TransparentColor`/`AlphaColor`/`ColorAlpha`.
+        # The following should be consistent with `base_colorant_type`
+        C0 <: AlphaColor && return AlphaColor{C,T,N} where {T, C<:Color{T,N-1}}
+        C0 <: ColorAlpha && return ColorAlpha{C,T,N} where {T, C<:Color{T,N-1}}
+        return TransparentColor{C,T,N} where {T, C<:Color{T,N-1}}
+    end
+end
+function _transparentcolor_with_et(::Type{C0}, et) where {C0<:TransparentColor}
+    if isconcretetype(et)
+        C0 <: AlphaColor && return AlphaColor{C,et} where {C<:Color{et}}
+        C0 <: ColorAlpha && return ColorAlpha{C,et} where {C<:Color{et}}
+        return TransparentColor{C,et} where {C<:Color{et}}
+    else
+        C0 <: AlphaColor && return AlphaColor{C,T} where {T, C<:Color{T}}
+        C0 <: ColorAlpha && return ColorAlpha{C,T} where {T, C<:Color{T}}
+        return TransparentColor{C,T} where {T, C<:Color{T}}
+    end
+end
+
+Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant} = _promote_rule(C1, C2)
+Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Color, C2<:TransparentColor} = Base.Bottom
+
+Base.promote_rule(::Type{RGB24},   ::Type{Gray24})  = RGB24 # C vs. C
+Base.promote_rule(::Type{Gray24},  ::Type{RGB24})   = RGB24 # C vs. C
+Base.promote_rule(::Type{ARGB32},  ::Type{AGray32}) = ARGB32 # TC vs. TC
+Base.promote_rule(::Type{AGray32}, ::Type{ARGB32})  = ARGB32 # TC vs. TC
+Base.promote_rule(::Type{AGray32}, ::Type{Gray24})  = AGray32
+Base.promote_rule(::Type{AGray32}, ::Type{RGB24})   = ARGB32
+Base.promote_rule(::Type{ARGB32},  ::Type{Gray24})  = ARGB32
+Base.promote_rule(::Type{ARGB32},  ::Type{RGB24})   = ARGB32
+
+
+function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant}
+    et, Cb1, Cb2 = _promote_et(C1, C2), base_colorant_type(C1), base_colorant_type(C2)
+    Cb1 === Cb2 && return _with_et(Cb1, et)
+    C1 <: AbstractGray && return _with_et(Cb2 === RGB24 || Cb2 === AbstractRGB ? RGB : Cb2, et)
+    C2 <: AbstractGray && return _with_et(Cb1 === RGB24 || Cb1 === AbstractRGB ? RGB : Cb1, et)
+    _with_et(base_color_type(typejoin(C1, C2)), et)
+end
+function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:TransparentColor, C2<:TransparentColor}
+    et, Cb1, Cb2 = _promote_et(C1, C2), base_colorant_type(C1), base_colorant_type(C2)
+    Cb1 === Cb2 && return _with_et(Cb1, et)
+    C1 === ARGB32 && C2 <: AbstractARGB && return ARGB{et}
+    C2 === ARGB32 && C1 <: AbstractARGB && return ARGB{et}
+    C1 === AGray32 && C2 <: AbstractAGray && return AGray{et}
+    C2 === AGray32 && C1 <: AbstractAGray && return AGray{et}
+    C1 <: TransparentGray && return _with_et(Cb2 === ARGB32 ? ARGB : Cb2, et)
+    C2 <: TransparentGray && return _with_et(Cb1 === ARGB32 ? ARGB : Cb1, et)
+    _transparentcolor_with_et(typejoin(C1, C2), et)
+end
+function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:TransparentColor, C2<:Color}
+    et, Cb1, Cb2 = _promote_et(C1, C2), base_color_type(C1), base_color_type(C2)
+    Cb1 === Cb2 && return _with_et(base_colorant_type(C1), et) # != Cb1
+    C1 === ARGB32 && C2 <: AbstractGray && return _with_et(ARGB, et)
+    C1 === AGray32 && C2 <: AbstractRGB && return _with_et(ARGB, et)
+    C1 <: AbstractAGray && return _with_et(Cb2 === RGB24 || Cb2 === AbstractRGB ? ARGB : alphacolor(Cb2), et)
+    C1 <: AbstractGrayA && return _with_et(Cb2 === RGB24 || Cb2 === AbstractRGB ? RGBA : coloralpha(Cb2), et)
+    if C2 <: AbstractGray
+        Cbc1 = base_colorant_type(C1) # != Cb1
+        C1 <: AlphaColor && return _with_et(Cb1 <: AbstractRGB ? ARGB : Cbc1, et)
+        C1 <: ColorAlpha && return _with_et(Cb1 <: AbstractRGB ? RGBA : Cbc1, et)
+        return _with_et(Cb1 <: AbstractRGB ? TransparentRGB{RGB} : Cbc1, et)
+    end
+    _transparentcolor_with_et(C1, et)
+end
+function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:AbstractRGB, C2<:AbstractRGB}
+    et, Cb1, Cb2 = _promote_et(C1, C2), base_color_type(C1), base_color_type(C2)
+    Cb1 === Cb2 && return _with_et(Cb1, et)
+    C1 <: RGBX && !(C2 <: XRGB) && return _with_et(RGBX, et)
+    C1 <: XRGB && !(C2 <: RGBX) && return _with_et(XRGB, et)
+    C2 <: RGBX && !(C1 <: XRGB) && return _with_et(RGBX, et)
+    C2 <: XRGB && !(C1 <: RGBX) && return _with_et(XRGB, et)
+    _with_et(RGB, et)
+end
+function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:AbstractGray, C2<:AbstractGray}
+    et, Cb1, Cb2 = _promote_et(C1, C2), base_color_type(C1), base_color_type(C2)
+    Cb1 === Cb2 && return _with_et(Cb1, et)
+    _with_et(Gray, et)
+end
+_promote_rule(::Type{C1}, ::Type{C2}) where {C1<:TransparentRGB, C2<:AbstractRGB} =
+    _with_et(C1 === ARGB32 ? ARGB : base_colorant_type(C1), _promote_et(C1, C2))
+
+_promote_rule(::Type{C1}, ::Type{C2}) where {C1<:TransparentGray, C2<:AbstractGray} =
+    _with_et(C1 === AGray32 ? AGray : base_colorant_type(C1), _promote_et(C1, C2))
+
 
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
