@@ -126,7 +126,7 @@ eltypes_supported(::Type{AGray32}) = N0f8
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
 """
-    issuported(C::Type, T::Type)::Bool
+    issupported(C::Type, T::Type)::Bool
 
 Returns `true` if `T` is a valid numeric eltype for `C<:Colorant`.
 """
