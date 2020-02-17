@@ -35,8 +35,6 @@ gray(c::Gray24)  = N0f8(c.color & 0x000000ff, 0)
 gray(c::AGray32) = N0f8(c.color & 0x000000ff, 0)
 gray(x::Number)  = x
 
-Base.real(g::Gray) = gray(g)
-
 """
 `chroma(c)` returns the chroma of a `Lab`, `Luv` or their variants color.
 !!! note
@@ -482,12 +480,6 @@ end
 ==(c1::YIQ, c2::YIQ) = c1.y == c2.y && c1.i == c2.i && c1.q == c2.q
 ==(c1::YCbCr, c2::YCbCr) = c1.y == c2.y && c1.cb == c2.cb && c1.cr == c2.cr
 
-for T in (RGB24, ARGB32, Gray24, AGray32)
-    @eval begin
-        reinterpret(::Type{UInt32}, x::$T) = x.color
-        reinterpret(::Type{$T}, x::UInt32) = $T(x, Val{true})
-    end
-end
 ==(x::AbstractGray, y::AbstractGray) = gray(x) == gray(y)
 ==(x::Number, y::AbstractGray) = x == gray(y)
 ==(x::AbstractGray, y::Number) = ==(y, x)

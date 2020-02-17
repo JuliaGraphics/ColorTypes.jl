@@ -109,24 +109,34 @@ _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:A
 _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(A), gray(c)); A(g, g, g, alpha))
 
 convert(::Type{RGB24},   x::Real) = RGB24(x, x, x)
-convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x, 1)
+convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x)
+convert(::Type{ARGB32},  x::Real, alpha) = ARGB32(x, x, x, alpha)
 convert(::Type{Gray24},  x::Real) = Gray24(x)
-convert(::Type{AGray32}, x::Real) = AGray32(x, 1)
+convert(::Type{AGray32}, x::Real) = AGray32(x)
 convert(::Type{AGray32}, x::Real, alpha) = AGray32(x, alpha)
 
-convert(::Type{Gray{T}},  x::Real) where {T}    = Gray{T}(x)
-convert(::Type{T},  x::Gray) where {T<:Real}    = convert(T, x.val)
-convert(::Type{T},  x::Gray24) where {T<:Real}  = convert(T, gray(x))
-convert(::Type{AGray{T}}, x::Real) where {T}    = AGray{T}(x)
-convert(::Type{GrayA{T}}, x::Real) where {T}    = GrayA{T}(x)
+convert(::Type{Gray{T}},  x::Real) where {T} = Gray{T}(x)
+convert(::Type{AGray{T}}, x::Real) where {T} = AGray{T}(x)
+convert(::Type{GrayA{T}}, x::Real) where {T} = GrayA{T}(x)
 
-(::Type{T})(x::AbstractGray) where {T<:Real}    = T(gray(x))
+convert(::Type{T}, x::Gray  ) where {T<:Real} = convert(T, x.val)
+convert(::Type{T}, x::Gray24) where {T<:Real} = convert(T, gray(x))
+(::Type{T})(x::AbstractGray)  where {T<:Real} = T(gray(x))
+Base.real(x::AbstractGray) = gray(x)
 
 # Define some constructors that just call convert since the fallback constructor in Base
 # is removed in Julia 0.7
 # The parametric types are handled in @make_constructors and @make_alpha
 for t in (:ARGB32, :Gray24, :RGB24)
     @eval $t(x) = convert($t, x)
+end
+
+# reinterpret
+for T in (RGB24, ARGB32, Gray24, AGray32)
+    @eval begin
+        reinterpret(::Type{UInt32}, x::$T) = x.color
+        reinterpret(::Type{$T}, x::UInt32) = $T(x, Val{true})
+    end
 end
 
 # Generate the transparent analog of a color
