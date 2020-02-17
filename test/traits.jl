@@ -1,5 +1,6 @@
 using ColorTypes, FixedPointNumbers
 using Test
+using ColorTypes: ColorTypeResolutionError
 
 @testset "RGB accessors" begin
 
@@ -275,12 +276,12 @@ end
     @test @inferred(base_color_type(AbstractARGB{RGB{Float64},Float64})) === RGB
     @test @inferred(base_color_type(TransparentRGB)) === AbstractRGB
 
-    @test_broken @inferred(base_color_type(AbstractGrayA)) === AbstractGray
-    @test_broken @inferred(base_color_type(AbstractAGray)) === AbstractGray
-    @test_broken @inferred(base_color_type(TransparentGray)) === AbstractGray
+    @test @inferred(base_color_type(AbstractGrayA)) === AbstractGray
+    @test @inferred(base_color_type(AbstractAGray)) === AbstractGray
+    @test @inferred(base_color_type(TransparentGray)) === AbstractGray
 
-    @test_broken @inferred(base_color_type(Color3)) === Color3
-    @test_broken @inferred(base_color_type(Transparent3)) === Color3
+    @test @inferred(base_color_type(Color3)) === Color3
+    @test @inferred(base_color_type(Transparent3)) === Color3
     @test @inferred(base_color_type(Color)) === Color
     @test @inferred(base_color_type(TransparentColor)) === Color
     @test @inferred(base_color_type(TransparentColor{RGB})) === RGB
@@ -288,7 +289,7 @@ end
     @test @inferred(base_color_type(TransparentColor{RGB{Float64},Float64})) === RGB
     @test_throws MethodError color_type(Colorant{N0f8})
 
-    @test_broken base_color_type(N0f8) === Gray
+    @test base_color_type(N0f8) === Gray
 
     # for instances
     @test @inferred(base_color_type(RGB{N0f8}(1,0,0))) === RGB
@@ -329,24 +330,19 @@ end
     @test @inferred(base_colorant_type(AHSV{Float64})) === AHSV
 
     @test @inferred(base_colorant_type(AbstractRGB)) === AbstractRGB
-    @test @inferred(base_colorant_type(AbstractRGBA)) === ColorAlpha # FIXME
-    @test @inferred(base_colorant_type(AbstractARGB)) === AlphaColor # FIXME
-    @test_broken @inferred(base_colorant_type(AbstractRGBA)) === AbstractRGBA
-    @test_broken @inferred(base_colorant_type(AbstractARGB)) === AbstractARGB
+    @test @inferred(base_colorant_type(AbstractRGBA)) === ColorAlpha{C,T,4} where C<:AbstractRGB{T} where T
+    @test @inferred(base_colorant_type(AbstractARGB)) === AlphaColor{C,T,4} where C<:AbstractRGB{T} where T
     @test @inferred(base_colorant_type(AbstractRGB{N0f8})) === AbstractRGB
-    @test @inferred(base_colorant_type(AbstractRGBA{RGB,Float32})) === ColorAlpha # FIXME
-    @test @inferred(base_colorant_type(AbstractARGB{RGB{Float64},Float64})) === AlphaColor # FIXME
-    @test_broken @inferred(base_colorant_type(AbstractRGBA{RGB,Float32})) === RGBA
-    @test_broken @inferred(base_colorant_type(AbstractARGB{RGB{Float64},Float64})) === ARGB
-    @test @inferred(base_colorant_type(TransparentRGB)) === TransparentColor # FIXME
-    @test_broken @inferred(base_colorant_type(TransparentRGB)) === TransparentRGB
+    @test @inferred(base_colorant_type(AbstractRGBA{RGB,Float32})) === ColorAlpha{RGB{T},T,4} where T
+    @test @inferred(base_colorant_type(AbstractARGB{RGB{Float64},Float64})) === AlphaColor{RGB{T},T,4} where T
+    @test @inferred(base_colorant_type(TransparentRGB)) === TransparentColor{C,T,4} where C<:AbstractRGB{T} where T
 
-    @test_broken @inferred(base_colorant_type(AbstractGrayA)) === AbstractGrayA
-    @test_broken @inferred(base_colorant_type(AbstractAGray)) === AbstractAGray
-    @test_broken @inferred(base_colorant_type(TransparentGray)) === TransparentGray
+    @test @inferred(base_colorant_type(AbstractGrayA)) === ColorAlpha{C,T,2} where C<:AbstractGray{T} where T
+    @test @inferred(base_colorant_type(AbstractAGray)) === AlphaColor{C,T,2} where C<:AbstractGray{T} where T
+    @test @inferred(base_colorant_type(TransparentGray)) === TransparentColor{C,T,2} where C<:AbstractGray{T} where T
 
-    @test_broken @inferred(base_colorant_type(Color3)) === Color3
-    @test_broken @inferred(base_colorant_type(Transparent3)) === Transparent3
+    @test @inferred(base_colorant_type(Color3)) === Color3
+    @test @inferred(base_colorant_type(Transparent3)) === TransparentColor{C,T,4} where C<:Color{T,3} where T
     @test @inferred(base_colorant_type(Color)) === Color
     @test @inferred(base_colorant_type(TransparentColor)) === TransparentColor
     @test @inferred(base_colorant_type(TransparentColor{RGB})) === TransparentColor # FIXME
@@ -413,15 +409,25 @@ end
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
 
+@testset "parametric_colorant" begin
+    @test parametric_colorant(RGB{Float32}) === RGB{Float32}
+    @test parametric_colorant(RGB)          === RGB
+    @test parametric_colorant(BGR{Float32}) === BGR{Float32}
+    @test parametric_colorant(RGB24)        === RGB{N0f8}
+    @test parametric_colorant(Gray24)       === Gray{N0f8}
+    @test parametric_colorant(ARGB32)       === ARGB{N0f8}
+    @test parametric_colorant(AGray32)      === AGray{N0f8}
+end
+
 @testset "ccolor" begin
     @test @inferred(ccolor(Colorant, XRGB{N0f8})) === XRGB{N0f8}
     @test @inferred(ccolor(Colorant{N0f8}, RGBX{Float32})) === RGBX{N0f8}
     @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) === BGR{N0f8}
 
-    @test @inferred(ccolor(AbstractRGB, HSV{Float32})) === AbstractRGB{Float32} # is not concrete type
-    @test @inferred(ccolor(AbstractRGB{N0f8}, HSV{Float32})) === AbstractRGB{N0f8} # is not concrete type
+    @test_throws ColorTypeResolutionError ccolor(AbstractRGB, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(AbstractRGB{N0f8}, HSV{Float32})
     @test @inferred(ccolor(AbstractRGB, RGB24)) === RGB24
-    @test_broken @inferred(ccolor(AbstractRGB{Float32}, RGB24))
+    @test_throws ErrorException ccolor(AbstractRGB{Float32}, RGB24)
 
     @test @inferred(ccolor(RGB, RGB)) == RGB # with symbol `S` instead of `T`
     @test @inferred(ccolor(RGB, HSV)) == RGB # with symbol `S` instead of `T`
@@ -452,6 +458,13 @@ end
     @test @inferred(ccolor(Gray, Int)) === Gray{N0f8}
     @test @inferred(ccolor(Gray, Float32)) === Gray{Float32}
 
+    @test @inferred(ccolor(RGB{N0f8}, Bool)) === RGB{N0f8}
+    @test_broken @inferred(ccolor(RGB, Bool)) === RGB{Bool}
+    @test @inferred(ccolor(RGB, Int)) === RGB{N0f8}
+    @test @inferred(ccolor(RGB, Float32)) === RGB{Float32}
+
+    @test_throws ColorTypeResolutionError ccolor(HSV, Int)
+
     @test @inferred(ccolor(RGB24, HSV{Float32})) === RGB24
     @test @inferred(ccolor(ARGB32, HSV{Float32})) === ARGB32
     @test @inferred(ccolor(Gray24, HSV{Float32})) === Gray24
@@ -465,18 +478,18 @@ end
     @test @inferred(ccolor(TransparentColor, AHSV{Float32})) === AHSV{Float32}
 
     # Ambiguous storage order, choose AlphaColor or ColorAlpha
-    @test_throws ErrorException ccolor(TransparentColor, HSV{Float32})
-    @test_throws ErrorException ccolor(TransparentColor{RGB}, HSV{Float32})
-    @test_throws ErrorException ccolor(TransparentColor{RGB,Float64}, HSV{Float32})
-    @test_throws ErrorException ccolor(TransparentColor{RGB{Float64},Float64}, HSV{Float32})
-    @test_throws ErrorException ccolor(TransparentColor{RGB{Float64},Float64,4}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB,Float64}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB{Float64},Float64}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB{Float64},Float64,4}, HSV{Float32})
 
     @test @inferred(ccolor(AlphaColor, RGB)) === ARGB
-    @test_broken @inferred(ccolor(AlphaColor, RGB{N0f8})) === ARGB{N0f8}
+    @test @inferred(ccolor(AlphaColor, RGB{N0f8})) === ARGB{N0f8}
     @test @inferred(ccolor(AlphaColor, RGB24)) === ARGB32
-    @test_broken @inferred(ccolor(AbstractARGB, RGB)) === ARGB
-    @test_broken @inferred(ccolor(AbstractARGB, RGB{N0f8})) === ARGB{N0f8}
-    @test_broken @inferred(ccolor(AbstractARGB, RGB24)) === ARGB32
+    @test @inferred(ccolor(AbstractARGB, RGB)) === ARGB
+    @test @inferred(ccolor(AbstractARGB, RGB{N0f8})) === ARGB{N0f8}
+    @test @inferred(ccolor(AbstractARGB, RGB24)) === ARGB32
 
     for C in filter(T -> T <: AbstractRGB, ColorTypes.parametric3)
         @test @inferred(ccolor(RGB24, C)) === RGB24

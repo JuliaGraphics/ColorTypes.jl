@@ -23,7 +23,7 @@ assumptions about internal storage order, the number of fields, or the
 representation. One `AbstractRGB` color-type, `RGB24`, is not
 parametric and does not have fields named `r`, `g`, `b`.
 """
-abstract type AbstractRGB{T}      <: Color{T,3} end
+abstract type AbstractRGB{T} <: Color{T,3} end
 
 
 # Types with transparency
@@ -56,13 +56,13 @@ abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N} end
 alpha channel comes first in the internal storage order. **Note** that
 the constructor order is still `(color, alpha)`.
 """
-abstract type AlphaColor{C,T,N} <: TransparentColor{C,T,N} end
+abstract type AlphaColor{C<:Color,T,N} <: TransparentColor{C,T,N} end
 
 """
 `ColorAlpha` is an abstract supertype for types like `RGBA`, where the
 alpha channel comes last in the internal storage order.
 """
-abstract type ColorAlpha{C,T,N} <: TransparentColor{C,T,N} end
+abstract type ColorAlpha{C<:Color,T,N} <: TransparentColor{C,T,N} end
 
 # These are types we'll dispatch on.
 AbstractGray{T}                    = Color{T,1}
@@ -75,6 +75,13 @@ AbstractAGray{C<:AbstractGray,T}   = AlphaColor{C,T,2}
 AbstractGrayA{C<:AbstractGray,T}   = ColorAlpha{C,T,2}
 AbstractARGB{C<:AbstractRGB,T}     = AlphaColor{C,T,4}
 AbstractRGBA{C<:AbstractRGB,T}     = ColorAlpha{C,T,4}
+
+# With reordered type parameters (also useful for dispatch)
+ColorantN{N,T}                  = Colorant{T,N}
+ColorN{N,T}                     = Color{T,N}
+TransparentColorN{N,C<:Color,T} = TransparentColor{C,T,N}
+AlphaColorN{N,C<:Color,T}       = AlphaColor{C,T,N}
+ColorAlphaN{N,C<:Color,T}       = ColorAlpha{C,T,N}
 
 """
 `RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
@@ -414,15 +421,22 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 # Note: with the exceptions of `alphacolor` and `coloralpha`, all
 # traits in the rest of this file are intended just for internal use
 
+# The following should be in traits.jl but we need it now.
+# Return the number of components in the color
+# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., XRGB)
+length(c::Colorant) = length(typeof(c))
+length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
+
 const color3types = map(s->getfield(ColorTypes,s),
-  filter(names(ColorTypes, all=false)) do s
-    isdefined(ColorTypes, s) || return false
-    t = getfield(ColorTypes, s)
-    isa(t, Type) && t <: Colorant && !isabstracttype(t) && length(fieldnames(t))>1
-  end)
+                        filter(names(ColorTypes, all=false)) do s
+                            isdefined(ColorTypes, s) || return false
+                            t = getfield(ColorTypes, s)
+                            isa(t, Type{<:Color3}) && !isabstracttype(t)
+                        end |> unique
+                        )
+
 # The above should have filtered out every non-DataType that's not also a
-# wrapped UnionAll-wrapped DataType. By avoiding the explicit UnionAll check
-# here, we remain compatible with pre-0.6 julia.
+# wrapped UnionAll-wrapped DataType.
 const parametric3 = filter(x->!isa(x, DataType) || !isempty(x.parameters), color3types)
 
 # Provide the field names in the order expected by the constructor
@@ -694,3 +708,14 @@ end
 
 _rem(x,::Type{T}) where {T<:Normed} = x % T
 _rem(x, ::Type{T}) where {T}        = x
+
+struct ColorTypeResolutionError <: Exception
+    func::Symbol
+    msg::String
+    C1
+    C2
+end
+
+function Base.showerror(io::IO, ex::ColorTypeResolutionError)
+    print(io, "in ", ex.func, ", ", ex.msg, ' ', ex.C1, " and ", ex.C2)
+end

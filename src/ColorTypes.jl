@@ -33,7 +33,7 @@ export RGB24, ARGB32, Gray24, AGray32
 
 
 ## Functions
-export base_color_type, base_colorant_type, ccolor, color, color_type
+export base_color_type, base_colorant_type, ccolor, color, color_type, parametric_colorant
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export chroma, hue

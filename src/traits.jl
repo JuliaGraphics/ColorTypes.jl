@@ -109,90 +109,190 @@ to_top(::Type{Colorant{T,N}}) where {T,N} = Colorant{T,N}
 to_top(c::Colorant) = to_top(typeof(c))
 
 # eltype(RGB{Float32}) -> Float32
-eltype(::Type{Colorant{T}}) where {T          }   = T
-eltype(::Type{Colorant{T,N}}) where {T,N        } = T
+eltype(::Type{Colorant{T}}) where {T}       = T
+eltype(::Type{Colorant{T,N}}) where {T,N}   = T
 @pure eltype(::Type{C}) where {C<:Colorant} = eltype(supertype(C))
 
 eltype(c::Colorant) = eltype(typeof(c))
 
-# eltypes_supported(Colorant{T<:X}) -> T<:X (pre 0.6) or X (post 0.6)
+# eltypes_supported(Colorant{T<:X}) -> X
 @pure eltypes_supported(::Type{C}) where {C<:Colorant} =
     Base.parameter_upper_bound(base_colorant_type(C), 1)
+eltypes_supported(::Type{RGB24})   = N0f8
+eltypes_supported(::Type{Gray24})  = N0f8
+eltypes_supported(::Type{ARGB32})  = N0f8
+eltypes_supported(::Type{AGray32}) = N0f8
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
-@pure issupported(::Type{C}, ::Type{T}) where {C<:Colorant,T} = T <: eltypes_supported(C)
+"""
+    issupported(C::Type, T::Type)::Bool
+
+Returns `true` if `T` is a valid numeric eltype for `C<:Colorant`.
+"""
+issupported(::Type{C}, ::Type{T}) where {C<:Colorant,T} = T <: eltypes_supported(C)
 
 """
-`color_type(c)` or `color_type(C)` (`c` being a color instance and `C`
-being the type) returns the type of the Color object (without
-alpha channel).  This, and related functions like `base_color_type`,
-`base_colorant_type`, and `ccolor` are useful for manipulating types for
-writing generic code.
+    CT = color_type(C::Type)
+    CT = color_type(c::Colorant)
 
+Return the type of the Color object, discarding any alpha channel.
 For example,
 
-    color_type(RGB)          == RGB
-    color_type(RGB{Float32}) == RGB{Float32}
-    color_type(ARGB{N0f8})     == RGB{N0f8}
+    color_type(RGB)          === RGB
+    color_type(RGB{Float32}) === RGB{Float32}
+    color_type(ARGB{N0f8})   === RGB{N0f8}
+    color_type(RGB(1,0,0))   === RGB{N0f8}
+
+`color_type`, and related functions like [`base_color_type`](@ref),
+[`base_colorant_type`](@ref), and [`ccolor`](@ref) are useful for manipulating types
+when writing generic code.
 """
-color_type(::Type{TransparentColor})        = Color
 color_type(::Type{C}) where {C<:Color} = C
+color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
+color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
+function color_type(::Type{TC}) where TC<:TransparentColor
+    _color_type(::Type{TC}) where TC<:TransparentColor{C, T} where {C,T} = C
+    return isa(TC, UnionAll) ? Base.parameter_upper_bound(TC, 1) : _color_type(TC)
+end
+
 color_type(c::Colorant) = color_type(typeof(c))
 
-# Return the number of components in the color
-# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., XRGB)
-length(c::Colorant) = length(typeof(c))
-
-length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
-# This definition should be unnecessary, but julia currently incorrectly
-# dispatches to the first definition below, even when the second is
-# applicable.
-_color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
-color_type(::Type{TC}) where TC<:TransparentColor =
-    isa(TC, UnionAll) ? Base.parameter_upper_bound(TC, 1) : _color_type(TC)
-color_type(::Type{TC}) where TC<:(TransparentColor{C, T, N} where T where N) where C = C
-
-@pure color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
-@pure color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
-
 """
-`base_color_type` is similar to `color_type`, except it "strips off" the
-element type.  For example,
+    Cbase = base_color_type(C::Type)
+    Cbase = base_color_type(c::Colorant)
 
-    color_type(RGB{N0f8})     == RGB{N0f8}
-    base_color_type(RGB{N0f8}) == RGB
+Return the Color type without alpha channel or a specified numeric element type.
+`base_color_type` is similar to [`color_type`](@ref), except it "strips off" the
+element type. It always returns a parametric type, which makes it convenient
+for switching the numeric element type.
 
-This can be very handy if you want to switch element types. For example:
+For example, compare
+
+    base_color_type(RGB{N0f8})  === RGB
+    base_color_type(RGBA{N0f8}) === RGB
+
+vs
+
+    color_type(RGB{N0f8})       === RGB{N0f8}
+
+Switching element types can be done as follows:
 
     c64 = base_color_type(c){Float64}(color(c))
 
-converts `c` into a `Float64` representation (potentially discarding
-any alpha-channel information).
+`base_color_type` discards any alpha channel. See [`base_colorant_type`](@ref)
+if you want to preserve the alpha channel.
 """
 base_color_type(::Type{C}) where {C<:Colorant} = base_colorant_type(color_type(C))
+base_color_type(::Type{<:Number}) = Gray
 
-base_color_type(c::Colorant) = base_color_type(typeof(c))
-base_color_type(x::Number)   = Gray
+base_color_type(x::Union{Colorant,Number}) = base_color_type(typeof(x))
 
-@pure basetype(T) = Base.typename(T).wrapper
-base_colorant_type(::Type{C}) where {C<:Colorant} = basetype(C)
+## base_colorant_type implementation
+
+base_colorant_type(::Type{C}) where {C<:Colorant} = isabstracttype(C) ? abstract_basetype(C) : basetype(C)
+
+@pure basetype(@nospecialize(C)) = Base.typename(C).wrapper
+
+abstract_basetype(::Type{C}) where C  <: AbstractRGB       = AbstractRGB
+abstract_basetype(::Type{C}) where C  <: ColorN{N} where N = ColorN{N}
+abstract_basetype(::Type{Color})                           = Color
+abstract_basetype(::Type{AC}) where AC <: AlphaColorN{N,C} where {N,C<:Color} = AlphaColor{base_colorant_type(C){T},T,N} where T
+abstract_basetype(::Type{CA}) where CA <: ColorAlphaN{N,C} where {N,C<:Color} = ColorAlpha{base_colorant_type(C){T},T,N} where T
+abstract_basetype(::Type{TC}) where TC <: TransparentColorN{N,C} where {N,C<:Color} =
+    TransparentColor{base_colorant_type(C){T},T,N} where T
+abstract_basetype(::Type{TC}) where TC <: TransparentColor = TransparentColor
+# These handle things like base_colorant_type(AbstractRGBA)
+parameter1(::Type{C}) where C = C isa DataType ? C.parameters[1] : Base.parameter_upper_bound(C, 1)
+function abstract_basetype(::Type{AC}) where AC <: AlphaColorN{N} where {N}
+    Cb = parameter1(AC)
+    Cb === Color && return AlphaColor{C,T,N} where {T,C<:ColorN{N-1,T}}
+    isabstracttype(Cb) || return AlphaColor{Cb{T},T,N} where T
+    return AlphaColor{C,T,N} where {T,C<:Cb{T}}
+end
+function abstract_basetype(::Type{CA}) where CA <: ColorAlphaN{N} where {N}
+    Cb = parameter1(CA)
+    Cb === Color && return ColorAlpha{C,T,N} where {T,C<:ColorN{N-1,T}}
+    isabstracttype(Cb) || return ColorAlpha{Cb{T},T,N} where T
+    return ColorAlpha{C,T,N} where {T,C<:Cb{T}}
+end
+function abstract_basetype(::Type{TC}) where TC <: TransparentColorN{N} where {N}
+    Cb = parameter1(TC)
+    Cb === Color && return TransparentColor{C,T,N} where {T,C<:ColorN{N-1,T}}
+    isabstracttype(Cb) || return TransparentColor{Cb{T},T,N} where T
+    return TransparentColor{C,T,N} where {T,C<:Cb{T}}
+end
+# This fallback dispatches to a separate function to control method ordering.
+# Otherwise the generic ColorantN methods supersede the AlphaColor/ColorAlpha/Transparent methods
+abstract_basetype(::Type{C}) where C = abstract_colorant_basetype(C)
+
+abstract_colorant_basetype(::Type{C}) where C <: ColorantN{N} where N                     = ColorantN{N}
+abstract_colorant_basetype(::Type{C}) where C <: Colorant                                 = Colorant
 
 """
-`base_colorant_type` is similar to `base_color_type`, but it preserves the
-"alpha" portion of the type.
+    Cbase = base_colorant_type(C::Type)
+    Cbase = base_colorant_type(c::Colorant)
 
-For example,
+Return the Colorant type without specified numeric element type.
 
-    base_color_type(ARGB{N0f8})  == RGB
-    base_colorant_type(ARGB{N0f8})  == ARGB
+For example, compare
 
-If you just want to switch element types, this is the safest default
-and the easiest to use:
+    base_colorant_type(ARGB{N0f8}) === ARGB
 
-    c64 = base_colorant_type(c){Float64}(c)
+vs
+
+    base_color_type(ARGB{N0f8})    === RGB
+    color_type(ARGB{N0f8})         === RGB{N0f8}
+
+When possible, `base_colorant_type` returns a parametric `UnionAll`, so
+that `Cbase{T}` can be used to specify a colorant with element type `T`.
+However, `base_colorant_type` is not guaranteed to return a parametric result,
+for example
+
+```jldoctest
+julia> base_colorant_type(RGB24)
+RGB24
+```
+
+In generic code, you can check whether `Cbase` is a `DataType` or `UnionAll`;
+`Cbase{T}` will be valid only if it's a `UnionAll`.
+
+# Usage example
+
+A safe and easy way to switch the element type of a colorant value `c` to be `Float64` is
+
+    Cbase = base_colorant_type(parametric_colorant(typeof(c)))
+    c64 = Cbase{Float64}(c)
+
 """
 base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
+
+"""
+    Cp = parametric_colorant(C::Type)
+
+Return a parametric colorant type.
+
+# Examples
+
+```jldoctest
+julia> parametric_colorant(RGB)
+RGB
+
+julia> parametric_colorant(RGB{Float32})
+RGB{Float32}
+
+julia> parametric_colorant(BGR)
+BGR
+
+julia> parametric_colorant(RGB24)
+RGB{N0f8}
+```
+"""
+parametric_colorant(::Type{C}) where C<:Colorant = C
+parametric_colorant(::Type{RGB24}) = RGB{N0f8}
+parametric_colorant(::Type{Gray24}) = Gray{N0f8}
+parametric_colorant(::Type{ARGB32}) = ARGB{N0f8}
+parametric_colorant(::Type{AGray32}) = AGray{N0f8}
 
 """
     floattype(::Type{T}) where T<:Colorant
@@ -237,85 +337,120 @@ showcoloranttype(io, ::Type{Union{}}) = show(io, Union{})
 showcoloranttype(io, ::Type{T}) where {T<:FixedPoint} = FixedPointNumbers.showtype(io, T)
 showcoloranttype(io, ::Type{T}) where {T} = show(io, T)
 
+@pure pureintersect(::Type{C1}, ::Type{C2}) where {C1,C2} = typeintersect(C1, C2)
 
 """
- `ccolor` ("concrete color") helps write flexible methods. The idea is
-that users may write `convert(HSV, c)` or even `convert(Array{HSV},
-A)` without specifying the element type explicitly (e.g.,
-`convert(Array{HSV{Float32}}, A)`). `ccolor` implements the logic "choose the
-user's eltype if specified, otherwise retain the eltype of the source
-object." However, when the source object has FixedPoint element type,
-and the destination only supports AbstractFloat, we choose Float32.
+    Calpha, Cbase, T = colorsplit(C)
 
-Usage:
+Split a color type `C` into three components: `T` is the numeric eltype,
+`Cbase` is the `base_color_type(C)`, and `wrap` is one of `identity`, `coloralpha`,
+or `alphacolor`.
+"""
+function colorsplit(::Type{C}) where C<:Colorant
+    Calpha = C <: AlphaColor ? AlphaColor :
+             C <: ColorAlpha ? ColorAlpha :
+             C <: Color ? Nothing :
+             C <: TransparentColor ? TransparentColor : Any
+    Cbase = C <: Union{Color,TransparentColor} ? base_color_type(C) : Color
+    return Calpha, Cbase, eltype(C)
+end
 
-    ccolor(desttype, srctype) -> concrete desttype
+"""
+    C = ccolor(Cdest, Csrc)
 
-Example:
+`ccolor` ("concrete color") supports independent selection of colorspace and
+numeric element type. `ccolor` chooses the numeric element type from
+`Cdest` if available, but if not specified gets it from `Csrc`.
 
-    convert{C<:Colorant}(::Type{C}, p::Colorant) = cnvt(ccolor(C,typeof(p)), p)
+```jldoctest
+julia> ccolor(RGB, Gray{Float32})
+RGB{Float32}
+
+julia> ccolor(RGB, Gray{N0f8})
+RGB{N0f8}
+
+julia> ccolor(RGB{Float32}, Gray{N0f8})
+RGB{Float32}
+```
+
+Some colorspaces don't support `FixedPoint` numeric element types;
+in such cases the `eltype_default` for `Cdest` is chosen:
+
+```jldoctest
+julia> ccolor(HSV, RGB{N0f8})
+HSV{Float32}
+```
+
+`Cdest` can be an abstract type, in which case `Csrc` must be in that
+abstract color space.
+
+```jldoctest
+julia> ccolor(Color{Float32}, RGB{N0f8})
+RGB{Float32}
+
+julia> ccolor(AbstractRGB{Float32}, BGR{N0f8})
+BGR{Float32}
+
+julia> ccolor(AbstractRGB{Float32}, HSV{Float32})
+ERROR: in ccolor, empty intersection between AbstractRGB and HSV
+[...]
+```
+`ccolor` will throw an error when no unambiguous concrete type can be determined.
+In the previous case, `AbstractRGB{Float32}` encompases `RGB{Float32}` and `BGR{Float32}`.
+
+`ccolor` is most useful in defining other methods.
+For example, to allow users to write `convert(RGB, c)` without having to specify the
+numeric element type of `RGB`, define
+
+```
+convert(::Type{C}, p::Colorant) where C<:Colorant = cnvt(ccolor(C,typeof(p)), p)
+```
 
 where `cnvt` is the function that performs explicit conversion.
 """
-ccolor(::Type{Colorant   }, ::Type{Csrc}) where {   Csrc<:Colorant} = Csrc
-ccolor(::Type{Colorant{T}}, ::Type{Csrc}) where {T, Csrc<:Colorant} = base_colorant_type(Csrc){T}
-ccolor(::Type{Colorant{T,3}}, ::Type{Csrc}) where {T, Csrc<:Color3  } = Csrc
-ccolor(::Type{Colorant{T,3}}, ::Type{Csrc}) where {T, Csrc<:Transparent3} = base_color_type(Csrc)
-ccolor(::Type{Color   }, ::Type{Csrc}) where {   Csrc<:Colorant} = color_type(Csrc)
-ccolor(::Type{Color{T}}, ::Type{Csrc}) where {T, Csrc<:Colorant} = base_color_type(Csrc){T}
-
-ccolor(::Type{TransparentColor}, ::Type{Csrc}) where {Csrc<:Color} =
-          error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor(
-::Type{TransparentColor{C    }}, ::Type{Csrc}) where {C<:Color,    Csrc<:Color} =
-           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor(
-::Type{TransparentColor{C,T  }}, ::Type{Csrc}) where {C<:Color,T,  Csrc<:Color} =
-           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-ccolor(
-::Type{TransparentColor{C,T,N}}, ::Type{Csrc}) where {C<:Color,T,N,Csrc<:Color} =
-           error("Ambiguous storage order, choose AlphaColor or ColorAlpha")
-
-ccolor(::Type{TransparentColor}, ::Type{Csrc}) where {Csrc<:TransparentColor} = Csrc
-
-ccolor(::Type{AlphaColor}, ::Type{Csrc}) where {Csrc<:Colorant} = alphacolor(Csrc)
-ccolor(
-::Type{AlphaColor{C    }}, ::Type{Csrc}) where {C<:Color,    Csrc<:Colorant} = ccolor(alphacolor(C), Csrc)
-ccolor(
-::Type{AlphaColor{C,T  }}, ::Type{Csrc}) where {C<:Color,T,  Csrc<:Colorant} = ccolor(alphacolor(C){T}, Csrc)
-ccolor(
-::Type{AlphaColor{C,T,N}}, ::Type{Csrc}) where {C<:Color,T,N,Csrc<:Colorant} = ccolor(alphacolor(C){T}, Csrc)
-
-ccolor(::Type{ColorAlpha}, ::Type{Csrc}) where {Csrc<:Colorant} = coloralpha(Csrc)
-ccolor(
-::Type{ColorAlpha{C    }}, ::Type{Csrc}) where {C<:Color,    Csrc<:Colorant} = ccolor(coloralpha(C), Csrc)
-ccolor(
-::Type{ColorAlpha{C,T  }}, ::Type{Csrc}) where {C<:Color,T,  Csrc<:Colorant} = ccolor(coloralpha(C){T}, Csrc)
-ccolor(
-::Type{ColorAlpha{C,T,N}}, ::Type{Csrc}) where {C<:Color,T,N,Csrc<:Colorant} = ccolor(coloralpha(C){T}, Csrc)
-
-ccolor(::Type{AbstractRGB},    ::Type{Csrc}) where {  Csrc<:AbstractRGB} = Csrc
-ccolor(::Type{AbstractRGB{T}}, ::Type{Csrc}) where {T,Csrc<:AbstractRGB} = base_colorant_type(Csrc){T}
-
-# Generic concrete types
-ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant,Csrc<:Colorant} = _ccolor(Cdest, Csrc, pick_eltype(Cdest, eltype(Cdest), eltype(Csrc)))
-ccolor(::Type{Cdest}, ::Type{T}) where {Cdest<:AbstractGray,T<:Number} = _ccolor(Cdest, Gray, pick_eltype(Cdest, eltype(Cdest), T))
-
-_ccolor(::Type{Cdest}, ::Type{Csrc}, ::Type{T}) where {Cdest,Csrc,T<:Number} =
-    isconcretetype(T) ? base_colorant_type(Cdest){T} :
-                    base_colorant_type(Cdest){S} where S<:T
-
-_ccolor(          ::Type{Cdest}, ::Type{Csrc}, ::Any) where {Cdest,Csrc}     = Cdest
-
-# Specific concrete types
-ccolor(::Type{RGB24},   ::Type{Csrc}) where {Csrc<:Colorant} = RGB24
-ccolor(::Type{ARGB32},  ::Type{Csrc}) where {Csrc<:Colorant} = ARGB32
-ccolor(::Type{Gray24},  ::Type{Csrc}) where {Csrc<:Colorant} = Gray24
-ccolor(::Type{AGray32}, ::Type{Csrc}) where {Csrc<:Colorant} = AGray32
-
-pick_eltype(::Type{C}, ::Type{T1}, ::Type{T2}) where {C,T1<:Number,T2<:Number} = T1
-pick_eltype(::Type{C}, ::Any, ::Any) where {C} = eltypes_supported(C)
-pick_eltype(::Type{C}, ::Any, ::Type{T2}) where {C,T2<:Number} = issupported(C, T2) ? T2 : eltype_default(C)
+function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Union{Number,Colorant}}
+    Cdestalpha, Cdestbase, Tdest = colorsplit(Cdest)
+    if Csrc <: Number
+        Cdestbase <: Union{AbstractGray, AbstractRGB} || throw(ColorTypeResolutionError(:ccolor, "no automatic conversion from", Csrc, Cdestbase))
+        Csrcalpha, Csrcbase, Tsrc = Any, Color, Csrc
+    else
+        Csrcalpha, Csrcbase, Tsrc = colorsplit(Csrc)
+    end
+    # Step 1: pick the base color type
+    if isabstracttype(Cdestbase)
+        C = pureintersect(Cdestbase, Csrcbase)
+        C === Union{} && throw(ColorTypeResolutionError(:ccolor, "empty intersection between", Cdestbase, Csrcbase))
+        isabstracttype(C) && throw(ColorTypeResolutionError(:ccolor, "abstract intersection between", Cdestbase, Csrcbase))
+    else
+        C = Cdestbase
+    end
+    # Step 2: combine with the alpha representation
+    if Cdestalpha === Nothing
+    else
+        Calpha = (Cdestalpha === TransparentColor || Cdestalpha === Any) ? Csrcalpha : Cdestalpha
+        Cdestalpha === TransparentColor && Calpha === Nothing && throw(ColorTypeResolutionError(:ccolor, "ambiguous alpha storage between", Cdest, Csrc))
+        if Calpha !== Nothing
+            Calpha === TransparentColor && throw(ColorTypeResolutionError(:ccolor, "ambiguous alpha storage between", Cdest, Csrc))
+            C = Calpha <: AlphaColor ? alphacolor(C) :
+                Calpha <: ColorAlpha ? coloralpha(C) : error("unexpected Calpha ", Calpha)
+        end
+    end
+    # Step 3: assign the eltype
+    if !isa(C, UnionAll)
+        eltype(C) <: Tdest && return C   # RGB24 etc.
+        error("nonparametric type ", C, " has ambiguous destination ", Cdest)
+    end
+    isabstracttype(Tdest) || !issupported(C, Tdest) || return C{Tdest}
+    T = pureintersect(Tdest, Tsrc)
+    T === Union{} && throw(ColorTypeResolutionError(:ccolor, "empty intersection between", Tdest, Tsrc))
+    T === Any && return C
+    issupported(C, T) && return C{T}
+    Tdef = eltype_default(C)
+    T<:Integer && return C{Tdef}
+    Tf = floattype(Tsrc)
+    issupported(C, Tf) && return C{Tf}
+    return C{Tdef}
+end
 
 ### Equality
 function ==(c1::AbstractRGB, c2::AbstractRGB)

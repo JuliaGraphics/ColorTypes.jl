@@ -1,5 +1,6 @@
 using ColorTypes, FixedPointNumbers
 using Test
+using ColorTypes: ColorTypeResolutionError
 
 @testset "rgb promotions" begin
     @test        promote( RGB{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === ( RGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8),  RGB{Float64}(0.3,0.8,0.1))
@@ -126,16 +127,16 @@ end
     c = RGB(1, 0.6, 0)
     @test convert(Colorant, c) === RGB{Float64}(1, 0.6, 0)
     @test convert(Colorant{N0f8}, c) === RGB{N0f8}(1, 0.6, 0)
-    @test_broken convert(Colorant{Float32,3}, c) === RGB{Float32}(1, 0.6, 0)
+    @test convert(Colorant{Float32,3}, c) === RGB{Float32}(1, 0.6, 0)
     @test convert(Color, c) === RGB{Float64}(1, 0.6, 0)
     @test convert(Color{N0f8}, c) === RGB{N0f8}(1, 0.6, 0)
     @test convert(Color{Float32}, c) === RGB{Float32}(1, 0.6, 0)
     @test convert(AbstractRGB, c) === RGB{Float64}(1, 0.6, 0)
     @test convert(AbstractRGB{N0f8}, c) === RGB{N0f8}(1, 0.6, 0)
-    @test_throws ErrorException convert(TransparentColor, c)
-    @test_throws ErrorException convert(TransparentColor{RGB{N0f8}}, c)
-    @test_throws ErrorException convert(TransparentColor{RGB{N0f8},N0f8}, c)
-    @test_throws ErrorException convert(TransparentColor{RGB{N0f8},N0f8,2}, c)
+    @test_throws ColorTypeResolutionError convert(TransparentColor, c)
+    @test_throws ColorTypeResolutionError convert(TransparentColor{RGB{N0f8}}, c)
+    @test_throws ColorTypeResolutionError convert(TransparentColor{RGB{N0f8},N0f8}, c)
+    @test_throws ColorTypeResolutionError convert(TransparentColor{RGB{N0f8},N0f8,2}, c)
     @test convert(AlphaColor, c) === ARGB{Float64}(1, 0.6, 0, 1)
     @test_broken convert(AlphaColor{RGB{N0f8}}, c) === ARGB{N0f8}(1, 0.6, 0, 1)
     @test convert(AlphaColor{RGB{N0f8},N0f8}, c) === ARGB{N0f8}(1, 0.6, 0, 1)
@@ -150,8 +151,8 @@ end
     @test convert(Colorant{N0f8}, ac) === ARGB{N0f8}(1, 0.6, 0, 0.8)
     @test_broken convert(Colorant{Float32,3}, ac) === RGB{Float32}(1, 0.6, 0)
     @test convert(Color, ac) === RGB{Float64}(1, 0.6, 0)
-    @test_broken convert(AbstractRGB, ac) === RGB{Float64}(1, 0.6, 0)
-    @test_broken convert(AbstractRGB{N0f8}, ac) === RGB{N0f8}(1, 0.6, 0)
+    @test convert(AbstractRGB, ac) === RGB{Float64}(1, 0.6, 0)
+    @test convert(AbstractRGB{N0f8}, ac) === RGB{N0f8}(1, 0.6, 0)
     @test convert(TransparentColor, ac) == ARGB{Float64}(1, 0.6, 0, 0.8)
     @test convert(AlphaColor, ac) === ARGB{Float64}(1, 0.6, 0, 0.8) # issue #126
     @test convert(ColorAlpha, ac) === RGBA{Float64}(1, 0.6, 0, 0.8) # issue #126
@@ -161,8 +162,8 @@ end
     @test convert(Colorant{N0f8}, ca) === RGBA{N0f8}(1, 0.6, 0, 0.8)
     @test_broken convert(Colorant{Float32,3}, ca) === RGB{Float32}(1, 0.6, 0)
     @test convert(Color, ca) === RGB{Float64}(1, 0.6, 0)
-    @test_broken convert(AbstractRGB, ca) === RGB{Float64}(1, 0.6, 0)
-    @test_broken convert(AbstractRGB{N0f8}, ca) === RGB{N0f8}(1, 0.6, 0)
+    @test convert(AbstractRGB, ca) === RGB{Float64}(1, 0.6, 0)
+    @test convert(AbstractRGB{N0f8}, ca) === RGB{N0f8}(1, 0.6, 0)
     @test convert(TransparentColor, ca) == RGBA{Float64}(1, 0.6, 0, 0.8)
     @test convert(AlphaColor, ca) === ARGB{Float64}(1, 0.6, 0, 0.8) # issue #126
     @test convert(ColorAlpha, ca) === RGBA{Float64}(1, 0.6, 0, 0.8) # issue #126
@@ -174,7 +175,7 @@ end
     @test convert(Color, rgb24) === RGB24(1, 0.6, 0)
     @test convert(AbstractRGB, rgb24) === RGB24(1, 0.6, 0)
     @test convert(AbstractRGB{N0f8}, rgb24) === RGB24(1, 0.6, 0)
-    @test_throws ErrorException convert(TransparentColor, rgb24)
+    @test_throws ColorTypeResolutionError convert(TransparentColor, rgb24)
     @test convert(AlphaColor, rgb24) === ARGB32(1, 0.6, 0, 1)
     @test_throws MethodError convert(ColorAlpha, rgb24)
 
@@ -183,15 +184,15 @@ end
     @test convert(Colorant{N0f8}, argb32) === ARGB32(1, 0.6, 0, 0.8)
     @test_broken convert(Colorant{Float32,3}, argb32) === RGB{Float32}(1, 0.6, 0)
     @test convert(Color, argb32) === RGB24(1, 0.6, 0)
-    @test_broken convert(AbstractRGB, argb32) === RGB24(1, 0.6, 0)
-    @test_broken convert(AbstractRGB{N0f8}, argb32) === RGB24(1, 0.6, 0)
+    @test convert(AbstractRGB, argb32) === RGB24(1, 0.6, 0)
+    @test convert(AbstractRGB{N0f8}, argb32) === RGB24(1, 0.6, 0)
     @test convert(TransparentColor, argb32) === ARGB32(1, 0.6, 0, 0.8)
     @test convert(AlphaColor, argb32) === ARGB32(1, 0.6, 0, 0.8)
     @test_throws MethodError convert(ColorAlpha, argb32)
 
     @test convert(AbstractARGB{RGB,N0f8}, c, 0.2) === ARGB{N0f8}(1, 0.6, 0, 0.2)
     @test convert(AbstractRGBA{RGB,N0f8}, c, 0.2) === RGBA{N0f8}(1, 0.6, 0, 0.2)
-    @test_broken convert(AbstractARGB{RGB24,N0f8}, rgb24, 0.2) === ARGB32(1, 0.6, 0, 0.2)
+    @test convert(AbstractARGB{RGB24,N0f8}, rgb24, 0.2) === ARGB32(1, 0.6, 0, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, ac, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, ca, 0.2)
     @test_throws ErrorException convert(AbstractARGB{RGB,N0f8}, rgb24, 0.2)
@@ -202,9 +203,9 @@ end
     c = Gray(0.4)
     @test convert(Colorant, c) === Gray{Float64}(0.4)
     @test convert(Colorant{N0f8}, c) === Gray{N0f8}(0.4)
-    @test_broken convert(Colorant{Float32,1}, c) === Gray{Float32}(0.4)
+    @test convert(Colorant{Float32,1}, c) === Gray{Float32}(0.4)
     @test convert(Color, c) === Gray{Float64}(0.4)
-    @test_throws ErrorException convert(TransparentColor, c)
+    @test_throws ColorTypeResolutionError convert(TransparentColor, c)
     @test convert(AlphaColor, c) === AGray{Float64}(0.4, 1)
     @test convert(ColorAlpha, c) === GrayA{Float64}(0.4, 1)
 
@@ -231,7 +232,7 @@ end
     @test convert(Colorant{N0f8}, gray24) === Gray24(0.4)
     @test_broken convert(Colorant{Float32,1}, gray24) === Gray{Float32}(0.4)
     @test convert(Color, gray24) === Gray24(0.4)
-    @test_throws ErrorException convert(TransparentColor, gray24)
+    @test_throws ColorTypeResolutionError convert(TransparentColor, gray24)
     @test convert(AlphaColor, gray24) === AGray32(0.4, 1)
     @test_throws MethodError convert(ColorAlpha, gray24) # TODO: need docs
 
@@ -248,7 +249,7 @@ end
     @test convert(AbstractGrayA{Gray,N0f8}, c, 0.2) === GrayA{N0f8}(0.4, 0.2)
     # the following is ok, but not consistent with the case of RGB24
     @test convert(AbstractAGray{Gray,N0f8}, gray24, 0.2) === AGray{N0f8}(0.4, 0.2)
-    @test_broken convert(AbstractAGray{Gray24,N0f8}, gray24, 0.2) === AGray32(0.4, 0.2)
+    @test convert(AbstractAGray{Gray24,N0f8}, gray24, 0.2) === AGray32(0.4, 0.2)
     @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, ac, 0.2)
     @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, ca, 0.2)
     @test_throws MethodError convert(AbstractAGray{Gray,N0f8}, agray32, 0.2)
@@ -287,9 +288,9 @@ end
     @test convert(AGray32, 0.6, 0.8) === AGray32(0.6, 0.8)
     @test convert(AGray32, 0, 1) === AGray32(0, 1)
 
-    @test_throws MethodError convert(Colorant, 0.6)
-    @test_throws MethodError convert(Color, 0.6)
-    @test_throws ErrorException convert(Color{N0f8,1}, 0.6)
+    @test_throws ColorTypeResolutionError convert(Colorant, 0.6)
+    @test_throws ColorTypeResolutionError convert(Color, 0.6)
+    @test_throws ColorTypeResolutionError convert(Color{N0f8,1}, 0.6)
 
     @test_throws MethodError convert(GrayA, 0.6, 0.8)
     @test_throws MethodError convert(AGray, 0, 1)
@@ -300,7 +301,7 @@ end
     @test convert(RGB24, 0.6) === RGB24(0.6, 0.6, 0.6)
     @test convert(ARGB32, 0.6) === ARGB32(0.6, 0.6, 0.6, 1)
 
-    @test_throws MethodError convert(RGB, 0.6)
+    @test convert(RGB, 0.6) === RGB(0.6, 0.6, 0.6)
 end
 
 @testset "conversions from rgb to rgb" begin
