@@ -463,11 +463,11 @@ end
 
     @test convert(AbstractARGB{RGB,N0f8}, c, 0.2) === ARGB{N0f8}(1, 0.6, 0, 0.2)
     @test convert(AbstractRGBA{RGB,N0f8}, c, 0.2) === RGBA{N0f8}(1, 0.6, 0, 0.2)
-    @test convert(AbstractARGB{RGB24,N0f8}, rgb24, 0.2) === ARGB32(1, 0.6, 0, 0.2)
+    @test convert(AbstractARGB{RGB,N0f8}, rgb24, 0.2) === ARGB{N0f8}(1, 0.6, 0, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, ac, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, ca, 0.2)
-    @test_throws ErrorException convert(AbstractARGB{RGB,N0f8}, rgb24, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, argb32, 0.2)
+    @test convert(AbstractARGB{RGB24,N0f8}, rgb24, 0.2) === ARGB32(1, 0.6, 0, 0.2)
 end
 
 @testset "gray conversions with abstract types" begin
@@ -589,13 +589,13 @@ end
         @test convert(RGB24, C(1,0.6,0)) === RGB24(1,0.6,0)
         @test convert(C, ARGB32(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0)
         @test convert(ARGB32, C(1,0.6,0)) === ARGB32(1,0.6,0)
-        @test_broken convert(ARGB32, C(1,0.6,0), 0.2) === ARGB32(1,0.6,0,0.2)
+        @test convert(ARGB32, C(1,0.6,0), 0.2) === ARGB32(1,0.6,0,0.2)
     end
     @testset "$C conversions" for C in Ctransparent
         @test convert(C, C{Float64}(1,0.6,0,0.8)) === C{Float64}(1,0.6,0,0.8)
         @test convert(C{N0f8}, C{Float64}(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0,0.8)
         @test convert(C, RGB24(1,0.6,0)) === C{N0f8}(1,0.6,0,1)
-        @test_broken convert(C, RGB24(1,0.6,0), 0.2) === C{N0f8}(1,0.6,0,0.2)
+        @test convert(C, RGB24(1,0.6,0), 0.2) === C{N0f8}(1,0.6,0,0.2)
         @test convert(RGB24, C(1,0.6,0,0.8)) === RGB24(1,0.6,0)
         @test convert(C, ARGB32(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0,0.8)
         @test convert(ARGB32, C(1,0.6,0,0.8)) === ARGB32(1,0.6,0,0.8)
