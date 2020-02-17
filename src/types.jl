@@ -431,8 +431,8 @@ const color3types = map(s->getfield(ColorTypes,s),
                         filter(names(ColorTypes, all=false)) do s
                             isdefined(ColorTypes, s) || return false
                             t = getfield(ColorTypes, s)
-                            isa(t, Type) && t <: Color && !isabstracttype(t) && length(t) == 3
-                        end
+                            isa(t, Type{<:Color3}) && !isabstracttype(t)
+                        end |> unique
                         )
 
 # The above should have filtered out every non-DataType that's not also a
@@ -709,13 +709,13 @@ end
 _rem(x,::Type{T}) where {T<:Normed} = x % T
 _rem(x, ::Type{T}) where {T}        = x
 
-struct TwoColorTypeError <: Exception
+struct ColorTypeResolutionError <: Exception
     func::Symbol
     msg::String
     C1
     C2
 end
 
-function Base.showerror(io::IO, ex::TwoColorTypeError)
+function Base.showerror(io::IO, ex::ColorTypeResolutionError)
     print(io, "in ", ex.func, ", ", ex.msg, ' ', ex.C1, " and ", ex.C2)
 end

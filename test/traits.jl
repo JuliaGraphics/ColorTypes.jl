@@ -1,6 +1,6 @@
 using ColorTypes, FixedPointNumbers
 using Test
-using ColorTypes: TwoColorTypeError
+using ColorTypes: ColorTypeResolutionError
 
 @testset "RGB accessors" begin
 
@@ -409,13 +409,23 @@ end
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
 
+@testset "parametric_colorant" begin
+    @test parametric_colorant(RGB{Float32}) === RGB{Float32}
+    @test parametric_colorant(RGB)          === RGB
+    @test parametric_colorant(BGR{Float32}) === BGR{Float32}
+    @test parametric_colorant(RGB24)        === RGB{N0f8}
+    @test parametric_colorant(Gray24)       === Gray{N0f8}
+    @test parametric_colorant(ARGB32)       === ARGB{N0f8}
+    @test parametric_colorant(AGray32)      === AGray{N0f8}
+end
+
 @testset "ccolor" begin
     @test @inferred(ccolor(Colorant, XRGB{N0f8})) === XRGB{N0f8}
     @test @inferred(ccolor(Colorant{N0f8}, RGBX{Float32})) === RGBX{N0f8}
     @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) === BGR{N0f8}
 
-    @test_throws TwoColorTypeError ccolor(AbstractRGB, HSV{Float32})
-    @test_throws TwoColorTypeError ccolor(AbstractRGB{N0f8}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(AbstractRGB, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(AbstractRGB{N0f8}, HSV{Float32})
     @test @inferred(ccolor(AbstractRGB, RGB24)) === RGB24
     @test_throws ErrorException ccolor(AbstractRGB{Float32}, RGB24)
 
@@ -448,6 +458,13 @@ end
     @test @inferred(ccolor(Gray, Int)) === Gray{N0f8}
     @test @inferred(ccolor(Gray, Float32)) === Gray{Float32}
 
+    @test @inferred(ccolor(RGB{N0f8}, Bool)) === RGB{N0f8}
+    @test_broken @inferred(ccolor(RGB, Bool)) === RGB{Bool}
+    @test @inferred(ccolor(RGB, Int)) === RGB{N0f8}
+    @test @inferred(ccolor(RGB, Float32)) === RGB{Float32}
+
+    @test_throws ColorTypeResolutionError ccolor(HSV, Int)
+
     @test @inferred(ccolor(RGB24, HSV{Float32})) === RGB24
     @test @inferred(ccolor(ARGB32, HSV{Float32})) === ARGB32
     @test @inferred(ccolor(Gray24, HSV{Float32})) === Gray24
@@ -461,11 +478,11 @@ end
     @test @inferred(ccolor(TransparentColor, AHSV{Float32})) === AHSV{Float32}
 
     # Ambiguous storage order, choose AlphaColor or ColorAlpha
-    @test_throws TwoColorTypeError ccolor(TransparentColor, HSV{Float32})
-    @test_throws TwoColorTypeError ccolor(TransparentColor{RGB}, HSV{Float32})
-    @test_throws TwoColorTypeError ccolor(TransparentColor{RGB,Float64}, HSV{Float32})
-    @test_throws TwoColorTypeError ccolor(TransparentColor{RGB{Float64},Float64}, HSV{Float32})
-    @test_throws TwoColorTypeError ccolor(TransparentColor{RGB{Float64},Float64,4}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB,Float64}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB{Float64},Float64}, HSV{Float32})
+    @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB{Float64},Float64,4}, HSV{Float32})
 
     @test @inferred(ccolor(AlphaColor, RGB)) === ARGB
     @test @inferred(ccolor(AlphaColor, RGB{N0f8})) === ARGB{N0f8}
