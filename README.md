@@ -1,6 +1,7 @@
 # ColorTypes
 
 [![Build Status](https://travis-ci.org/JuliaGraphics/ColorTypes.jl.svg?branch=master)](https://travis-ci.org/JuliaGraphics/ColorTypes.jl)
+[![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/C/ColorTypes.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 [![codecov.io](http://codecov.io/github/JuliaGraphics/ColorTypes.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaGraphics/ColorTypes.jl?branch=master)
 
 This "minimalistic" package serves as the foundation for working with
@@ -21,14 +22,15 @@ objects will be broadly usable.
 
 Here is the type hierarchy used in ColorTypes:
 
-![Types](images/types.png "Types")
+![Types](images/types.svg?sanitize=true "Types")
 
 - `Colorant` is the general term used for any object exported by this
   package.  True colors are called `Color`; `TransparentColor`
   indicates an object that also has alpha-channel information.
 
 - `Color{T,3}` is a 3-component color (like RGB = red, green, blue);
-  `Color{T,1}` is a 1-component color, i.e., grayscale).
+  `Color{T,1}` is a 1-component color (i.e., grayscale).
+  `AbstractGray{T}` is a typealias for `Color{T,1}`.
 
 - Most colors have both `AlphaColor` and `ColorAlpha` variants;
   for example, `RGB` has both `ARGB` and `RGBA`.  These indicate
