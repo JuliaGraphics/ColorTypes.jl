@@ -221,20 +221,40 @@ end
 
     @test @inferred(color_type(Color3)) === Color3
     @test @inferred(color_type(Transparent3)) === Color3
+
     @test @inferred(color_type(Color)) === Color
+    @test @inferred(color_type(Color{Float16})) === Color{Float16}
+    @test @inferred(color_type(Color{Float16,2})) === Color{Float16,2}
+
+    @test @inferred(color_type(AlphaColor)) === Color
+    @test @inferred(color_type(AlphaColor{Gray{Float16},Float16}))   === Gray{Float16}
+    @test @inferred(color_type(AlphaColor{Gray{Float16},Float16,2})) === Gray{Float16}
+    @test @inferred(color_type(AlphaColor{RGB{N0f8},Float16,2}))     === RGB{N0f8} # inconsistent source
+
+    @test @inferred(color_type(ColorAlpha)) === Color
+    @test @inferred(color_type(ColorAlpha{Gray{Float16},Float16}))   === Gray{Float16}
+    @test @inferred(color_type(ColorAlpha{Gray{Float16},Float16,2})) === Gray{Float16}
+    @test @inferred(color_type(ColorAlpha{RGB{N0f8},Float16,2}))     === RGB{N0f8} # inconsistent source
+
     @test @inferred(color_type(TransparentColor)) === Color
     @test @inferred(color_type(TransparentColor{RGB})) === RGB
     @test @inferred(color_type(TransparentColor{RGB,Float64})) === RGB
     @test @inferred(color_type(TransparentColor{RGB{Float64},Float64})) === RGB{Float64}
-    @test_throws MethodError color_type(Colorant{N0f8})
+    @test @inferred(color_type(TransparentColor{Gray,T,2} where T)) == Gray
+    @test @inferred(color_type(TransparentColor{Gray{T},T,2} where T)) === Gray{T} where T
 
-    @test_throws MethodError color_type(N0f8) === Gray{N0f8}
+    @test @inferred(color_type(Colorant)) === Color
+    @test @inferred(color_type(Colorant{N0f8})) === Color{N0f8}
+    @test @inferred(color_type(Colorant{N0f8,2})) === Color{N0f8,2}
+    @test @inferred(color_type(Colorant{T,2} where T)) == Color{T,2} where T
+
+    @test @inferred(color_type(N0f8)) === Gray{N0f8}
 
     # for instances
     @test @inferred(color_type(RGB{N0f8}(1,0,0))) === RGB{N0f8}
     @test @inferred(color_type(ARGB(1.0,0.8,0.6,0.4))) === RGB{Float64}
     @test @inferred(color_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) === RGB{Float32}
-    @test_throws MethodError color_type(1N0f8) === 1N0f8
+    @test @inferred(color_type(1N0f8)) === Gray{N0f8}
 end
 
 @testset "base_color_type" begin
@@ -282,14 +302,34 @@ end
 
     @test @inferred(base_color_type(Color3)) === Color3
     @test @inferred(base_color_type(Transparent3)) === Color3
+
     @test @inferred(base_color_type(Color)) === Color
+    @test @inferred(base_color_type(Color{Float16})) === Color
+    @test @inferred(base_color_type(Color{Float16,2})) == Color{T,2} where T
+
+    @test @inferred(base_color_type(AlphaColor)) === Color
+    @test @inferred(base_color_type(AlphaColor{Gray{Float16},Float16}))   === Gray
+    @test @inferred(base_color_type(AlphaColor{Gray{Float16},Float16,2})) === Gray
+    @test @inferred(base_color_type(AlphaColor{RGB{N0f8},Float16,2}))     === RGB # inconsistent source
+
+    @test @inferred(base_color_type(ColorAlpha)) === Color
+    @test @inferred(base_color_type(ColorAlpha{Gray{Float16},Float16}))   === Gray
+    @test @inferred(base_color_type(ColorAlpha{Gray{Float16},Float16,2})) === Gray
+    @test @inferred(base_color_type(ColorAlpha{RGB{N0f8},Float16,2}))     === RGB # inconsistent source
+
     @test @inferred(base_color_type(TransparentColor)) === Color
     @test @inferred(base_color_type(TransparentColor{RGB})) === RGB
     @test @inferred(base_color_type(TransparentColor{RGB,Float64})) === RGB
     @test @inferred(base_color_type(TransparentColor{RGB{Float64},Float64})) === RGB
-    @test_throws MethodError color_type(Colorant{N0f8})
+    @test @inferred(base_color_type(TransparentColor{Gray,T,2} where T)) == Gray
+    @test @inferred(base_color_type(TransparentColor{Gray{T},T,2} where T)) == Gray
 
-    @test base_color_type(N0f8) === Gray
+    @test @inferred(base_color_type(Colorant)) === Color
+    @test @inferred(base_color_type(Colorant{N0f8})) === Color
+    @test @inferred(base_color_type(Colorant{N0f8,2})) == Color{T,2} where T
+    @test @inferred(base_color_type(Colorant{T,2} where T)) == Color{T,2} where T
+
+    @test @inferred(base_color_type(N0f8)) === Gray
 
     # for instances
     @test @inferred(base_color_type(RGB{N0f8}(1,0,0))) === RGB
@@ -343,23 +383,40 @@ end
 
     @test @inferred(base_colorant_type(Color3)) === Color3
     @test @inferred(base_colorant_type(Transparent3)) === TransparentColor{C,T,4} where C<:Color{T,3} where T
-    @test @inferred(base_colorant_type(Color)) === Color
-    @test @inferred(base_colorant_type(TransparentColor)) === TransparentColor
-    @test @inferred(base_colorant_type(TransparentColor{RGB})) === TransparentColor # FIXME
-    @test @inferred(base_colorant_type(TransparentColor{RGB,Float64})) === TransparentColor # FIXME
-    @test @inferred(base_colorant_type(TransparentColor{RGB{Float64},Float64})) === TransparentColor # FIXME
-    @test_broken @inferred(base_colorant_type(TransparentColor{RGB})) === TransparentRGB
-    @test_broken @inferred(base_colorant_type(TransparentColor{RGB,Float64})) === TransparentRGB
-    @test_broken @inferred(base_colorant_type(TransparentColor{RGB{Float64},Float64})) === TransparentRGB
-    @test_throws MethodError color_type(Colorant{N0f8})
 
-    @test_broken @inferred(base_colorant_type(N0f8)) === Gray
+    @test @inferred(base_colorant_type(Color)) === Color
+    @test @inferred(base_colorant_type(Color{Float16})) === Color
+    @test @inferred(base_colorant_type(Color{Float16,2})) == Color{T,2} where T
+
+    @test @inferred(base_colorant_type(AlphaColor)) === AlphaColor
+    @test @inferred(base_colorant_type(AlphaColor{Gray{Float16},Float16}))   == AlphaColor{Gray{T},T} where T
+    @test @inferred(base_colorant_type(AlphaColor{Gray{Float16},Float16,2})) == AlphaColor{Gray{T},T,2} where T
+    @test @inferred(base_colorant_type(AlphaColor{RGB{N0f8},Float16,2}))     == AlphaColor{RGB{T},T,2} where T # inconsistent source
+
+    @test @inferred(base_colorant_type(ColorAlpha)) === ColorAlpha
+    @test @inferred(base_colorant_type(ColorAlpha{Gray{Float16},Float16}))   == ColorAlpha{Gray{T},T} where T
+    @test @inferred(base_colorant_type(ColorAlpha{Gray{Float16},Float16,2})) == ColorAlpha{Gray{T},T,2} where T
+    @test @inferred(base_colorant_type(ColorAlpha{RGB{N0f8},Float16,2}))     == ColorAlpha{RGB{T},T,2} where T # inconsistent source
+
+    @test @inferred(base_colorant_type(TransparentColor)) === TransparentColor
+    @test @inferred(base_colorant_type(TransparentColor{RGB})) == TransparentColor{RGB{T},T} where T
+    @test @inferred(base_colorant_type(TransparentColor{RGB,Float64})) == TransparentColor{RGB{T},T} where T
+    @test @inferred(base_colorant_type(TransparentColor{RGB{Float64},Float64})) == TransparentColor{RGB{T},T} where T
+    @test @inferred(base_colorant_type(TransparentColor{Gray,T,2} where T)) == TransparentColor{Gray{T},T,2} where T
+    @test @inferred(base_colorant_type(TransparentColor{Gray{T},T,2} where T)) == TransparentColor{Gray{T},T,2} where T
+
+    @test @inferred(base_colorant_type(Colorant)) === Colorant
+    @test @inferred(base_colorant_type(Colorant{N0f8})) === Colorant
+    @test @inferred(base_colorant_type(Colorant{N0f8,2})) == Colorant{T,2} where T
+    @test @inferred(base_colorant_type(Colorant{T,2} where T)) == Colorant{T,2} where T
+
+    @test @inferred(base_colorant_type(N0f8)) === Gray
 
     # for instances
     @test @inferred(base_colorant_type(RGB{N0f8}(1,0,0))) === RGB
     @test @inferred(base_colorant_type(ARGB(1.0,0.8,0.6,0.4))) === ARGB
     @test @inferred(base_colorant_type(RGBA{Float32}(1.0,0.8,0.6,0.4))) === RGBA
-    @test_broken @inferred(base_colorant_type(1N0f8)) === Gray
+    @test @inferred(base_colorant_type(1N0f8)) === Gray
 end
 
 @testset "floattype" begin
