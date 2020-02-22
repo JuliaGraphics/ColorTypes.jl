@@ -155,8 +155,13 @@ function color_type(::Type{TC}) where TC<:TransparentColor
     _color_type(::Type{TC}) where TC<:TransparentColor{C, T} where {C,T} = C
     return isa(TC, UnionAll) ? Base.parameter_upper_bound(TC, 1) : _color_type(TC)
 end
+color_type(::Type{Colorant{T,N}}) where {T,N} = Color{T,N}
+color_type(::Type{ColorantN{N}}) where {N} = ColorN{N}
+color_type(::Type{Colorant{T}}) where {T} = Color{T}
+color_type(::Type{Colorant}) = Color
+color_type(::Type{X}) where {X<:Number} = typeof(Gray(zero(X)))
 
-color_type(c::Colorant) = color_type(typeof(c))
+color_type(c::Union{Colorant, Number}) = color_type(typeof(c))
 
 """
     Cbase = base_color_type(C::Type)
@@ -191,17 +196,22 @@ base_color_type(x::Union{Colorant,Number}) = base_color_type(typeof(x))
 ## base_colorant_type implementation
 
 base_colorant_type(::Type{C}) where {C<:Colorant} = isabstracttype(C) ? abstract_basetype(C) : basetype(C)
+base_colorant_type(::Type{<:Number}) = Gray
 
 @pure basetype(@nospecialize(C)) = Base.typename(C).wrapper
 
-abstract_basetype(::Type{C}) where C  <: AbstractRGB       = AbstractRGB
-abstract_basetype(::Type{C}) where C  <: ColorN{N} where N = ColorN{N}
-abstract_basetype(::Type{Color})                           = Color
-abstract_basetype(::Type{AC}) where AC <: AlphaColorN{N,C} where {N,C<:Color} = AlphaColor{base_colorant_type(C){T},T,N} where T
-abstract_basetype(::Type{CA}) where CA <: ColorAlphaN{N,C} where {N,C<:Color} = ColorAlpha{base_colorant_type(C){T},T,N} where T
-abstract_basetype(::Type{TC}) where TC <: TransparentColorN{N,C} where {N,C<:Color} =
-    TransparentColor{base_colorant_type(C){T},T,N} where T
-abstract_basetype(::Type{TC}) where TC <: TransparentColor = TransparentColor
+abstract_basetype(::Type{<:AbstractRGB}) = AbstractRGB
+abstract_basetype(::Type{<:ColorN{N}}) where N = ColorN{N}
+abstract_basetype(::Type{<:Color}) = Color
+abstract_basetype(::Type{<:AlphaColorN{N,C}}) where {N,C<:Color} = AlphaColor{base_colorant_type(C){T},T,N} where T
+abstract_basetype(::Type{<:ColorAlphaN{N,C}}) where {N,C<:Color} = ColorAlpha{base_colorant_type(C){T},T,N} where T
+abstract_basetype(::Type{<:AlphaColor{C}}) where {C<:Color} = AlphaColor{base_colorant_type(C){T},T} where T
+abstract_basetype(::Type{<:ColorAlpha{C}}) where {C<:Color} = ColorAlpha{base_colorant_type(C){T},T} where T
+abstract_basetype(::Type{<:AlphaColor}) = AlphaColor
+abstract_basetype(::Type{<:ColorAlpha}) = ColorAlpha
+abstract_basetype(::Type{<:TransparentColorN{N,C}}) where {N,C<:Color} = TransparentColor{base_colorant_type(C){T},T,N} where T
+abstract_basetype(::Type{<:TransparentColor{C}}) where {C<:Color} = TransparentColor{base_colorant_type(C){T},T} where T
+abstract_basetype(::Type{<:TransparentColor}) = TransparentColor
 # These handle things like base_colorant_type(AbstractRGBA)
 parameter1(::Type{C}) where C = C isa DataType ? C.parameters[1] : Base.parameter_upper_bound(C, 1)
 function abstract_basetype(::Type{AC}) where AC <: AlphaColorN{N} where {N}
@@ -226,8 +236,8 @@ end
 # Otherwise the generic ColorantN methods supersede the AlphaColor/ColorAlpha/Transparent methods
 abstract_basetype(::Type{C}) where C = abstract_colorant_basetype(C)
 
-abstract_colorant_basetype(::Type{C}) where C <: ColorantN{N} where N                     = ColorantN{N}
-abstract_colorant_basetype(::Type{C}) where C <: Colorant                                 = Colorant
+abstract_colorant_basetype(::Type{<:ColorantN{N}}) where N = ColorantN{N}
+abstract_colorant_basetype(::Type{<:Colorant})             = Colorant
 
 """
     Cbase = base_colorant_type(C::Type)
@@ -265,7 +275,7 @@ A safe and easy way to switch the element type of a colorant value `c` to be `Fl
     c64 = Cbase{Float64}(c)
 
 """
-base_colorant_type(c::Colorant) = base_colorant_type(typeof(c))
+base_colorant_type(c::Union{Colorant, Number}) = base_colorant_type(typeof(c))
 
 """
     Cp = parametric_colorant(C::Type)
