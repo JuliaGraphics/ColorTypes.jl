@@ -463,11 +463,11 @@ end
 
     @test convert(AbstractARGB{RGB,N0f8}, c, 0.2) === ARGB{N0f8}(1, 0.6, 0, 0.2)
     @test convert(AbstractRGBA{RGB,N0f8}, c, 0.2) === RGBA{N0f8}(1, 0.6, 0, 0.2)
-    @test convert(AbstractARGB{RGB24,N0f8}, rgb24, 0.2) === ARGB32(1, 0.6, 0, 0.2)
+    @test convert(AbstractARGB{RGB,N0f8}, rgb24, 0.2) === ARGB{N0f8}(1, 0.6, 0, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, ac, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, ca, 0.2)
-    @test_throws ErrorException convert(AbstractARGB{RGB,N0f8}, rgb24, 0.2)
     @test_throws MethodError convert(AbstractARGB{RGB,N0f8}, argb32, 0.2)
+    @test convert(AbstractARGB{RGB24,N0f8}, rgb24, 0.2) === ARGB32(1, 0.6, 0, 0.2)
 end
 
 @testset "gray conversions with abstract types" begin
@@ -534,6 +534,9 @@ end
 
     @test convert(N0f8, Gray24(0.6)) === N0f8(0.6)
     @test convert(Float64, Gray24(0.6)) === 0.6
+    @test Float32(Gray24(0.6)) === 0.6f0
+    @test float(Gray24(0.6)) === 0.6
+    @test real(Gray24(0.6)) === N0f8(0.6)
 
     @test convert(Gray, 0.6) === Gray{Float64}(0.6)
     @test convert(Gray, 0.6f0) === Gray{Float32}(0.6)
@@ -571,6 +574,7 @@ end
 
     @test convert(RGB24, 0.6) === RGB24(0.6, 0.6, 0.6)
     @test convert(ARGB32, 0.6) === ARGB32(0.6, 0.6, 0.6, 1)
+    @test convert(ARGB32, 0.6, 0.8) === ARGB32(0.6, 0.6, 0.6, 0.8)
 
     @test convert(RGB, 0.6) === RGB(0.6, 0.6, 0.6)
 end
@@ -585,13 +589,13 @@ end
         @test convert(RGB24, C(1,0.6,0)) === RGB24(1,0.6,0)
         @test convert(C, ARGB32(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0)
         @test convert(ARGB32, C(1,0.6,0)) === ARGB32(1,0.6,0)
-        @test_broken convert(ARGB32, C(1,0.6,0), 0.2) === ARGB32(1,0.6,0,0.2)
+        @test convert(ARGB32, C(1,0.6,0), 0.2) === ARGB32(1,0.6,0,0.2)
     end
     @testset "$C conversions" for C in Ctransparent
         @test convert(C, C{Float64}(1,0.6,0,0.8)) === C{Float64}(1,0.6,0,0.8)
         @test convert(C{N0f8}, C{Float64}(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0,0.8)
         @test convert(C, RGB24(1,0.6,0)) === C{N0f8}(1,0.6,0,1)
-        @test_broken convert(C, RGB24(1,0.6,0), 0.2) === C{N0f8}(1,0.6,0,0.2)
+        @test convert(C, RGB24(1,0.6,0), 0.2) === C{N0f8}(1,0.6,0,0.2)
         @test convert(RGB24, C(1,0.6,0,0.8)) === RGB24(1,0.6,0)
         @test convert(C, ARGB32(1,0.6,0,0.8)) === C{N0f8}(1,0.6,0,0.8)
         @test convert(ARGB32, C(1,0.6,0,0.8)) === ARGB32(1,0.6,0,0.8)
@@ -778,6 +782,37 @@ end
     @test_throws MethodError coloralpha(AGray32(0.6), 0.8)
 end
 
+@testset "reinterpret" begin
+    @test reinterpret(UInt32, RGB24()) === 0x00000000
+    @test reinterpret(UInt32, ARGB32()) === 0xff000000
+    @test reinterpret(UInt32, Gray24()) === 0x00000000
+    @test reinterpret(UInt32, AGray32()) === 0xff000000
+
+    @test reinterpret(UInt32, RGB24(0.071,0.204,0.337)) === 0x00123456
+    @test reinterpret(UInt32, ARGB32(0.071,0.204,0.337,0.671)) === 0xab123456
+    @test reinterpret(UInt32, Gray24(0.071)) === 0x00121212
+    @test reinterpret(UInt32, AGray32(0.071, 0.671)) === 0xab121212
+
+    @test reinterpret(RGB24, 0x00123456) === RGB24(0.071,0.204,0.337)
+    @test reinterpret(RGB24, 0xdc123456) ==  RGB24(0.071,0.204,0.337)
+    @test reinterpret(RGB24, 0x00123456) !== reinterpret(RGB24, 0xdc123456)
+    @test reinterpret(UInt32, reinterpret(RGB24, 0xdc123456)) === 0xdc123456
+
+    @test reinterpret(ARGB32, 0xab123456) === ARGB32(0.071,0.204,0.337,0.671)
+
+    @test reinterpret(Gray24, 0x00121212) === Gray24(0.071)
+    @test reinterpret(Gray24, 0xdc121212) ==  Gray24(0.071)
+    @test reinterpret(Gray24, 0x00121212) !== reinterpret(Gray24, 0xdc121212)
+    @test reinterpret(UInt32, reinterpret(Gray24, 0xdc121212)) === 0xdc121212
+    # the following behavior is undefined, so this is just for the regression test.
+    @test reinterpret(Gray24, 0xdc00ff12) ==  Gray24(0.071)
+    @test reinterpret(UInt32, reinterpret(Gray24, 0xdc00ff12)) === 0xdc00ff12
+
+    @test reinterpret(AGray32, 0xab121212) === AGray32(0.071, 0.671)
+
+    @test_throws MethodError reinterpret(UInt32, ARGB{N0f8}())
+    @test_throws ErrorException reinterpret(ARGB{N0f8}, 0x12345678)
+end
 
 ### Prevent ambiguous definitions
 

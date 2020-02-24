@@ -558,39 +558,6 @@ end
     @test_throws MethodError ccolor(RGB, RGB{N0f8}(1,0,0))
 end
 
-# TODO: move `reinterpret` to `conversions.jl`
-@testset "reinterpret" begin
-    @test reinterpret(UInt32, RGB24()) === 0x00000000
-    @test reinterpret(UInt32, ARGB32()) === 0xff000000
-    @test reinterpret(UInt32, Gray24()) === 0x00000000
-    @test reinterpret(UInt32, AGray32()) === 0xff000000
-
-    @test reinterpret(UInt32, RGB24(0.071,0.204,0.337)) === 0x00123456
-    @test reinterpret(UInt32, ARGB32(0.071,0.204,0.337,0.671)) === 0xab123456
-    @test reinterpret(UInt32, Gray24(0.071)) === 0x00121212
-    @test reinterpret(UInt32, AGray32(0.071, 0.671)) === 0xab121212
-
-    @test reinterpret(RGB24, 0x00123456) === RGB24(0.071,0.204,0.337)
-    @test reinterpret(RGB24, 0xdc123456) ==  RGB24(0.071,0.204,0.337)
-    @test reinterpret(RGB24, 0x00123456) !== reinterpret(RGB24, 0xdc123456)
-    @test reinterpret(UInt32, reinterpret(RGB24, 0xdc123456)) === 0xdc123456
-
-    @test reinterpret(ARGB32, 0xab123456) === ARGB32(0.071,0.204,0.337,0.671)
-
-    @test reinterpret(Gray24, 0x00121212) === Gray24(0.071)
-    @test reinterpret(Gray24, 0xdc121212) ==  Gray24(0.071)
-    @test reinterpret(Gray24, 0x00121212) !== reinterpret(Gray24, 0xdc121212)
-    @test reinterpret(UInt32, reinterpret(Gray24, 0xdc121212)) === 0xdc121212
-    # the following behavior is undefined, so this is just for the regression test.
-    @test reinterpret(Gray24, 0xdc00ff12) ==  Gray24(0.071)
-    @test reinterpret(UInt32, reinterpret(Gray24, 0xdc00ff12)) === 0xdc00ff12
-
-    @test reinterpret(AGray32, 0xab121212) === AGray32(0.071, 0.671)
-
-    @test_throws MethodError reinterpret(UInt32, ARGB{N0f8}())
-    @test_throws ErrorException reinterpret(ARGB{N0f8}, 0x12345678)
-end
-
 @testset "comparisons" begin
     Cp3 = ColorTypes.parametric3
     for C in unique(vcat(Cp3, coloralpha.(Cp3), alphacolor.(Cp3)))

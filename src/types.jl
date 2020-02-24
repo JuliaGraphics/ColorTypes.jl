@@ -346,6 +346,7 @@ _ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = reinterpret(ARGB32, UInt32
 ARGB32(r::N0f8, g::N0f8, b::N0f8, alpha::N0f8 = N0f8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
 ARGB32(r, g, b, alpha = 1) = ARGB32(N0f8(r), N0f8(g), N0f8(b), N0f8(alpha))
 ARGB32(c::AbstractRGB{T}, alpha = alpha(c)) where {T} = ARGB32(red(c), green(c), blue(c), alpha)
+ARGB32(c::RGB24, alpha = N0f8(1)) = reinterpret(ARGB32, (UInt32(reinterpret(N0f8(alpha))) << 24) | reinterpret(UInt32, c) & 0xFFFFFF)
 
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
