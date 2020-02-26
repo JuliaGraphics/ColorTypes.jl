@@ -257,14 +257,8 @@ end
         @test isa(C(1,0,0), C{et})
         @test isa(C{Float32}(1, 0.5, 0), C{Float32})
         @test C(1,0,0,0.8) === C{Float64}(1,0,0,0.8)
-        if C === BGRA || C === ABGR
-            # issue #157
-            @test_broken C(1,0,0) === C{et}(1,0,0,1)
-            @test_broken C(1,0,0,1) === C{et}(1,0,0,1)
-        else
-            @test C(1,0,0) === C{et}(1,0,0,1)
-            @test C(1,0,0,1) === C{et}(1,0,0,1)
-        end
+        @test C(1,0,0) === C{et}(1,0,0,1)
+        @test C(1,0,0,1) === C{et}(1,0,0,1)
         if C <: TransparentRGB
             @test C(1N0f8, 0.6N0f8, 0N0f8) === C{et}(1, 0.6, 0, 1)
         else

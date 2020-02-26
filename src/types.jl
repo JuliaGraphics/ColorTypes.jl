@@ -511,7 +511,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         coloralpha(::Type{C}) where {C<:$C} = $cola
 
         # More constructors for the alpha versions
-        $acol($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $acol{$elty}($(fields...), alpha)
+        $acol($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $acol{$elty}($(constrfields...), alpha)
         $acol(c::$C, alpha::Real=oneunit(eltype(c))) = $acol{eltype(c)}(c, alpha)
         function $acol($(constrfields...))
             p = promote($(constrfields...))
@@ -528,7 +528,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         $acol($convqualifier) = convert($acol, x)
         $acol{T}(x) where T = convert($acol{T}, x)
 
-        $cola($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $cola{$elty}($(fields...), alpha)
+        $cola($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $cola{$elty}($(constrfields...), alpha)
         $cola(c::$C, alpha::Real=oneunit(eltype(c))) = $cola{eltype(c)}(c, alpha)
         function $cola($(constrfields...))
             p = promote($(constrfields...))
