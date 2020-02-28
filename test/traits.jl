@@ -631,6 +631,49 @@ end
     @test HSVA(100,0.4,0.6,0.8) ≈ HSVA{Float32}(100,0.4,0.6,0.8)
 end
 
+@testset "isless" begin
+    @test Gray(0.8) < Gray(0.9)
+    @test Gray(0.8) <= Gray(0.9)
+    @test Gray(0.9) <= Gray(0.9)
+    @test Gray(0.9) > Gray(0.8)
+    @test Gray(0.9) >= Gray(0.8)
+    @test Gray(0.9) >= Gray(0.9)
+
+    @test Gray(0.8f0) < Gray(0.9f0)
+    @test Gray(0.8f0) <= Gray(0.9f0)
+    @test Gray(0.9f0) <= Gray(0.9f0)
+    @test Gray(0.9f0) > Gray(0.8f0)
+    @test Gray(0.9f0) >= Gray(0.8f0)
+    @test Gray(0.9f0) >= Gray(0.9f0)
+
+    @test Gray(0.8N0f8) < Gray(0.9N0f8)
+    @test Gray(0.8N0f8) <= Gray(0.9N0f8)
+    @test Gray(0.9N0f8) <= Gray(0.9N0f8)
+    @test Gray(0.9N0f8) > Gray(0.8N0f8)
+    @test Gray(0.9N0f8) >= Gray(0.8N0f8)
+    @test Gray(0.9N0f8) >= Gray(0.9N0f8)
+
+    @test Gray(0.8) < Gray(0.9f0)
+    @test Gray(0.8) <= Gray(0.9f0)
+    # @test Gray(0.9) <= Gray(0.9f0) is not true due to approximation
+    @test Gray(0.9) > Gray(0.8f0)
+    @test Gray(0.9) >= Gray(0.8f0)
+    @test Gray(0.9) >= Gray(0.9f0)
+
+    @test Gray(0.8f0) < Gray(0.9N0f8)
+    @test Gray(0.8f0) <= Gray(0.9N0f8)
+    @test Gray(0.9f0) <= Gray(0.9N0f8)
+    @test Gray(0.9f0) > Gray(0.8N0f8)
+    @test Gray(0.9f0) >= Gray(0.8N0f8)
+    # @test Gray(0.9f0) >= Gray(0.9N0f8) is not true, since 0.9N0f8 = 0.902
+
+    # transparent gray doesn't support comparison
+    @test_throws MethodError GrayA(0.8, 0.4) < GrayA(0.9, 0.4)
+    @test_throws MethodError GrayA(0.8, 0.4) <= GrayA(0.9, 0.4)
+    @test_throws MethodError GrayA(0.9, 0.4) > GrayA(0.8, 0.4)
+    @test_throws MethodError GrayA(0.9, 0.4) >= GrayA(0.8, 0.4)
+end
+
 @testset "identities for Gray" begin
     @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
     @test zero(Gray{N0f8}) === Gray{N0f8}(0)
