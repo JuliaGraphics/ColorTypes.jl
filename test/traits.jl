@@ -678,13 +678,33 @@ end
     @test oneunit(Gray) === Gray{N0f8}(1)
     @test zero(Gray) === Gray{N0f8}(0)
 
-    for T in (N0f8, Float32)
+    @test ones(Gray) == fill(oneunit(Gray))
+    @test ones(Gray, 4, 4) == fill(oneunit(Gray), 4, 4) == Gray.(ones(N0f8, 4, 4))
+    @test eltype(ones(Gray, 4, 4)) == Gray{N0f8}
+
+    @test zeros(Gray) == fill(zero(Gray))
+    @test zeros(Gray, 4, 4) == fill(zero(Gray), 4, 4) == Gray.(zeros(N0f8, 4, 4))
+    @test eltype(zeros(Gray, 4, 4)) == Gray{N0f8}
+
+    for T in (Bool, N0f8, Float32)
+        for (fname, felt) in ((:zeros, :zero), (:ones, :oneunit))
+            @eval begin
+                @test $fname(Gray{$T}) == fill($felt(Gray{$T}))
+                A = $fname(Gray{$T}, 4, 4)
+                @test A == $fname(Gray{$T}, (4, 4))
+                @test A == $fname(Gray{$T}, Base.OneTo(4), Base.OneTo(4))
+                @test A == $fname(Gray{$T}, (Base.OneTo(4), Base.OneTo(4)))
+                @test eltype(A) == Gray{$T}
+            end
+        end
+
         @test oneunit(Gray{T}) === Gray{T}(1)
         @test zero(Gray{T}) === Gray{T}(0)
 
-        @test ones(Gray{T}) == fill(oneunit(Gray{T}))
-        @test ones(Gray{T}, 4, 4) == ones(Gray{T}, (4, 4)) == Gray.(ones(T, 4, 4))
-        @test eltype(ones(Gray{T}, 4, 4)) == Gray{T}
+        T === Bool && continue
+        g = Gray{T}(0.8)
+        @test oneunit(g) == oneunit(T) == Gray(oneunit(T))
+        @test zero(g) == zero(T) == Gray(zero(T))
     end
 
     @test_throws MethodError oneunit(Gray24)
@@ -698,12 +718,4 @@ end
 
     @test_throws MethodError oneunit(RGB{N0f8})
     @test_throws MethodError zero(RGB{N0f8})
-
-    for T in (N0f8, Float32)
-        g = Gray{T}(0.8)
-        @test oneunit(g) == oneunit(T) == Gray(oneunit(T))
-        @test zero(g) == zero(T) == Gray(zero(T))
-    end
-
-    @test_broken one(Gray{Float32}) * g == g * one(Gray{Float32}) == g
 end

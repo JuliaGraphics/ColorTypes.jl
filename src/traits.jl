@@ -525,10 +525,19 @@ end
 
 Base.broadcastable(x::Colorant) = Ref(x)
 
-# with one(C) deprecated, we need to override the default function call to use oneunit instead of one
-Base.ones(::Type{C}, dims::Tuple{}) where {C<:Gray, N} = fill(oneunit(C))
-Base.ones(::Type{C}, dims::Tuple{Vararg{Integer, N}}) where {C<:Gray, N} = fill(oneunit(C), dims)
-Base.ones(::Type{C}, dims::Union{Integer, AbstractUnitRange}...) where {C<:Gray} = fill(oneunit(C), dims...)
+# specialize ones and zeros for Gray type:
+#   * Base implementation uses `one` instead of `oneunit`; however, `one(Gray)` will return `1`
+#   * Base implementation use `Array{T}` to initialize the array, however, if we pass
+#     `Gray`, it gives an abstract eltype `Array{Gray}`, which is inconsistent to `zero(Gray)`
+for (fname, felt) in ((:zeros, :zero), (:ones, :oneunit))
+    @eval begin
+        # these dispatches come from Base implementation
+        Base.$fname(::Type{C}, dims::Tuple{}) where {C<:Gray, N} = fill($felt(C))
+        Base.$fname(::Type{C}, dims::NTuple{N, Integer}) where {C<:Gray, N} = fill($felt(C), dims)
+        Base.$fname(::Type{C}, dims::Base.DimOrInd...) where {C<:Gray} = $fname(C, dims)
+        Base.$fname(::Type{C}, dims::NTuple{N, Base.OneTo}) where {C<:Gray, N} = fill($felt(C), map(last, dims))
+    end
+end
 
 Base.isless(a::AbstractGray, b::AbstractGray) =
     isless(gray(a), gray(b))
