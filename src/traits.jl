@@ -514,7 +514,9 @@ isapprox(x::AbstractGray, y::Number; kwargs...) =
 
 
 zero(::Type{C}) where {C<:Gray} = C(0)
+zero(::C) where {C<:Gray} = C(0)
 oneunit(::Type{C}) where {C<:Gray} = C(1)
+oneunit(::C) where {C<:Gray} = C(1)
 
 function Base.one(::Type{C}) where {C<:Gray}
     Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)

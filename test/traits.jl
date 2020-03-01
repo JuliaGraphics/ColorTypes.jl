@@ -699,9 +699,11 @@ end
     @test_throws MethodError oneunit(RGB{N0f8})
     @test_throws MethodError zero(RGB{N0f8})
 
-    g = Gray{Float32}(0.8)
-    @test_throws MethodError oneunit(g)
-    @test_throws MethodError zero(g)
+    for T in (N0f8, Float32)
+        g = Gray{T}(0.8)
+        @test oneunit(g) == oneunit(T) == Gray(oneunit(T))
+        @test zero(g) == zero(T) == Gray(zero(T))
+    end
 
     @test_broken one(Gray{Float32}) * g == g * one(Gray{Float32}) == g
 end
