@@ -707,6 +707,11 @@ end
         @test zero(g) == zero(T) == Gray(zero(T))
     end
 
+    # TODO: strip Gray wrapper when `one(Gray)` switches to return 1
+    @test one(Gray) === Gray{N0f8}(1)
+    @test one(Gray{Float32}) === Gray{Float32}(1)
+    @test one(Gray{N0f8}(0.8)) === Gray{N0f8}(1)
+
     @test_throws MethodError oneunit(Gray24)
     @test_throws MethodError zero(Gray24)
     @test_throws MethodError oneunit(AGray32)
