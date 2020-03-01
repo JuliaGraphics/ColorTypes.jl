@@ -523,5 +523,10 @@ end
 
 Base.broadcastable(x::Colorant) = Ref(x)
 
+# with one(C) deprecated, we need to override the default function call to use oneunit instead of one
+Base.ones(::Type{C}, dims::Tuple{}) where {C<:Gray, N} = fill(oneunit(C))
+Base.ones(::Type{C}, dims::Tuple{Vararg{Integer, N}}) where {C<:Gray, N} = fill(oneunit(C), dims)
+Base.ones(::Type{C}, dims::Union{Integer, AbstractUnitRange}...) where {C<:Gray} = fill(oneunit(C), dims...)
+
 Base.isless(a::AbstractGray, b::AbstractGray) =
     isless(gray(a), gray(b))

@@ -675,10 +675,17 @@ end
 end
 
 @testset "identities for Gray" begin
-    @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
-    @test zero(Gray{N0f8}) === Gray{N0f8}(0)
     @test oneunit(Gray) === Gray{N0f8}(1)
     @test zero(Gray) === Gray{N0f8}(0)
+
+    for T in (N0f8, Float32)
+        @test oneunit(Gray{T}) === Gray{T}(1)
+        @test zero(Gray{T}) === Gray{T}(0)
+
+        @test ones(Gray{T}) == fill(oneunit(Gray{T}))
+        @test ones(Gray{T}, 4, 4) == ones(Gray{T}, (4, 4)) == Gray.(ones(T, 4, 4))
+        @test eltype(ones(Gray{T}, 4, 4)) == Gray{T}
+    end
 
     @test_throws MethodError oneunit(Gray24)
     @test_throws MethodError zero(Gray24)
