@@ -322,29 +322,6 @@ floattype(::Type{ARGB32}) = ARGB{Float32}
 floattype(::Type{AGray32}) = AGray{Float32}
 
 
-colorant_string(::Type{Union{}}) = "Union{}"
-colorant_string(::Type{C}) where {C<:Colorant} = string(nameof(C))
-function colorant_string_with_eltype(::Type{C}) where {C<:Colorant}
-    io = IOBuffer()
-    colorant_string_with_eltype(io, C)
-    String(take!(io))
-end
-colorant_string_with_eltype(io::IO, ::Type{Union{}}) = show(io, Union{})
-function colorant_string_with_eltype(io::IO, ::Type{C}) where {C<:Colorant}
-    print(io, colorant_string(C), '{')
-    showcoloranttype(io, eltype(C))
-    print(io, '}')
-end
-# Nonparametric types
-colorant_string_with_eltype(io::IO, ::Type{Gray24})  = print(io, "Gray24")
-colorant_string_with_eltype(io::IO, ::Type{AGray32}) = print(io, "AGray32")
-colorant_string_with_eltype(io::IO, ::Type{RGB24})   = print(io, "RGB24")
-colorant_string_with_eltype(io::IO, ::Type{ARGB32})  = print(io, "ARGB32")
-
-showcoloranttype(io, ::Type{Union{}}) = show(io, Union{})
-showcoloranttype(io, ::Type{T}) where {T<:FixedPoint} = FixedPointNumbers.showtype(io, T)
-showcoloranttype(io, ::Type{T}) where {T} = show(io, T)
-
 @pure pureintersect(::Type{C1}, ::Type{C2}) where {C1,C2} = typeintersect(C1, C2)
 
 """

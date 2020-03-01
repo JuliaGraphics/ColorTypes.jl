@@ -439,33 +439,6 @@ end
     @test_throws MethodError @inferred(floattype(RGB{N0f8}(1,0,0)))
 end
 
-# TODO: move `colorant_string` to `show.jl`
-@testset "colorant_string" begin
-    @test ColorTypes.colorant_string(Union{}) == "Union{}"
-    @test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
-    @test ColorTypes.colorant_string(HSV{Float32}) == "HSV"
-    @test ColorTypes.colorant_string(RGB24) == "RGB24"
-    @test ColorTypes.colorant_string(ARGB32) == "ARGB32"
-    @test ColorTypes.colorant_string(Gray24) == "Gray24"
-    @test ColorTypes.colorant_string(AGray32) == "AGray32"
-    @test ColorTypes.colorant_string(RGB) == "RGB"
-    @test_throws MethodError ColorTypes.colorant_string(Float32)
-end
-
-# TODO: move `colorant_string_with_eltype` to `show.jl`
-@testset "colorant_string_with_eltype" begin
-    @test ColorTypes.colorant_string_with_eltype(Union{}) == "Union{}"
-    @test ColorTypes.colorant_string_with_eltype(RGB{N0f8}) == "RGB{N0f8}"
-    @test ColorTypes.colorant_string_with_eltype(HSV{Float32}) == "HSV{Float32}"
-    @test ColorTypes.colorant_string_with_eltype(RGB24) == "RGB24"
-    @test ColorTypes.colorant_string_with_eltype(ARGB32) == "ARGB32"
-    @test ColorTypes.colorant_string_with_eltype(Gray24) == "Gray24"
-    @test ColorTypes.colorant_string_with_eltype(AGray32) == "AGray32"
-    @test_broken ColorTypes.colorant_string_with_eltype(RGB) != "RGB{Any}" # TODO: define the appropriate expression
-    @test ColorTypes.colorant_string_with_eltype(RGB{Union{}}) == "RGB{Union{}}"
-    @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
-end
-
 @testset "parametric_colorant" begin
     @test parametric_colorant(RGB{Float32}) === RGB{Float32}
     @test parametric_colorant(RGB)          === RGB
@@ -486,10 +459,10 @@ end
     @test @inferred(ccolor(AbstractRGB, RGB24)) === RGB24
     @test_throws ErrorException ccolor(AbstractRGB{Float32}, RGB24)
 
-    @test @inferred(ccolor(RGB, RGB)) == RGB # with symbol `S` instead of `T`
-    @test @inferred(ccolor(RGB, HSV)) == RGB # with symbol `S` instead of `T`
-    @test @inferred(ccolor(Gray, Gray)) == Gray # with symbol `S` instead of `T`
-    @test @inferred(ccolor(Gray, HSV)) == Gray # with symbol `S` instead of `T`
+    @test @inferred(ccolor(RGB, RGB)) === RGB
+    @test @inferred(ccolor(RGB, HSV)) === RGB
+    @test @inferred(ccolor(Gray, Gray)) === Gray
+    @test @inferred(ccolor(Gray, HSV)) === Gray
 
     @test @inferred(ccolor(RGB{Float32}, HSV{Float32})) === RGB{Float32}
     @test @inferred(ccolor(RGB{N0f8}, HSV{Float32})) === RGB{N0f8}
@@ -516,7 +489,7 @@ end
     @test @inferred(ccolor(Gray, Float32)) === Gray{Float32}
 
     @test @inferred(ccolor(RGB{N0f8}, Bool)) === RGB{N0f8}
-    @test_broken @inferred(ccolor(RGB, Bool)) === RGB{Bool}
+    @test @inferred(ccolor(RGB, Bool)) === RGB{N0f8}
     @test @inferred(ccolor(RGB, Int)) === RGB{N0f8}
     @test @inferred(ccolor(RGB, Float32)) === RGB{Float32}
 

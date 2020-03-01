@@ -52,4 +52,40 @@ end
     @test String(take!(iob)) == "2×2 Array{RGB{Float64},2} with eltype RGB{Float64}"
     summary(iob, view(mat,:,:))
     @test String(take!(iob)) == "2×2 view(::Array{RGB{Float64},2}, :, :) with eltype RGB{Float64}"
+    summary(iob, TransparentColor[ARGB32(), HSVA(30,1,1,0.5)])
+    @test String(take!(iob)) == "2-element Array{TransparentColor,1} with eltype TransparentColor"
+end
+
+@testset "colorant_string" begin
+    @test ColorTypes.colorant_string(Union{}) == "Union{}"
+    @test ColorTypes.colorant_string(RGB{N0f8}) == "RGB"
+    @test ColorTypes.colorant_string(HSV{Float32}) == "HSV"
+    @test ColorTypes.colorant_string(RGB24) == "RGB24"
+    @test ColorTypes.colorant_string(ARGB32) == "ARGB32"
+    @test ColorTypes.colorant_string(Gray24) == "Gray24"
+    @test ColorTypes.colorant_string(AGray32) == "AGray32"
+    @test ColorTypes.colorant_string(RGB) == "RGB"
+    @test_throws MethodError ColorTypes.colorant_string(Float32)
+end
+
+@testset "colorant_string_with_eltype" begin
+    @test ColorTypes.colorant_string_with_eltype(Union{}) == "Union{}"
+    @test ColorTypes.colorant_string_with_eltype(RGB{N0f8}) == "RGB{N0f8}"
+    @test ColorTypes.colorant_string_with_eltype(HSV{Float32}) == "HSV{Float32}"
+    @test ColorTypes.colorant_string_with_eltype(RGB24) == "RGB24"
+    @test ColorTypes.colorant_string_with_eltype(ARGB32) == "ARGB32"
+    @test ColorTypes.colorant_string_with_eltype(Gray24) == "Gray24"
+    @test ColorTypes.colorant_string_with_eltype(AGray32) == "AGray32"
+    @test ColorTypes.colorant_string_with_eltype(RGB) == "RGB"
+    @test ColorTypes.colorant_string_with_eltype(RGB{Union{}}) == "RGB{Union{}}"
+    @test ColorTypes.colorant_string_with_eltype(RGB{<:Fractional}) == "RGB"
+    @test ColorTypes.colorant_string_with_eltype(HSV{<:AbstractFloat}) == "HSV"
+    @test ColorTypes.colorant_string_with_eltype(RGB{Fractional}) == "RGB{Union{AbstractFloat, FixedPoint}}"
+    @test ColorTypes.colorant_string_with_eltype(HSV{AbstractFloat}) == "HSV{AbstractFloat}"
+    @test ColorTypes.colorant_string_with_eltype(TransparentColor) == "TransparentColor"
+    @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
+        "TransparentColor{RGB{Float32},Float32,N} where N"
+    @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32,4}) ==
+        "TransparentColor{RGB{Float32},Float32,4}"
+    @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
