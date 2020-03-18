@@ -9,6 +9,7 @@ alpha(c::Color)   = oneunit(eltype(c))
 alpha(c::RGB24)   = N0f8(1)
 alpha(c::ARGB32)  = N0f8((c.color & 0xff000000)>>24, 0)
 alpha(c::AGray32) = N0f8((c.color & 0xff000000)>>24, 0)
+alpha(x::Number)  = convert(eltype(ccolor(Gray, typeof(x))), oneunit(x))  # ensures it's a type supported by Gray (which has widest eltype support)
 
 "`red(c)` returns the red component of an `AbstractRGB` opaque or transparent color."
 red(c::AbstractRGB   ) = c.r
@@ -33,7 +34,7 @@ gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
 gray(c::Gray24)  = N0f8(c.color & 0x000000ff, 0)
 gray(c::AGray32) = N0f8(c.color & 0x000000ff, 0)
-gray(x::Number)  = x
+gray(x::Number)  = convert(eltype(ccolor(Gray, typeof(x))), x)   # ensures it's a type supported by Gray
 
 """
 `chroma(c)` returns the chroma of a `Lab`, `Luv` or their variants color.
