@@ -519,7 +519,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             $acol{T}(p...)
         end
         function $acol($(constrfields...), alpha::Real)
-            p = promote($(constrfields...), alpha)
+            p = promote($(constrfields...), gray(alpha))
             T = typeof(p[1])
             $acol{T}(p...)
         end
@@ -536,7 +536,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
             $cola{T}(p...)
         end
         function $cola($(constrfields...), alpha::Real)
-            p = promote($(constrfields...), alpha)
+            p = promote($(constrfields...), gray(alpha))
             T = typeof(p[1])
             $cola{T}(p...)
         end
@@ -544,7 +544,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         $cola() = $cola{$elty}($(zfields...))
         $cola($convqualifier) = convert($cola, x)
         $cola{T}(x) where T = convert($cola{T}, x)
-end)
+    end)
 end
 
 eltype_default(::Type{C}) where {C<:AbstractRGB  } = N0f8
