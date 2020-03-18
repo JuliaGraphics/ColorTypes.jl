@@ -7,33 +7,33 @@ without an alpha channel, it will always return 1.
 alpha(c::TransparentColor) = c.alpha
 alpha(c::Color)   = oneunit(eltype(c))
 alpha(c::RGB24)   = N0f8(1)
-alpha(c::ARGB32)  = N0f8((c.color & 0xff000000)>>24, 0)
-alpha(c::AGray32) = N0f8((c.color & 0xff000000)>>24, 0)
+alpha(c::ARGB32)  = reinterpret(N0f8, (c.color >> 0x18) % UInt8)
+alpha(c::AGray32) = reinterpret(N0f8, (c.color >> 0x18) % UInt8)
 alpha(x::Number)  = convert(eltype(ccolor(Gray, typeof(x))), oneunit(x))  # ensures it's a type supported by Gray (which has widest eltype support)
 
 "`red(c)` returns the red component of an `AbstractRGB` opaque or transparent color."
 red(c::AbstractRGB   ) = c.r
 red(c::TransparentRGB) = c.r
-red(c::RGB24)  = N0f8((c.color & 0x00ff0000)>>16, 0)
-red(c::ARGB32) = N0f8((c.color & 0x00ff0000)>>16, 0)
+red(c::RGB24)  = reinterpret(N0f8, (c.color >> 0x10) % UInt8)
+red(c::ARGB32) = reinterpret(N0f8, (c.color >> 0x10) % UInt8)
 
 "`green(c)` returns the green component of an `AbstractRGB` opaque or transparent color."
 green(c::AbstractRGB   ) = c.g
 green(c::TransparentRGB) = c.g
-green(c::RGB24)  = N0f8((c.color & 0x0000ff00)>>8, 0)
-green(c::ARGB32) = N0f8((c.color & 0x0000ff00)>>8, 0)
+green(c::RGB24)  = reinterpret(N0f8, (c.color >> 0x08) % UInt8)
+green(c::ARGB32) = reinterpret(N0f8, (c.color >> 0x08) % UInt8)
 
 "`blue(c)` returns the blue component of an `AbstractRGB` opaque or transparent color."
 blue(c::AbstractRGB   ) = c.b
 blue(c::TransparentRGB) = c.b
-blue(c::RGB24)  = N0f8(c.color & 0x000000ff, 0)
-blue(c::ARGB32) = N0f8(c.color & 0x000000ff, 0)
+blue(c::RGB24)  = reinterpret(N0f8, c.color % UInt8)
+blue(c::ARGB32) = reinterpret(N0f8, c.color % UInt8)
 
 "`gray(c)` returns the gray component of a grayscale opaque or transparent color."
 gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
-gray(c::Gray24)  = N0f8(c.color & 0x000000ff, 0)
-gray(c::AGray32) = N0f8(c.color & 0x000000ff, 0)
+gray(c::Gray24)  = reinterpret(N0f8, c.color % UInt8)
+gray(c::AGray32) = reinterpret(N0f8, c.color % UInt8)
 gray(x::Number)  = convert(eltype(ccolor(Gray, typeof(x))), x)   # ensures it's a type supported by Gray
 
 """
