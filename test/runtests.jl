@@ -9,6 +9,13 @@ using Test
     Set([DIN99d, DIN99o, DIN99, HSI, HSL, HSV, LCHab, LCHuv,
          LMS, Lab, Luv, XYZ, YCbCr, YIQ, xyY, BGR, RGB, Gray])
 
+if VERSION >= v"1.5.0-DEV.491"
+    @testset "error_hints" begin
+        # ColorVectorSpace, if needed, should not be imported before this
+        include("error_hints.jl")
+    end
+end
+
 @testset "conversions" begin
     include("conversions.jl")
 end
