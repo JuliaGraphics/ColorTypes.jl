@@ -19,27 +19,27 @@ end
         for T in (RGB, RGB{N0f8})
             err_str = @except_str zero(T) MethodError
             @test occursin(r"MethodError: no method matching zero\(::Type\{RGB.*\}", err_str)
-            @test occursin("did you forget to `using ColorVectorSpace`?", err_str)
+            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
 
             err_str = @except_str zero(T(1, 1, 1)) MethodError
             @test occursin(r"MethodError: no method matching zero\(::RGB\{.*\}", err_str)
-            @test occursin("did you forget to `using ColorVectorSpace`?", err_str)
+            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
 
             err_str = @except_str zeros(T) MethodError
             @test occursin(r"MethodError: no method matching zero\(::Type\{RGB.*\}", err_str)
-            @test occursin("did you forget to `using ColorVectorSpace`?", err_str)
+            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
 
             err_str = @except_str one(T) MethodError
             @test occursin(r"MethodError: no method matching one\(::Type\{RGB.*\}", err_str)
-            @test occursin("did you forget to `using ColorVectorSpace`?", err_str)
+            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
 
             err_str = @except_str one(T(1, 1, 1)) MethodError
             @test occursin(r"MethodError: no method matching one\(::RGB\{.*\}", err_str)
-            @test occursin("did you forget to `using ColorVectorSpace`?", err_str)
+            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
 
             err_str = @except_str ones(T) MethodError
             @test occursin(r"MethodError: no method matching one\(::Type\{RGB.*\}", err_str)
-            @test occursin("did you forget to `using ColorVectorSpace`?", err_str)
+            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
         end
     end
 end
