@@ -1,4 +1,5 @@
-using ColorTypes, FixedPointNumbers
+using ColorTypes
+using ColorTypes.FixedPointNumbers
 using Test
 
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))

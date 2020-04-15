@@ -282,7 +282,7 @@ Return a parametric colorant type.
 
 # Examples
 
-```jldoctest; setup = :(using ColorTypes, FixedPointNumbers)
+```jldoctest; setup = :(using ColorTypes, ColorTypes.FixedPointNumbers)
 julia> parametric_colorant(RGB)
 RGB
 
@@ -347,7 +347,7 @@ end
 numeric element type. `ccolor` chooses the numeric element type from
 `Cdest` if available, but if not specified gets it from `Csrc`.
 
-```jldoctest; setup = :(using ColorTypes, FixedPointNumbers)
+```jldoctest; setup = :(using ColorTypes, ColorTypes.FixedPointNumbers)
 julia> ccolor(RGB, Gray{Float32})
 RGB{Float32}
 
@@ -361,7 +361,7 @@ RGB{Float32}
 Some colorspaces don't support `FixedPoint` numeric element types;
 in such cases the `eltype_default` for `Cdest` is chosen:
 
-```jldoctest; setup = :(using ColorTypes, FixedPointNumbers)
+```jldoctest; setup = :(using ColorTypes, ColorTypes.FixedPointNumbers)
 julia> ccolor(HSV, RGB{N0f8})
 HSV{Float32}
 ```
@@ -369,7 +369,7 @@ HSV{Float32}
 `Cdest` can be an abstract type, in which case `Csrc` must be in that
 abstract color space.
 
-```jldoctest; setup = :(using ColorTypes, FixedPointNumbers)
+```jldoctest; setup = :(using ColorTypes, ColorTypes.FixedPointNumbers)
 julia> ccolor(Color{Float32}, RGB{N0f8})
 RGB{Float32}
 
