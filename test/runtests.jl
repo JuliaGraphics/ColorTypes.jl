@@ -3,6 +3,10 @@ using Test
 
 @test isempty(detect_ambiguities(ColorTypes, Base, Core))
 
+using Documenter
+DocMeta.setdocmeta!(ColorTypes, :DocTestSetup, :(using ColorTypes, FixedPointNumbers); recursive=true)
+doctest(ColorTypes, manual = false)
+
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
 @test Set(ColorTypes.ctypes) ==
