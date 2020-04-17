@@ -45,6 +45,7 @@ include("traits.jl")
 include("conversions.jl")
 include("show.jl")
 include("operations.jl")
+include("error_hints.jl")
 
 Base.@deprecate_binding RGB1 XRGB
 Base.@deprecate_binding RGB4 RGBX
@@ -85,8 +86,6 @@ if VERSION >= v"1.1" # work around https://github.com/JuliaLang/julia/issues/341
     _precompile_()
 end
 
-function __init__()
-    include(joinpath(@__DIR__, "error_hints.jl"))
-end
+__init__() = register_hints()
 
 end # module
