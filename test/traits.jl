@@ -133,44 +133,44 @@ end
     @test ColorTypes.to_top(AGray32(.8)) === Colorant{N0f8,2}
 end
 
-@testset "length" begin
-    @test length(RGB) == 3
-    @test length(XRGB) == 3
-    @test length(ARGB) == 4
-    @test length(RGB24) == 3
-    @test length(ARGB32) == 4
-    @test length(Gray) == 1
-    @test length(Gray24) == 1
-    @test length(AGray32) == 2
-    @test length(AGray{Float32}) == 2
+@testset "lengthc" begin
+    @test lengthc(RGB) == 3
+    @test lengthc(XRGB) == 3
+    @test lengthc(ARGB) == 4
+    @test lengthc(RGB24) == 3
+    @test lengthc(ARGB32) == 4
+    @test lengthc(Gray) == 1
+    @test lengthc(Gray24) == 1
+    @test lengthc(AGray32) == 2
+    @test lengthc(AGray{Float32}) == 2
 
-    @test length(ARGB(1.0,0.8,0.6,0.4)) == 4
+    @test lengthc(ARGB(1.0,0.8,0.6,0.4)) == 4
 end
 
-@testset "eltype" begin
-    @test @inferred(eltype(Color{N0f8})) === N0f8
-    @test @inferred(eltype(RGB{Float32})) === Float32
-    @test @inferred(eltype(RGBA{Float64})) === Float64
-    @test @inferred(eltype(RGB24)) === N0f8
-    # @test eltype(RGB) == TypeVar(:T, Fractional)
-    @inferred(eltype(RGB))      # just test that it doesn't error
+@testset "eltypec" begin
+    @test @inferred(eltypec(Color{N0f8})) === N0f8
+    @test @inferred(eltypec(RGB{Float32})) === Float32
+    @test @inferred(eltypec(RGBA{Float64})) === Float64
+    @test @inferred(eltypec(RGB24)) === N0f8
+    # @test eltypec(RGB) == TypeVar(:T, Fractional)
+    @inferred(eltypec(RGB))      # just test that it doesn't error
 
     # for instances
-    @test @inferred(eltype(RGB{N0f8}(1,0,0))) === N0f8
-    @test @inferred(eltype(RGB(0x01,0x00,0x00))) === N0f8
-    @test @inferred(eltype(RGB(1.0,0,0))) === Float64
-    @test @inferred(eltype(ARGB(1.0,0.8,0.6,0.4))) === Float64
-    @test @inferred(eltype(RGBA{Float32}(1.0,0.8,0.6,0.4))) === Float32
-    @test @inferred(eltype(RGB24(1,0.5,0))) === N0f8
-    @test @inferred(eltype(ARGB32(1,0.5,0,0.8))) === N0f8
+    @test @inferred(eltypec(RGB{N0f8}(1,0,0))) === N0f8
+    @test @inferred(eltypec(RGB(0x01,0x00,0x00))) === N0f8
+    @test @inferred(eltypec(RGB(1.0,0,0))) === Float64
+    @test @inferred(eltypec(ARGB(1.0,0.8,0.6,0.4))) === Float64
+    @test @inferred(eltypec(RGBA{Float32}(1.0,0.8,0.6,0.4))) === Float32
+    @test @inferred(eltypec(RGB24(1,0.5,0))) === N0f8
+    @test @inferred(eltypec(ARGB32(1,0.5,0,0.8))) === N0f8
 
-    @test @inferred(eltype(Gray(1))) === N0f8
-    @test @inferred(eltype(Gray(1.0))) === Float64
-    @test @inferred(eltype(Gray24(0.8))) === N0f8
-    @test @inferred(eltype(AGray32(0.8))) === N0f8
+    @test @inferred(eltypec(Gray(1))) === N0f8
+    @test @inferred(eltypec(Gray(1.0))) === Float64
+    @test @inferred(eltypec(Gray24(0.8))) === N0f8
+    @test @inferred(eltypec(AGray32(0.8))) === N0f8
 
-    @test @inferred(eltype(HSV(30,1,0))) === Float32
-    @test @inferred(eltype(HSV(30,1.0,0.0))) === Float64
+    @test @inferred(eltypec(HSV(30,1,0))) === Float32
+    @test @inferred(eltypec(HSV(30,1.0,0.0))) === Float64
 
     # eltypes_supported
     @test N0f8 <: ColorTypes.eltypes_supported(RGB(1,0,0))

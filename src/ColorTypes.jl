@@ -6,7 +6,7 @@ using Base: @pure
 
 const Fractional = Union{AbstractFloat, FixedPoint}
 
-import Base: ==, isapprox, hash, convert, eltype, length, show, oneunit, zero, reinterpret, getindex
+import Base: ==, isapprox, hash, convert, show, oneunit, zero, reinterpret, getindex
 using Random
 import Random: rand
 
@@ -33,6 +33,7 @@ export RGB24, ARGB32, Gray24, AGray32
 
 
 ## Functions
+export eltypec, lengthc
 export base_color_type, base_colorant_type, ccolor, color, color_type, parametric_colorant
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
@@ -49,6 +50,12 @@ include("error_hints.jl")
 
 Base.@deprecate_binding RGB1 XRGB
 Base.@deprecate_binding RGB4 RGBX
+
+import Base: eltype, length
+@deprecate eltype(::Type{C}) where C<:Colorant eltypec(C)
+@deprecate eltype(::C) where C<:Colorant eltypec(C)
+@deprecate length(::Type{C}) where C<:Colorant lengthc(C)
+@deprecate length(::C) where C<:Colorant lengthc(C)
 
 """
 ColorTypes summary:
@@ -73,7 +80,7 @@ Concrete types:
 - Grayscale types `Gray` and `Gray24` (subtypes of `Color{T,1}`), and
   the corresponding transparent types `AGray`, `GrayA`, and `AGray32`
 
-- Trait functions `eltype`, `length`, `alphacolor`, `coloralpha`,
+- Trait functions `eltypec`, `lengthc`, `alphacolor`, `coloralpha`,
   `color_type`, `base_color_type`, `base_colorant_type`, `ccolor`
 
 - Getters `red`, `green`, `blue`, `alpha`, `gray`, `comp1`, `comp2`, `comp3`

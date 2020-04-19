@@ -128,7 +128,7 @@ end
         for val1 in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2))
             for val2 in (0.6, 0.6f0, N0f8(0.6), N4f12(0.6), N0f16(0.6))
                 c0 = C0(val1,val2,val1)
-                et = eltype(c0)
+                et = eltypec(c0)
                 @test isa(C(val1,val2,val1), C)
                 @test isa(C(val1,val2,val1,0.8), C)
                 @test C(c0) === C(val1,val2,val1,convert(et, 1))

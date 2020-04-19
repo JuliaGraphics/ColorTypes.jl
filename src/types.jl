@@ -2,8 +2,8 @@
 `Colorant{T,N}` is the abstract super-type of all types in ColorTypes,
 and refers to both (opaque) colors and colors-with-transparency (alpha
 channel) information.  `T` is the element type (extractable with
-`eltype`) and `N` is the number of *meaningful* entries (extractable
-with `length`), i.e., the number of arguments you would supply to the
+`eltypec`) and `N` is the number of *meaningful* entries (extractable
+with `lengthc`), i.e., the number of arguments you would supply to the
 constructor.
 """
 abstract type Colorant{T,N} end
@@ -424,9 +424,9 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 
 # The following should be in traits.jl but we need it now.
 # Return the number of components in the color
-# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., XRGB)
-length(c::Colorant) = length(typeof(c))
-length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
+# Note this is different from div(sizeof(c), sizeof(eltypec(c))) (e.g., XRGB)
+lengthc(c::Colorant) = lengthc(typeof(c))
+lengthc(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
 
 const color3types = map(s->getfield(ColorTypes,s),
                         filter(names(ColorTypes, all=false)) do s
@@ -512,7 +512,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
 
         # More constructors for the alpha versions
         $acol($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $acol{$elty}($(constrfields...), alpha)
-        $acol(c::$C, alpha::Real=oneunit(eltype(c))) = $acol{eltype(c)}(c, alpha)
+        $acol(c::$C, alpha::Real=oneunit(eltypec(c))) = $acol{eltypec(c)}(c, alpha)
         function $acol($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
@@ -529,7 +529,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
         $acol{T}(x) where T = convert($acol{T}, x)
 
         $cola($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $cola{$elty}($(constrfields...), alpha)
-        $cola(c::$C, alpha::Real=oneunit(eltype(c))) = $cola{eltype(c)}(c, alpha)
+        $cola(c::$C, alpha::Real=oneunit(eltypec(c))) = $cola{eltypec(c)}(c, alpha)
         function $cola($(constrfields...))
             p = promote($(constrfields...))
             T = typeof(p[1])
@@ -679,15 +679,16 @@ end
 
 function throw_colorerror(::Type{N0f8}, values::Tuple{Vararg{Integer}})
     # Let's try to read the user's mind
+    n = length(values)
     if all(x->0<=x<=255, values)
-        if length(values) == 1
+        if n == 1
             vstr = "$(values[1]) is an integer"
             Tstr = "Gray"
         else
             vstr = "$values are integers"
-            if length(values) == 2
+            if n == 2
                 Tstr = "AGray"
-            elseif length(values) == 3
+            elseif n == 3
                 Tstr = "RGB"
             else
                 Tstr = "RGBA"

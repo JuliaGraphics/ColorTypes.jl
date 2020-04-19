@@ -30,14 +30,14 @@ gamutmin(::Type{T}) where {T<:TransparentRGB} = (0,0,0,0)
 # rand
 for t in [Float16,Float32,Float64,N0f8,N0f16,N0f32]
     @eval _rand(::Type{T}) where {T<:Union{AbstractRGB{$t},AbstractGray{$t}}} =
-          mapc(x->rand(eltype(T)), base_colorant_type(T)())
+          mapc(x->rand(eltypec(T)), base_colorant_type(T)())
 end
 
 function _rand(::Type{T}) where T<:Colorant
     Gmax = gamutmax(T)
     Gmin = gamutmin(T)
-    Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
-    A = rand(eltype(T), length(T))
+    Mi = eltypec(T) <: FixedPoint ? 1.0/typemax(eltypec(T)) : 1.0
+    A = rand(eltypec(T), lengthc(T))
     for j in eachindex(Gmax)
         A[j] = A[j] * (Mi * (Gmax[j]-Gmin[j])) + Gmin[j]
     end
@@ -47,13 +47,13 @@ end
 function _rand(::Type{T}, sz::Dims) where T<:Colorant
     Gmax = gamutmax(T)
     Gmin = gamutmin(T)
-    Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
+    Mi = eltypec(T) <: FixedPoint ? 1.0/typemax(eltypec(T)) : 1.0
     A = Array{T}(undef, sz)
-    Tr = eltype(T) <: FixedPoint ? FixedPointNumbers.rawtype(eltype(T)) : eltype(T)
-    nchannels = sizeof(T)÷sizeof(eltype(T))
+    Tr = eltypec(T) <: FixedPoint ? FixedPointNumbers.rawtype(eltypec(T)) : eltypec(T)
+    nchannels = sizeof(T)÷sizeof(eltypec(T))
     Au = Random.UnsafeView(convert(Ptr{Tr}, pointer(A)), length(A)*nchannels)
     rand!(Au)
-    Ar = reshape(reinterpret(eltype(T), A), (nchannels, sz...))
+    Ar = reshape(reinterpret(eltypec(T), A), (nchannels, sz...))
     for j in eachindex(Gmax)
         s = Mi * (Gmax[j]-Gmin[j])
         for i = j:length(Gmax):length(Ar)

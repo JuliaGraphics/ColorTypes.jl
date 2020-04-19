@@ -1,8 +1,8 @@
 # Get the promoted element type
 # Note that `promote_eltype` defined in "types.jl" means promote "arguments".
 function _promote_et(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant}
-    T1 = isconcretetype(eltype(C1)) ? eltype(C1) : eltypes_supported(C1)
-    T2 = isconcretetype(eltype(C2)) ? eltype(C2) : eltypes_supported(C2)
+    T1 = isconcretetype(eltypec(C1)) ? eltypec(C1) : eltypes_supported(C1)
+    T2 = isconcretetype(eltypec(C2)) ? eltypec(C2) : eltypes_supported(C2)
     promote_type(T1, T2)
 end
 # Get the promoted base "color" type
@@ -95,8 +95,8 @@ _convert(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha=alpha(c)) where {A<:Tra
 _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray} = Cout(gray(c))
 _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentGray,C1<:AbstractGray,C2<:AbstractGray} = A(gray(c), alpha)
 
-_convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(Cout), gray(c)); Cout(g, g, g))
-_convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(A), gray(c)); A(g, g, g, alpha))
+_convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltypec(Cout), gray(c)); Cout(g, g, g))
+_convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltypec(A), gray(c)); A(g, g, g, alpha))
 
 convert(::Type{RGB24},   x::Real) = RGB24(x, x, x)
 convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x)

@@ -5,7 +5,7 @@
 without an alpha channel, it will always return 1.
 """
 alpha(c::TransparentColor) = c.alpha
-alpha(c::Color)   = oneunit(eltype(c))
+alpha(c::Color)   = oneunit(eltypec(c))
 alpha(c::RGB24)   = N0f8(1)
 alpha(c::ARGB32)  = N0f8((c.color & 0xff000000)>>24, 0)
 alpha(c::AGray32) = N0f8((c.color & 0xff000000)>>24, 0)
@@ -95,6 +95,12 @@ color(c::Color) = c
 color(c::TransparentColor{C,T,4}) where {C,T} = C(comp1(c), comp2(c), comp3(c))
 color(c::TransparentColor{C,T,2}) where {C,T} = C(comp1(c))
 
+# Iterator traits:    # TODO: uncomment after the eltypec/lengthc deprecation period
+# Base.IteratorSize(::Type{<:Colorant}) = Base.HasSize{0}()
+Base.IteratorEltype(::Type{<:Colorant}) = Base.HasEltype()
+# Base.iterate(c::Colorant) = c, nothing
+# Base.iterate(c::Colorant, ::Nothing) = nothing
+
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
 # function in general
@@ -106,12 +112,13 @@ to_top(::Type{Colorant{T,N}}) where {T,N} = Colorant{T,N}
 
 to_top(c::Colorant) = to_top(typeof(c))
 
-# eltype(RGB{Float32}) -> Float32
-eltype(::Type{Colorant{T}}) where {T}       = T
-eltype(::Type{Colorant{T,N}}) where {T,N}   = T
-@pure eltype(::Type{C}) where {C<:Colorant} = eltype(supertype(C))
+# eltypec(RGB{Float32}) -> Float32
+eltypec(::Type{Any})                         = Any
+eltypec(::Type{Colorant{T}})   where {T}     = T
+eltypec(::Type{Colorant{T,N}}) where {T,N}   = T
+@pure eltypec(::Type{C}) where {C<:Colorant} = eltypec(supertype(C))
 
-eltype(c::Colorant) = eltype(typeof(c))
+eltypec(c::Colorant) = eltypec(typeof(c))
 
 # eltypes_supported(Colorant{T<:X}) -> X
 @pure eltypes_supported(::Type{C}) where {C<:Colorant} =
@@ -126,7 +133,7 @@ eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 """
     issupported(C::Type, T::Type)::Bool
 
-Returns `true` if `T` is a valid numeric eltype for `C<:Colorant`.
+Returns `true` if `T` is a valid numeric type for `C<:Colorant`.
 """
 issupported(::Type{C}, ::Type{T}) where {C<:Colorant,T} = T <: eltypes_supported(C)
 
@@ -313,8 +320,8 @@ Promote storage data type of colorant `T` to `AbstractFloat` while keep the
     Non-parametric colorants will be promote to corresponding parametric
     colorants. For example, `floattype(RGB24) == RGB{Float32}`
 """
-floattype(::Type{T}) where T <: Colorant =
-    base_colorant_type(T){floattype(eltype(T))} # 1 parameter
+floattype(::Type{C}) where C <: Colorant =
+    base_colorant_type(C){floattype(eltypec(C))} # 1 parameter
 # 0 parameter
 floattype(::Type{RGB24}) = RGB{Float32}
 floattype(::Type{Gray24}) = Gray{Float32}
@@ -337,7 +344,7 @@ function colorsplit(::Type{C}) where C<:Colorant
              C <: Color ? Nothing :
              C <: TransparentColor ? TransparentColor : Any
     Cbase = C <: Union{Color,TransparentColor} ? base_color_type(C) : Color
-    return Calpha, Cbase, eltype(C)
+    return Calpha, Cbase, eltypec(C)
 end
 
 """
@@ -420,9 +427,9 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Union
                 Calpha <: ColorAlpha ? coloralpha(C) : error("unexpected Calpha ", Calpha)
         end
     end
-    # Step 3: assign the eltype
+    # Step 3: assign the eltypec
     if !isa(C, UnionAll)
-        eltype(C) <: Tdest && return C   # RGB24 etc.
+        eltypec(C) <: Tdest && return C   # RGB24 etc.
         error("nonparametric type ", C, " has ambiguous destination ", Cdest)
     end
     isabstracttype(Tdest) || !issupported(C, Tdest) || return C{Tdest}

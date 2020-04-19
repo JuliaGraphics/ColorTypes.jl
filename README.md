@@ -368,9 +368,9 @@ must be identical.  The `AA` is ignored, but in the corresponding
 One of the nicest things about this package is that it provides a rich
 set of trait-functions for working with color types:
 
-- `eltype(c)` extracts the underlying element type, e.g., `Float32`
+- `eltypec(c)` extracts the underlying element type, e.g., `Float32`
 
-- `length(c)` extracts the number of components (including `alpha`, if present)
+- `lengthc(c)` extracts the number of components (including `alpha`, if present)
 
 - `alphacolor(c)` and `coloralpha(c)` convert a `Color` to an object
   with transparency (either `ARGB` or `RGBA`, respectively).
