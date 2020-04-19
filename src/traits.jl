@@ -114,11 +114,13 @@ to_top(c::Colorant) = to_top(typeof(c))
 
 # eltypec(RGB{Float32}) -> Float32
 eltypec(::Type{Any})                         = Any
+eltypec(::Type{T}) where {T<:Number}         = T
 eltypec(::Type{Colorant{T}})   where {T}     = T
 eltypec(::Type{Colorant{T,N}}) where {T,N}   = T
 @pure eltypec(::Type{C}) where {C<:Colorant} = eltypec(supertype(C))
 
 eltypec(c::Colorant) = eltypec(typeof(c))
+eltypec(x::Number)   = eltypec(typeof(x))
 
 # eltypes_supported(Colorant{T<:X}) -> X
 @pure eltypes_supported(::Type{C}) where {C<:Colorant} =

@@ -428,6 +428,9 @@ AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 lengthc(c::Colorant) = lengthc(typeof(c))
 lengthc(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
 
+lengthc(::Type{T}) where T<:Number = 1
+lengthc(x::Number) = lengthc(typeof(x))
+
 const color3types = map(s->getfield(ColorTypes,s),
                         filter(names(ColorTypes, all=false)) do s
                             isdefined(ColorTypes, s) || return false

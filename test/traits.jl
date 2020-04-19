@@ -145,6 +145,8 @@ end
     @test lengthc(AGray{Float32}) == 2
 
     @test lengthc(ARGB(1.0,0.8,0.6,0.4)) == 4
+
+    @test lengthc(5) == lengthc(Int) == 1
 end
 
 @testset "eltypec" begin
@@ -171,6 +173,8 @@ end
 
     @test @inferred(eltypec(HSV(30,1,0))) === Float32
     @test @inferred(eltypec(HSV(30,1.0,0.0))) === Float64
+
+    @test @inferred(eltypec(5)) === @inferred(eltypec(Int)) === Int
 
     # eltypes_supported
     @test N0f8 <: ColorTypes.eltypes_supported(RGB(1,0,0))
