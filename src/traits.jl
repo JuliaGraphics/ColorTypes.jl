@@ -303,33 +303,34 @@ parametric_colorant(::Type{ARGB32}) = ARGB{N0f8}
 parametric_colorant(::Type{AGray32}) = AGray{N0f8}
 
 """
-    floattype(::Type{T}) where T<:Colorant
+    CF = floattype(C::Type)
 
-Promote storage data type of colorant `T` to `AbstractFloat` while keep the
+Promote storage data type of colorant type `C` to `AbstractFloat` while keeping the
 `base_colorant_type` the same.
 
 !!! info
 
     Non-parametric colorants will be promote to corresponding parametric
-    colorants. For example, `floattype(RGB24) == RGB{Float32}`
+    colorants. For example, `floattype(RGB24) == RGB{Float32}`.
 """
 floattype(::Type{T}) where T <: Colorant =
     base_colorant_type(T){floattype(eltype(T))} # 1 parameter
 # 0 parameter
-floattype(::Type{RGB24}) = RGB{Float32}
-floattype(::Type{Gray24}) = Gray{Float32}
-floattype(::Type{ARGB32}) = ARGB{Float32}
-floattype(::Type{AGray32}) = AGray{Float32}
-
+floattype(::Type{RGB24})   = RGB{floattype(N0f8)}
+floattype(::Type{Gray24})  = Gray{floattype(N0f8)}
+floattype(::Type{ARGB32})  = ARGB{floattype(N0f8)}
+floattype(::Type{AGray32}) = AGray{floattype(N0f8)}
 
 @pure pureintersect(::Type{C1}, ::Type{C2}) where {C1,C2} = typeintersect(C1, C2)
 
 """
     Calpha, Cbase, T = colorsplit(C)
 
-Split a color type `C` into three components: `T` is the numeric eltype,
-`Cbase` is the `base_color_type(C)`, and `wrap` is one of `identity`, `coloralpha`,
-or `alphacolor`.
+Split a color type `C` into three components: `T` is the numeric type,
+`Cbase` is the `base_color_type(C)`, and `Calpha` is one of `Nothing`
+(when `C` has no transparency), `AlphaColor`, or `ColorAlpha`.
+
+If `C` is an abstract type, `Calpha` may be `TransparentColor` or `Any`.
 """
 function colorsplit(::Type{C}) where C<:Colorant
     Calpha = C <: AlphaColor ? AlphaColor :
