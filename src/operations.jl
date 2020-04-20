@@ -1,3 +1,72 @@
+### Equality
+function ==(c1::AbstractRGB, c2::AbstractRGB)
+    red(c1) == red(c2) && green(c1) == green(c2) && blue(c1) == blue(c2)
+end
+==(c1::HSV, c2::HSV) = c1.h == c2.h && c1.s == c2.s && c1.v == c2.v
+==(c1::HSI, c2::HSI) = c1.h == c2.h && c1.s == c2.s && c1.i == c2.i
+==(c1::HSL, c2::HSL) = c1.h == c2.h && c1.s == c2.s && c1.l == c2.l
+==(c1::XYZ, c2::XYZ) = c1.x == c2.x && c1.y == c2.y && c1.z == c2.z
+==(c1::xyY, c2::xyY) = c1.x == c2.x && c1.y == c2.y && c1.Y == c2.Y
+==(c1::Lab, c2::Lab) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::Luv, c2::Luv) = c1.l == c2.l && c1.u == c2.u && c1.v == c2.v
+==(c1::LCHab, c2::LCHab) = c1.l == c2.l && c1.c == c2.c && c1.h == c2.h
+==(c1::LCHuv, c2::LCHuv) = c1.l == c2.l && c1.c == c2.c && c1.h == c2.h
+==(c1::DIN99, c2::DIN99) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::DIN99d, c2::DIN99d) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::DIN99o, c2::DIN99o) = c1.l == c2.l && c1.a == c2.a && c1.b == c2.b
+==(c1::LMS, c2::LMS) = c1.l == c2.l && c1.m == c2.m && c1.s == c2.s
+==(c1::YIQ, c2::YIQ) = c1.y == c2.y && c1.i == c2.i && c1.q == c2.q
+==(c1::YCbCr, c2::YCbCr) = c1.y == c2.y && c1.cb == c2.cb && c1.cr == c2.cr
+
+==(x::AbstractGray, y::AbstractGray) = gray(x) == gray(y)
+==(x::Number, y::AbstractGray) = x == gray(y)
+==(x::AbstractGray, y::Number) = ==(y, x)
+
+function ==(x::TransparentColor, y::TransparentColor)
+    color(x) == color(y) && alpha(x) == alpha(y)
+end
+
+
+struct BoolTuple end
+@inline BoolTuple(args::Bool...) = (args...,)
+
+function _isapprox(a::Colorant, b::Colorant; kwargs...)
+    componentapprox(x, y) = isapprox(x, y; kwargs...)
+    all(ColorTypes._mapc(BoolTuple, componentapprox, a, b))
+end
+isapprox(a::C, b::C; kwargs...) where {C<:Colorant} =
+    _isapprox(a, b; kwargs...)
+isapprox(a::Colorant, b::Colorant; kwargs...) =
+    _isapprox(base_colorant_type(a), base_colorant_type(b), a, b; kwargs...)
+_isapprox(::Type{C}, ::Type{C}, a, b; kwargs...) where {C<:Colorant} =
+    _isapprox(a, b; kwargs...)
+_isapprox(::Type{<:AbstractRGB}, ::Type{<:AbstractRGB}, a, b; kwargs...) =
+    _isapprox(RGB(a), RGB(b); kwargs...)
+_isapprox(::Type{<:AbstractGray}, ::Type{<:AbstractGray}, a, b; kwargs...) =
+    isapprox(gray(a), gray(b); kwargs...)
+_isapprox(TA::Type, TB::Type, a, b; kwargs...) = false
+isapprox(x::Number, y::AbstractGray; kwargs...) =
+    isapprox(x, gray(y); kwargs...)
+isapprox(x::AbstractGray, y::Number; kwargs...) =
+    isapprox(y, x; kwargs...)
+
+
+zero(::Type{C}) where {C<:Gray} = C(0)
+oneunit(::Type{C}) where {C<:Gray} = C(1)
+
+function Base.one(::Type{C}) where {C<:Gray}
+    Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)
+    C(1)
+end
+
+isless(a::AbstractGray, b::AbstractGray) = isless(gray(a), gray(b))
+isless(a::AbstractGray, b::Real)         = isless(gray(a), b)
+isless(a::Real,         b::AbstractGray) = isless(a,       gray(b))
+
+<(a::AbstractGray, b::AbstractGray) = gray(a) < gray(b)
+<(a::AbstractGray, b::Real)         = gray(a) < b
+<(a::Real,         b::AbstractGray) = a       < gray(b)
+
 # hash
 hash(c::AbstractGray, hx::UInt) = hash(gray(c), hx)
 hash(c::TransparentGray, hx::UInt) = hash(alpha(c), hash(gray(c), hx))
