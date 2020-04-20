@@ -15,31 +15,27 @@ macro except_str(expr, err_type)
 end
 
 @testset "error hints" begin
-    @testset "zeros/ones" begin
+    @testset "one/ones" begin
         for T in (RGB, RGB{N0f8})
-            err_str = @except_str zero(T) MethodError
-            @test occursin(r"MethodError: no method matching zero\(::Type\{RGB.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
-
-            err_str = @except_str zero(T(1, 1, 1)) MethodError
-            @test occursin(r"MethodError: no method matching zero\(::RGB\{.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
-
-            err_str = @except_str zeros(T) MethodError
-            @test occursin(r"MethodError: no method matching zero\(::Type\{RGB.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
-
             err_str = @except_str one(T) MethodError
             @test occursin(r"MethodError: no method matching one\(::Type\{RGB.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
+            @test occursin("Do you mean `oneunit", err_str)
 
             err_str = @except_str one(T(1, 1, 1)) MethodError
             @test occursin(r"MethodError: no method matching one\(::RGB\{.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
+            @test occursin("Do you mean `oneunit(c)`?", err_str)
 
             err_str = @except_str ones(T) MethodError
             @test occursin(r"MethodError: no method matching one\(::Type\{RGB.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
+            @test occursin("Do you mean `oneunit", err_str)
+            @test occursin("fill(oneunit", err_str)
         end
+    end
+
+    @testset "Math" begin
+        x = Gray(0.8)
+        err_str = @except_str x + x MethodError
+        @test occursin("no method matching +(::Gray{Float64}, ::Gray{Float64})", err_str)
+        @test occursin("Math on colors is deliberately undefined in ColorTypes, but see the ColorVectorSpace package", err_str)
     end
 end

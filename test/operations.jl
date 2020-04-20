@@ -136,23 +136,37 @@ end
     @test oneunit(Gray) === Gray{N0f8}(1)
     @test zero(Gray) === Gray{N0f8}(0)
 
-    @test_throws MethodError oneunit(Gray24)
-    @test_throws MethodError zero(Gray24)
-    @test_throws MethodError oneunit(AGray32)
-    @test_throws MethodError zero(AGray32)
-    @test_throws MethodError oneunit(AGray{N0f8})
-    @test_throws MethodError zero(AGray{N0f8})
-    @test_throws MethodError oneunit(GrayA{Float32})
-    @test_throws MethodError zero(GrayA{Float32})
+    @test oneunit(Gray24) === Gray24(1)
+    @test zero(Gray24) === Gray24(0)
 
-    @test_throws MethodError oneunit(RGB{N0f8})
-    @test_throws MethodError zero(RGB{N0f8})
+
+    @test oneunit(AGray{N0f8}) === AGray{N0f8}(1, 1)
+    @test oneunit(GrayA{Float32}) === GrayA{Float32}(1, 1)
+    @test oneunit(AGray32) === AGray32(1, 1)
+
+    # Things that aren't implemented but maybe should be, although it's not clear
+    # whether alpha = 0 or alpha = 1 here.
+    @test_skip zero(AGray32)
+    @test_skip zero(AGray{N0f8})
+    @test_skip zero(GrayA{Float32})
 
     g = Gray{Float32}(0.8)
-    @test_throws MethodError oneunit(g)
-    @test_throws MethodError zero(g)
+    @test oneunit(g) === typeof(g)(1)
+    @test zero(g) === typeof(g)(0)
 
-    @test_broken one(Gray{Float32}) * g == g * one(Gray{Float32}) == g
+    @test_broken one(Gray{Float32}) * g === g * one(Gray{Float32}) === g
+end
+
+@testset "identities for colors" begin
+    @test oneunit(RGB{N0f8}) === RGB{N0f8}(1, 1, 1)
+    @test_throws MethodError oneunit(HSV{Float32})   # unclear what this means
+    @test oneunit(ARGB{N0f8}) === ARGB{N0f8}(1, 1, 1, 1)
+    @test oneunit(RGBA{Float32}) === RGBA{Float32}(1, 1, 1, 1)
+    @test oneunit(ARGB32) === ARGB32(1, 1, 1, 1)
+
+    @test zero(RGB{N0f8}) === RGB{N0f8}(0, 0, 0)
+    @test zero(HSV{Float32}) === HSV{Float32}(0, 0, 0)
+    @test_skip zero(ARGB{Float32})
 end
 
 @testset "rand" begin

@@ -50,9 +50,19 @@ isapprox(x::Number, y::AbstractGray; kwargs...) =
 isapprox(x::AbstractGray, y::Number; kwargs...) =
     isapprox(y, x; kwargs...)
 
+zero(::Type{C}) where {C<:ColorN{1}} = C(0)
+zero(::Type{Gray24})                 = Gray24(zero(N0f8))
+zero(::Type{C}) where {C<:ColorN{3}} = C(0, 0, 0)
+zero(::Type{C}) where {C<:TransparentColor} = (c = zero(base_color_type(C)); C(c, zero(eltype(c))))
+zero(c::Colorant)                    = zero(typeof(c))
 
-zero(::Type{C}) where {C<:Gray} = C(0)
-oneunit(::Type{C}) where {C<:Gray} = C(1)
+oneunit(::Type{C}) where {C<:ColorN{1}}       = C(1)
+oneunit(::Type{Gray24})                       = Gray24(oneunit(N0f8))
+# It's not clear what `oneunit` means for most Color3s, but for AbstractRGB it's OK
+oneunit(::Type{C}) where {C<:AbstractRGB}     = C(1, 1, 1)
+oneunit(::Type{C}) where {C<:TransparentGray} = C(oneunit(color_type(C)), 1)
+oneunit(::Type{C}) where {C<:TransparentRGB}  = C(oneunit(color_type(C)), 1)
+oneunit(c::Colorant)                          = oneunit(typeof(c))
 
 function Base.one(::Type{C}) where {C<:Gray}
     Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)
