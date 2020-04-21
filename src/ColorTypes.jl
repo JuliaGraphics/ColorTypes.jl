@@ -37,7 +37,7 @@ export base_color_type, base_colorant_type, ccolor, color, color_type, parametri
 export alphacolor, coloralpha
 export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
 export chroma, hue
-export comp1, comp2, comp3
+export comp1, comp2, comp3, comp4, comp5
 export mapc, reducec, mapreducec, gamutmax, gamutmin
 
 include("types.jl")

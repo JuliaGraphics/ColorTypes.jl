@@ -397,8 +397,8 @@ greater detail); just type `?ccolor` at the REPL.
 - `alpha` extracts the alpha channel from any `Color` object
   (returning 1 if there is no alpha channel)
 
-- `comp1`, `comp2`, and `comp3` extract color components in the order
-  expected by the constructor
+- `comp1`, `comp2`, `comp3`, `comp4` and `comp5` extract color components in the
+  order expected by the constructor
 
 ### Functions
 
