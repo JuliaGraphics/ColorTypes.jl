@@ -310,7 +310,7 @@ Promote storage data type of colorant type `C` to `AbstractFloat` while keeping 
 
 !!! info
 
-    Non-parametric colorants will be promote to corresponding parametric
+    Non-parametric colorants will be promoted to corresponding parametric
     colorants. For example, `floattype(RGB24) == RGB{Float32}`.
 """
 floattype(::Type{T}) where T <: Colorant =
