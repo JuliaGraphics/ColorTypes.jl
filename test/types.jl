@@ -173,6 +173,9 @@ end
     @test_throws ArgumentError ARGB32(2,1,0) # integers
     @test_throws ArgumentError ARGB32(2,1,0,1) # integers
 
+    # https://github.com/JuliaGraphics/ColorTypes.jl/pull/183#issuecomment-616958191
+    @test_broken ARGB32(-0.00196, 0.0, 1.00196) === ARGB32(0, 0, 1)
+
     for val in (1.2, 1.2f0, N4f12(1.2), -0.2)
         @test_throws ArgumentError RGB24(val,val,val)
         @test_throws ArgumentError ARGB32(val,val,val)
@@ -190,6 +193,8 @@ end
     ret = @test_throws ArgumentError RGB(256, 17, 48)
     @test occursin("256, 17, 48", ret.value.msg)
     @test !occursin("0-255", ret.value.msg)
+    # for RGB24 and ARGB32 with UInt32 arguments, see "bit pattern ambiguities"
+    # in "test/conversion.jl"
 end
 
 @testset "color construction from grayscale" begin
