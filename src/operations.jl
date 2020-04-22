@@ -91,22 +91,30 @@ color(s), returning an output color in the same colorspace.
     julia> mapc(+, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.6,1.3,0.8)
 """
-@inline mapc(f, c::C) where {C<:AbstractGray} = base_color_type(C)(f(gray(c)))
-@inline mapc(f, c::C) where {C<:TransparentGray} = base_colorant_type(C)(f(gray(c)), f(alpha(c)))
-@inline mapc(f, c::C) where {C<:Color3} = base_color_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)))
-@inline mapc(f, c::C) where {C<:Transparent3} = base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(alpha(c)))
+@inline mapc(f, c::C) where {C<:ColorantN{1}} =
+    base_colorant_type(C)(f(comp1(c)))
+@inline mapc(f, c::C) where {C<:ColorantN{2}} =
+    base_colorant_type(C)(f(comp1(c)), f(comp2(c)))
+@inline mapc(f, c::C) where {C<:ColorantN{3}} =
+    base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)))
+@inline mapc(f, c::C) where {C<:ColorantN{4}} =
+    base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(comp4(c)))
+@inline mapc(f, c::C) where {C<:ColorantN{5}} =
+    base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(comp4(c)), f(comp5(c)))
 
 @inline mapc(f, x::Number) = f(x)
 
 mapc(f::F, x, y) where F = _mapc(_same_colorspace(x,y), f, x, y)
-_mapc(::Type{C}, f, x::AbstractGray, y::AbstractGray) where C =
-    C(f(gray(x), gray(y)))
-_mapc(::Type{C}, f, x::TransparentGray, y::TransparentGray) where C =
-    C(f(gray(x), gray(y)), f(alpha(x), alpha(y)))
-_mapc(::Type{C}, f, x::Color3, y::Color3) where C =
+_mapc(::Type{C}, f, x::ColorantN{1}, y::ColorantN{1}) where C =
+    C(f(comp1(x), comp1(y)))
+_mapc(::Type{C}, f, x::ColorantN{2}, y::ColorantN{2}) where C =
+    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)))
+_mapc(::Type{C}, f, x::ColorantN{3}, y::ColorantN{3}) where C =
     C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)))
-_mapc(::Type{C}, f, x::Transparent3, y::Transparent3) where C =
-    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(alpha(x), alpha(y)))
+_mapc(::Type{C}, f, x::ColorantN{4}, y::ColorantN{4}) where C =
+    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(comp4(x), comp4(y)))
+_mapc(::Type{C}, f, x::ColorantN{5}, y::ColorantN{5}) where C =
+    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(comp4(x), comp4(y)), f(comp5(x), comp5(y)))
 
 _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type(x),
                                                               base_colorant_type(y))
@@ -129,10 +137,11 @@ whereas for RGB
 
 If `c` has an alpha channel, it is always the last one to be folded into the reduction.
 """
-@inline reducec(op, v0, c::AbstractGray) = op(v0, comp1(c))
-@inline reducec(op, v0, c::TransparentGray) = op(alpha(c), op(v0, comp1(c)))
-@inline reducec(op, v0, c::Color3) = op(comp3(c), op(comp2(c), op(v0, comp1(c))))
-@inline reducec(op, v0, c::Transparent3) = op(alpha(c), op(comp3(c), op(comp2(c), op(v0, comp1(c)))))
+@inline reducec(op, v0, c::ColorantN{1}) = op(v0, comp1(c))
+@inline reducec(op, v0, c::ColorantN{2}) = op(comp2(c), op(v0, comp1(c)))
+@inline reducec(op, v0, c::ColorantN{3}) = op(comp3(c), op(comp2(c), op(v0, comp1(c))))
+@inline reducec(op, v0, c::ColorantN{4}) = op(comp4(c), op(comp3(c), op(comp2(c), op(v0, comp1(c)))))
+@inline reducec(op, v0, c::ColorantN{5}) = op(comp5(c), op(comp4(c), op(comp3(c), op(comp2(c), op(v0, comp1(c))))))
 
 @inline reducec(op, v0, x::Number) = op(v0, x)
 
@@ -151,11 +160,13 @@ whereas for RGB
 
 If `c` has an alpha channel, it is always the last one to be folded into the reduction.
 """
-@inline mapreducec(f, op, v0, c::AbstractGray) = op(v0, f(comp1(c)))
-@inline mapreducec(f, op, v0, c::TransparentGray) = op(f(alpha(c)), op(v0, f(comp1(c))))
-@inline mapreducec(f, op, v0, c::Color3) =
+@inline mapreducec(f, op, v0, c::ColorantN{1}) = op(v0, f(comp1(c)))
+@inline mapreducec(f, op, v0, c::ColorantN{2}) = op(f(comp2(c)), op(v0, f(comp1(c))))
+@inline mapreducec(f, op, v0, c::ColorantN{3}) =
     op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c)))))
-@inline mapreducec(f, op, v0, c::Transparent3) =
-    op(f(alpha(c)), op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c))))))
+@inline mapreducec(f, op, v0, c::ColorantN{4}) =
+    op(f(comp4(c)), op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c))))))
+@inline mapreducec(f, op, v0, c::ColorantN{5}) =
+    op(f(comp5(c)), op(f(comp4(c)), op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c)))))))
 
 @inline mapreducec(f, op, v0, x::Number) = op(v0, f(x))
