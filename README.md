@@ -68,16 +68,21 @@ struct RGB{T} <: AbstractRGB{T}
 end
 ```
 
-RGBs may be defined with two broad number types: `FloatingPoint` and
-`FixedPoint`.  `FixedPoint` come from the
-[`FixedPointNumbers`](https://github.com/JeffBezanson/FixedPointNumbers.jl)
-package, and represent fractional numbers
-internally using integers.  For example, `N0f8(1)` creates a `Normed{UInt8,8}`
-(`N0f8` for short) number with value equal to `1.0` but which internally
-is represented as `0xff`.  This strategy ensures that `1` always means
-"saturated color", regardless of how that value is represented.
-Ordinary integers should not be used, although the convenience
-constructor `RGB(1,0,0)` will create a value `RGB{N0f8}(1.0, 0.0, 0.0)`.
+RGBs may be defined with two broad number types: `AbstractFloat` and
+`FixedPoint`.  `FixedPoint` types come from the
+[`FixedPointNumbers`](https://github.com/JuliaMath/FixedPointNumbers.jl)
+package, and essentially reinterpret "integers" (meaning, the bit-sequences used to represent
+machine integers) as fractional numbers.
+For example, `N0f8(1)` creates a `Normed{UInt8,8}`
+(`N0f8` for short) number with value equal to `1.0` but which
+is represented internally with the same bit sequence as `0xff` (which is numerically equal to 255).
+This strategy ensures that `1` always means
+"saturated color", regardless of whether that value is represented as a `Float64` or with just 8 bits.
+(In the context of image-processing, this unifies "integer images" and
+"floating-point images" in a common scale.)
+A bright red color is created with `RGB(1, 0, 0)`, a pale pink with `RGB(1, 0.7, 0.7)`
+or its 24-bit variant `RGB{N0f8}(1, 0.7, 0.7)`,
+and `RGB(255, 0, 0)` throws an error.
 
 The analogous `BGR` type is defined as
 
@@ -132,7 +137,7 @@ end
 ```
 
 For HSV (and all remaining color types), `T` must be of
-`FloatingPoint` type, since the values range beyond what can be
+`AbstractFloat` type, since the values range beyond what can be
 represented with most `FixedPoint` types.
 
 ### HSL
