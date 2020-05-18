@@ -111,6 +111,7 @@ convert(::Type{GrayA{T}}, x::Real) where {T} = GrayA{T}(x)
 
 convert(::Type{T}, x::Gray  ) where {T<:Real} = convert(T, x.val)
 convert(::Type{T}, x::Gray24) where {T<:Real} = convert(T, gray(x))
+
 (::Type{T})(x::AbstractGray)  where {T<:Real} = T(gray(x))
 Base.real(x::AbstractGray) = gray(x)
 
@@ -138,3 +139,40 @@ coloralpha(c::C) where {C<:Color} = coloralpha(C)(c)
 coloralpha(c::C,a) where {C<:Color} = coloralpha(C)(c,a)
 coloralpha(c::C) where {C<:TransparentColor} = coloralpha(base_color_type(C))(color(c), alpha(c))
 coloralpha(c::C,a) where {C<:TransparentColor} = coloralpha(base_color_type(C))(color(c), a)
+
+## convert on Arrays
+# Formerly defined in ImageCore, which was type-piracy and led to invalidations
+Base.convert(::Type{Array{C}},   img::Array{C,n}) where {C<:AbstractGray,n} = img
+Base.convert(::Type{Array{C,n}}, img::Array{C,n}) where {C<:AbstractGray,n} = img
+Base.convert(::Type{Array{C}},   img::Array{C,n}) where {C<:Colorant,n} = img
+Base.convert(::Type{Array{C,n}}, img::Array{C,n}) where {C<:Colorant,n} = img
+
+function Base.convert(::Type{Array{Cdest}},
+                      img::AbstractArray{Csrc,n}) where {Cdest<:Colorant,n,Csrc<:Colorant}
+    convert(Array{Cdest,n}, img)
+end
+
+function Base.convert(::Type{Array{Cdest,n}},
+                      img::AbstractArray{Csrc,n}) where {Cdest<:Colorant,n,Csrc<:Colorant}
+    copyto!(Array{ccolor(Cdest, Csrc)}(undef, size(img)), img)
+end
+
+function Base.convert(::Type{Array{Cdest}},
+                      img::BitArray{n}) where {Cdest<:AbstractGray,n}
+    convert(Array{Cdest,n}, img)
+end
+
+function Base.convert(::Type{Array{Cdest}},
+                      img::AbstractArray{T,n}) where {Cdest<:AbstractGray,n,T<:Real}
+    convert(Array{Cdest,n}, img)
+end
+
+function Base.convert(::Type{Array{Cdest,n}},
+                      img::BitArray{n}) where {Cdest<:AbstractGray,n}
+    copyto!(Array{ccolor(Cdest, Gray{Bool})}(undef, size(img)), img)
+end
+
+function Base.convert(::Type{Array{Cdest,n}},
+                      img::AbstractArray{T,n}) where {Cdest<:AbstractGray,n,T<:Real}
+    copyto!(Array{ccolor(Cdest, Gray{T})}(undef, size(img)), img)
+end
