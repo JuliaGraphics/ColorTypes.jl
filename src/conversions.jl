@@ -70,7 +70,8 @@ end
 # no-op and element-type conversions, plus conversion to and from transparency
 # Colorimetry conversions are in Colors.jl
 convert(::Type{C}, c::C) where {C<:Colorant} = c
-convert(::Type{C}, c) where {C<:Colorant} = cconvert(ccolor(C, typeof(c)), c)
+convert(::Type{C}, c::Colorant) where {C<:Colorant} = cconvert(ccolor(C, typeof(c)), c)
+convert(::Type{C}, c::Number) where {C<:Colorant} = cconvert(ccolor(C, typeof(c)), c)
 cconvert(::Type{C}, c::C) where {C} = c
 cconvert(::Type{C}, c) where {C} = _convert(C, base_color_type(C), base_color_type(c), c)
 

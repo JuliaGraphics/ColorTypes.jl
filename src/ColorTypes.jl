@@ -81,7 +81,8 @@ Concrete types:
 Use `?` to get more information about specific types or functions.
 """ ColorTypes
 
-if VERSION >= v"1.1" # work around https://github.com/JuliaLang/julia/issues/34121
+if VERSION >= v"1.4.2" # work around https://github.com/JuliaLang/julia/issues/34121
+    # ...and also requires https://github.com/JuliaLang/julia/pull/35378
     include("precompile.jl")
     _precompile_()
 end
