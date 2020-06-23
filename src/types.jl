@@ -698,6 +698,7 @@ function throw_colorerror(::Type{N0f8}, values::Tuple{Vararg{Integer}})
 $vstr in the range 0-255, but integer inputs are encoded with the N0f8
   type, an 8-bit type representing 256 discrete values between 0 and 1.
   Consider dividing your input values by 255, for example: $Tstr{N0f8}($args)
+  Or use `reinterpret(N0f8, x)` if `x` is a `UInt8`.
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
     end
     throw_colorerror_(N0f8, values)
