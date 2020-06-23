@@ -119,12 +119,18 @@ end
 end
 
 @testset "compN" begin
+    g = Gray{Float32}(0.5)
+    @test comp1(g) === 0.5f0
+    @test_throws ArgumentError comp2(g)
+    @test_throws ArgumentError comp3(g)
+    @test_throws ArgumentError comp4(g)
+    @test_throws ArgumentError comp5(g)
     argb32 = ARGB32(1, 0.5, 0, 0.8)
     @test comp1(argb32) === 1N0f8
     @test comp2(argb32) === 0.5N0f8
     @test comp3(argb32) === 0N0f8
     @test comp4(argb32) === 0.8N0f8
-    @test_throws BoundsError comp5(argb32)
+    @test_throws ArgumentError comp5(argb32)
     agray32 = AGray32(0.2, 0.8)
     @test comp1(agray32) === 0.2N0f8
     @test comp2(agray32) === 0.8N0f8
@@ -132,7 +138,8 @@ end
     @test comp1(xrgb) === 1.0
     @test comp2(xrgb) === 0.5
     @test comp3(xrgb) === 0.0
-    @test_throws BoundsError comp4(xrgb)
+    ret = @test_throws ArgumentError comp4(xrgb)
+    @test occursin("3-component color XRGB{Float64} with `comp4`", ret.value.msg)
     ahsv = AHSV(100f0, 0.4f0, 0.6f0, 0.8f0)
     @test comp1(ahsv) === 100f0
     @test comp2(ahsv) === 0.4f0
