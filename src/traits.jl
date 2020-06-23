@@ -56,9 +56,11 @@ hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,DIN99,DIN99o,DI
 hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} =
     (h = atand(c.v, c.u); h < 0 ? h + 360 : h)
 
+# fallbacks for compN
+_comp(::Val{N}, c::Colorant) where N = getfield(c, N)
+_comp(::Val{N}, c::AlphaColor) where N = getfield(c, N + 1)
+_comp(::Val{N}, c::AlphaColorN{N}) where N = alpha(c)
 
-# Extract the first, second, and third arguments as you'd
-# pass them to the constructor
 """
 `comp1(c)` extracts the first component you'd pass to the constructor
 of the corresponding object.  For most color types without an alpha
@@ -72,28 +74,32 @@ Specifically, for any `Color{T,3}`,
 
 returns true.
 """
-comp1(c::AbstractRGB) = red(c)
-comp1(c::Union{AlphaColor{C},ColorAlpha{C}}) where {C<:AbstractRGB} = red(c)
-comp1(c::Union{Color,ColorAlpha}) = getfield(c, 1)
-comp1(c::AlphaColor) = getfield(c, 2)
-comp1(c::AGray32) = gray(c)
+comp1(c) = _comp(Val(1), c)
+comp1(c::Union{AbstractRGB, TransparentRGB}) = red(c)
+comp1(c::Union{AbstractGray, TransparentGray}) = gray(c)
 
 "`comp2(c)` extracts the second constructor argument (see `comp1`)."
-comp2(c::AbstractRGB) = green(c)
-comp2(c::Union{AlphaColor{C},ColorAlpha{C}}) where {C<:AbstractRGB} = green(c)
-comp2(c::Union{Color,ColorAlpha}) = getfield(c, 2)
-comp2(c::AlphaColor) = getfield(c, 3)
+comp2(c) = _comp(Val(2), c)
+comp2(c::Union{AbstractRGB, TransparentRGB}) = green(c)
 
 "`comp3(c)` extracts the third constructor argument (see `comp1`)."
-comp3(c::AbstractRGB) = blue(c)
-comp3(c::Union{AlphaColor{C},ColorAlpha{C}}) where {C<:AbstractRGB} = blue(c)
-comp3(c::Union{Color,ColorAlpha}) = getfield(c, 3)
-comp3(c::AlphaColor) = getfield(c, 4)
+comp3(c) = _comp(Val(3), c)
+comp3(c::Union{AbstractRGB, TransparentRGB}) = blue(c)
+
+"`comp4(c)` extracts the fourth constructor argument (see `comp1`)."
+comp4(c) = _comp(Val(4), c)
+comp4(c::AbstractRGB) = throw(BoundsError(c, 4)) # for XRGB/RGBX
+
+"`comp5(c)` extracts the fifth constructor argument (see `comp1`)."
+comp5(c) = _comp(Val(5), c)
+
 
 "`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)."
 color(c::Color) = c
-color(c::TransparentColor{C,T,4}) where {C,T} = C(comp1(c), comp2(c), comp3(c))
-color(c::TransparentColor{C,T,2}) where {C,T} = C(comp1(c))
+color(c::TransparentColorN{2,C}) where {C} = C(comp1(c))
+color(c::TransparentColorN{3,C}) where {C} = C(comp1(c), comp2(c))
+color(c::TransparentColorN{4,C}) where {C} = C(comp1(c), comp2(c), comp3(c))
+color(c::TransparentColorN{5,C}) where {C} = C(comp1(c), comp2(c), comp3(c), comp4(c))
 
 # Some of these traits exploit a nice trick: for subtypes, walk up the
 # type hierarchy until we get to a stage where we can define the
