@@ -58,20 +58,20 @@ end
 
 @testset "type-centric" begin
     @testset "$C" for C in ColorTypes.parametric3
-        @test eltype(C{Float32}) === Float32
+        @test eltypec(C{Float32}) === Float32
         et = (C <: AbstractRGB) ? N0f8 : Float32
         @test color_type(C(1,0,0)) === C{et}
         @test color_type(C) === C
         @test color_type(C{Float32}) === C{Float32}
-        @test eltype(C{Float32}(1,0,0)) === Float32
+        @test eltypec(C{Float32}(1,0,0)) === Float32
     end
 
     for C in setdiff(ColorTypes.parametric3, [XRGB,RGBX])
         @testset "$A" for A in (alphacolor(C), coloralpha(C))
-            @test eltype(A{Float32}) === Float32
+            @test eltypec(A{Float32}) === Float32
             @test color_type(A) === C
             @test color_type(A{Float32}) === C{Float32}
-            @test eltype(A(1,0.8,0.6,0.4)) === Float64
+            @test eltypec(A(1,0.8,0.6,0.4)) === Float64
             c = A{Float64}(1,0.8,0.6,0.4)
             @test color_type(c) === C{Float64}
             cc = color(c)

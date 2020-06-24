@@ -33,7 +33,7 @@ for N = 1:4
         # Special handling for Normed types: don't print the giant type name
         function show_normed(io::IO, c::Colorant{FixedPointNumbers.Normed{T,f},$N}) where {T,f}
             print(io, colorant_string(typeof(c)), '{')
-            FixedPointNumbers.showtype(io, eltype(typeof(c)))
+            FixedPointNumbers.showtype(io, eltypec(typeof(c)))
             print(io, "}(")
             $(printargs[:]...)
         end
@@ -61,7 +61,7 @@ function colorant_string_with_eltype(io::IO, ::Type{C}) where {C<:Colorant}
     if isconcretetype(C)
         print(io, colorant_string(C))
         print(io, '{')
-        showcoloranttype(io, eltype(C))
+        showcoloranttype(io, eltypec(C))
         print(io, '}')
     else
         print(io, C)
