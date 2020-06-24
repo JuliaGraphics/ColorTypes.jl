@@ -708,7 +708,7 @@ $vstr in the range 0-255, but integer inputs are encoded with the N0f8
 end
 function throw_colorerror(::Type{C},
                           values::Tuple{Vararg{Integer}}) where C<:Union{RGB24,ARGB32,Gray24,AGray32}
-    # For consistencies, Some sets of `UInt32` inputs are valid for the
+    # For consistency, some sets of `UInt32` inputs are valid for the
     # constructors of these non-parametric colors,
     # e.g. `RGB24(UInt32(1), UInt32(0), UInt32(0))` is valid.
     # Therefore, this error should be thrown after the range checking.
