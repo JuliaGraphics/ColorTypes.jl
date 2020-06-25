@@ -578,6 +578,13 @@ end
     @test convert(ARGB32, 0.6, 0.8) === ARGB32(0.6, 0.6, 0.6, 0.8)
 
     @test convert(RGB, 0.6) === RGB(0.6, 0.6, 0.6)
+    @test convert(BGR, 0.6N0f8) === BGR{N0f8}(0.6, 0.6, 0.6)
+    @test_broken convert(ARGB, 0.6) === ARGB(0.6, 0.6, 0.6, 1)
+    @test_broken convert(RGBA, 0.6N0f8) === RGBA{N0f8}(0.6, 0.6, 0.6, 1)
+
+    @test_broken convert(ARGB, 0.6f0, 0.8f0) === ARGB{Float32}(0.6, 0.6, 0.6, 0.8)
+    @test_broken convert(RGBA{Float32}, 0.6, 0.8) === RGBA{Float32}(0.6, 0.6, 0.6, 0.8)
+
 end
 
 @testset "conversions from rgb to rgb" begin
