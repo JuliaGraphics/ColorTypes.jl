@@ -712,6 +712,12 @@ function throw_colorerror(::Type{C},
     # constructors of these non-parametric colors,
     # e.g. `RGB24(UInt32(1), UInt32(0), UInt32(0))` is valid.
     # Therefore, this error should be thrown after the range checking.
+
+    # We want to suggest `reinterpret` only when users call the 1-arg version of
+    # constructors (e.g. `RGB24(0x123456)`) or try to convert a `UInt32` number.
+    # However, the current implementation cannot distinguish what the users
+    # actually called.
+    # So, we suggest using `reinterpret` when the input is opaque "gray".
     tripled(t) = t[1] isa UInt32 && t[1] === t[2] && t[2] === t[3]
     if C === RGB24 && length(values) == 3 && tripled(values)
     elseif C === ARGB32 && length(values) == 4 && tripled(values) && values[4] == 1
