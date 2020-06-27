@@ -671,11 +671,11 @@ checkval(::Type{C}, a::T, b::T, c::T) where {T<:Normed, C<:Colorant{T}} = nothin
 checkval(::Type{C}, a::T, b::T, c::T, d::T) where {T<:Normed, C<:Colorant{T}} = nothing
 checkval(::Type{C}, a::T, b::T, c::T, d::T, e::T) where {T<:Normed, C<:Colorant{T}} = nothing
 
-checkval(::Type{T}, a) where {T} = nothing
-checkval(::Type{T}, a, b) where {T} = nothing
-checkval(::Type{T}, a, b, c) where {T} = nothing
-checkval(::Type{T}, a, b, c, d) where {T} = nothing
-checkval(::Type{C}, a, b, c, d, e) where {C} = nothing
+checkval(::Type{C}, a) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b, c) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b, c, d) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b, c, d, e) where {C<:Colorant} = nothing
 
 
 function throw_colorerror_(::Type{T}, values) where T<:Normed
