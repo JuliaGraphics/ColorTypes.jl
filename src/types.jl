@@ -98,7 +98,7 @@ struct RGB{T<:Fractional} <: AbstractRGB{T}
     # T might be a Normed, and so some inputs will result in an
     # error. Try to make it a nice error.
     function RGB{T}(r::Real, g::Real, b::Real) where T
-        checkval(T, r, g, b)
+        checkval(RGB{T}, r, g, b)
         new{T}(_rem(r,T), _rem(g,T), _rem(b,T))
     end
 end
@@ -121,7 +121,7 @@ struct BGR{T<:Fractional} <: AbstractRGB{T}
 
     BGR{T}(r::T, g::T, b::T) where {T} = new{T}(b, g, r)
     function BGR{T}(r::Real, g::Real, b::Real) where T
-        checkval(T, r, g, b)
+        checkval(BGR{T}, r, g, b)
         new{T}(_rem(b,T), _rem(g,T), _rem(r,T))
     end
 end
@@ -143,7 +143,7 @@ struct XRGB{T<:Fractional} <: AbstractRGB{T}
 
     XRGB{T}(r::T, g::T, b::T) where {T} = new{T}(oneunit(T), r, g, b)
     function XRGB{T}(r::Real, g::Real, b::Real) where T
-        checkval(T, r, g, b)
+        checkval(XRGB{T}, r, g, b)
         new{T}(oneunit(T), _rem(r,T), _rem(g,T), _rem(b,T))
     end
 end
@@ -165,7 +165,7 @@ struct RGBX{T<:Fractional} <: AbstractRGB{T}
 
     RGBX{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b, oneunit(T))
     function RGBX{T}(r::Real, g::Real, b::Real) where T
-        checkval(T, r, g, b)
+        checkval(RGBX{T}, r, g, b)
         new{T}(_rem(r,T), _rem(g,T), _rem(b,T), oneunit(T))
     end
 end
@@ -321,7 +321,7 @@ RGB24() = reinterpret(RGB24, UInt32(0))
 _RGB24(r::UInt8, g::UInt8, b::UInt8) = reinterpret(RGB24, UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
 RGB24(r::N0f8, g::N0f8, b::N0f8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
 function RGB24(r::Real, g::Real, b::Real)
-    checkval(N0f8, r, g, b)
+    checkval(RGB24, r, g, b)
     RGB24(_rem(r,N0f8), _rem(g,N0f8), _rem(b,N0f8))
 end
 
@@ -356,7 +356,7 @@ struct Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
 
     Gray{T}(val::T) where {T} = new{T}(val)
     function Gray{T}(val::Real) where T
-        checkval(T, val)
+        checkval(Gray{T}, val)
         new{T}(_rem(val,T))
     end
 end
@@ -381,7 +381,7 @@ Gray24() = reinterpret(Gray24, UInt32(0))
 _Gray24(val::UInt8) = (g = UInt32(val); reinterpret(Gray24, g<<16 | g<<8 | g))
 Gray24(val::N0f8) = _Gray24(reinterpret(val))
 function Gray24(val::Real)
-    checkval(N0f8, val)
+    checkval(Gray24, val)
     Gray24(val%N0f8)
 end
 
@@ -405,11 +405,11 @@ AGray32() = reinterpret(AGray32, 0xff000000)
 _AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); reinterpret(AGray32, UInt32(alpha)<<24 | g<<16 | g<<8 | g))
 AGray32(val::N0f8, alpha::N0f8 = N0f8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
 function AGray32(val::Real, alpha = 1)
-    checkval(N0f8, val, alpha)
+    checkval(AGray32, val, alpha)
     AGray32(val%N0f8, alpha%N0f8)
 end
 function AGray32(g::Gray24, alpha = 1)
-    checkval(N0f8, alpha)
+    checkval(AGray32, alpha)
     reinterpret(AGray32, UInt32(reinterpret(_rem(alpha,N0f8)))<<24 | g.color)
 end
 AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
@@ -490,7 +490,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
 
             $acol{T}($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}(alpha, $(fields...))
             function $acol{T}($(realfields...), alpha::Real=oneunit(T)) where T
-                checkval(T, $(fields...), alpha)
+                checkval($acol{T}, $(fields...), alpha)
                 new{T}(_rem(alpha,T), $(remfields...))
             end
             $acol{T}(c::$C, alpha::Real=oneunit(T)) where {T} = $acol{T}($(cfields...), alpha)
@@ -501,7 +501,7 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
 
             $cola{T}($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}($(fields...), alpha)
             function $cola{T}($(realfields...), alpha::Real=oneunit(T)) where T
-                checkval(T, $(fields...), alpha)
+                checkval($cola{T}, $(fields...), alpha)
                 new{T}($(remfields...), _rem(alpha,T))
             end
             $cola{T}(c::$C, alpha::Real=oneunit(T)) where {T} = $cola{T}($(cfields...), alpha)
@@ -638,33 +638,45 @@ color type with storage order (color, alpha).
     Δ = eps(T)/2 # as long as the number rounds to a valid number, that's OK
     (-Δ <= x) & (x < typemax(T)+Δ)
 end
-
-@inline checkval(::Type{T}, a) where {T<:Normed} = isok(T, a) || throw_colorerror(T, a)
-
-@inline function checkval(::Type{T}, a, b) where T<:Normed
-    isok(T, a) & isok(T, b) || throw_colorerror(T, a, b)
-end
-@inline function checkval(::Type{T}, a, b, c) where T<:Normed
-    isok(T, a) & isok(T, b) & isok(T, c) || throw_colorerror(T, a, b, c)
-end
-@inline function checkval(::Type{T}, a, b, c, d) where T<:Normed
-    isok(T, a) & isok(T, b) & isok(T, c) & isok(T, d) || throw_colorerror(T, a, b, c, d)
+@inline function isok(::Type{T}, x, y) where T<:Normed
+    Δ = eps(T)/2
+    @fastmath n, m = minmax(x, y)
+    (-Δ <= n) & (m < typemax(T)+Δ)
 end
 
-checkval(::Type{T}, a::T) where {T<:Normed} = nothing
-checkval(::Type{T}, a::T, b::T) where {T<:Normed} = nothing
-checkval(::Type{T}, a::T, b::T, c::T) where {T<:Normed} = nothing
-checkval(::Type{T}, a::T, b::T, c::T, d::T) where {T<:Normed} = nothing
+@inline function checkval(::Type{C}, a) where {T<:Normed, C<:Colorant{T}}
+    isok(T, a) || throw_colorerror(C, (a,))
+end
+@inline function checkval(::Type{C}, a, b) where {T<:Normed, C<:Colorant{T}}
+    isok(T, a, b) || throw_colorerror(C, (a, b))
+end
+@inline function checkval(::Type{C}, a, b, c) where {T<:Normed, C<:Colorant{T}}
+    isok(T, a, b) & isok(T, b, c) || throw_colorerror(C, (a, b, c))
+end
+@inline function checkval(::Type{C}, a, b, c, d) where {T<:Normed, C<:Colorant{T}}
+    Δ = eps(T)/2
+    @fastmath min_ab, max_ab = minmax(a, b)
+    @fastmath min_cd, max_cd = minmax(c, d)
+    @fastmath n = min(min_ab, min_cd)
+    @fastmath m = max(max_ab, max_cd)
+    (-Δ <= n) & (m < typemax(T)+Δ) || throw_colorerror(C, (a, b, c, d))
+end
+@inline function checkval(::Type{C}, a, b, c, d, e) where {T<:Normed, C<:Colorant{T}}
+    isok(T, a, b) & isok(T, c, d) & isok(T, e) || throw_colorerror(C, (a, b, c, d, e))
+end
 
-checkval(::Type{T}, a) where {T} = nothing
-checkval(::Type{T}, a, b) where {T} = nothing
-checkval(::Type{T}, a, b, c) where {T} = nothing
-checkval(::Type{T}, a, b, c, d) where {T} = nothing
+checkval(::Type{C}, a::T) where {T<:Normed, C<:Colorant{T}} = nothing
+checkval(::Type{C}, a::T, b::T) where {T<:Normed, C<:Colorant{T}} = nothing
+checkval(::Type{C}, a::T, b::T, c::T) where {T<:Normed, C<:Colorant{T}} = nothing
+checkval(::Type{C}, a::T, b::T, c::T, d::T) where {T<:Normed, C<:Colorant{T}} = nothing
+checkval(::Type{C}, a::T, b::T, c::T, d::T, e::T) where {T<:Normed, C<:Colorant{T}} = nothing
 
-@noinline throw_colorerror(::Type{T}, g) where {T} = throw_colorerror(T, (g,))
-@noinline throw_colorerror(::Type{T}, g, a) where {T} = throw_colorerror(T, (g,a))
-@noinline throw_colorerror(::Type{T}, r, g, b) where {T} = throw_colorerror(T, (r, g, b))
-@noinline throw_colorerror(::Type{T}, r, g, b, a) where {T} = throw_colorerror(T, (r, g, b, a))
+checkval(::Type{C}, a) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b, c) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b, c, d) where {C<:Colorant} = nothing
+checkval(::Type{C}, a, b, c, d, e) where {C<:Colorant} = nothing
+
 
 function throw_colorerror_(::Type{T}, values) where T<:Normed
     io = IOBuffer()
@@ -677,34 +689,50 @@ element type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
 end
 
-function throw_colorerror(::Type{N0f8}, values::Tuple{Vararg{Integer}})
+function throw_colorerror(::Type{C}, values::Tuple{Vararg{Integer}}) where C<:Colorant{N0f8}
     # Let's try to read the user's mind
-    if all(x->0<=x<=255, values)
-        if length(values) == 1
-            vstr = "$(values[1]) is an integer"
-            Tstr = "Gray"
-        else
-            vstr = "$values are integers"
-            if length(values) == 2
-                Tstr = "AGray"
-            elseif length(values) == 3
-                Tstr = "RGB"
-            else
-                Tstr = "RGBA"
-            end
-        end
-        args = join(map(v->"$v/255", values), ',')
-        throw(ArgumentError("""
+    all(x->0<=x<=255, values) || throw_colorerror_(N0f8, values)
+    if length(values) == 1
+        vstr = "$(values[1]) is an integer"
+    else
+        vstr = "$values are integers"
+    end
+    Cstr = colorant_string_with_eltype(C)
+    args = join(map(v->"$v/255", values), ',')
+    throw(ArgumentError("""
 $vstr in the range 0-255, but integer inputs are encoded with the N0f8
   type, an 8-bit type representing 256 discrete values between 0 and 1.
-  Consider dividing your input values by 255, for example: $Tstr{N0f8}($args)
+  Consider dividing your input values by 255, for example: $Cstr($args)
   Or use `reinterpret(N0f8, x)` if `x` is a `UInt8`.
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
+end
+function throw_colorerror(::Type{C},
+                          values::Tuple{Vararg{Integer}}) where C<:Union{RGB24,ARGB32,Gray24,AGray32}
+    # For consistency, some sets of `UInt32` inputs are valid for the
+    # constructors of these non-parametric colors,
+    # e.g. `RGB24(UInt32(1), UInt32(0), UInt32(0))` is valid.
+    # Therefore, this error should be thrown after the range checking.
+
+    # We want to suggest `reinterpret` only when users call the 1-arg version of
+    # constructors (e.g. `RGB24(0x123456)`) or try to convert a `UInt32` number.
+    # However, the current implementation cannot distinguish what the users
+    # actually called.
+    # So, we suggest using `reinterpret` when the input is opaque "gray".
+    tripled(t) = t[1] isa UInt32 && t[1] === t[2] && t[2] === t[3]
+    if C === RGB24 && length(values) == 3 && tripled(values)
+    elseif C === ARGB32 && length(values) == 4 && tripled(values) && values[4] == 1
+    elseif C === Gray24 && length(values) == 1 && values[1] isa UInt32
+    elseif C === AGray32 && length(values) == 2 && values[1] isa UInt32 && values[2] == 1
+    else
+        throw_colorerror_(N0f8, values)
     end
-    throw_colorerror_(N0f8, values)
+    hex = string(values[1], base=16, pad=8)
+    throw(ArgumentError("""
+$C cannot be constructed or converted directly from a UInt32 input as a bit pattern.
+  Use `reinterpret($C, 0x$hex)` instead."""))
 end
 
-function throw_colorerror(::Type{T}, values::Tuple) where T<:Normed
+function throw_colorerror(::Type{C}, values::Tuple) where {T<:Normed, C<:Colorant{T}}
     throw_colorerror_(T, values)
 end
 

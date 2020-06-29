@@ -833,10 +833,18 @@ end
     @test Gray24(1) == 1
     @test !(Gray24(1) == 0x00ffffff)
     @test !(AGray32(1,0) == 0x00ffffff)
-    @test_throws ArgumentError RGB24(0x00ffffff)
-    @test_throws ArgumentError ARGB32(0x00ffffff)
-    @test_throws ArgumentError Gray24(0x00ffffff)
-    @test_throws ArgumentError AGray32(0x00ffffff)
+    ret = @test_throws ArgumentError RGB24(0x00ffffff)
+    @test occursin("Use `reinterpret(RGB24, 0x00ffffff)`", ret.value.msg)
+    ret = @test_throws ArgumentError ARGB32(0x00ffffff)
+    @test_broken occursin("Use `reinterpret(ARGB32, 0x00ffffff)`", ret.value.msg)
+    ret = @test_throws ArgumentError Gray24(0x00ffffff)
+    @test occursin("Use `reinterpret(Gray24, 0x00ffffff)`", ret.value.msg)
+    ret = @test_throws ArgumentError AGray32(0x00ffffff)
+    @test occursin("Use `reinterpret(AGray32, 0x00ffffff)`", ret.value.msg)
+    c = 0x123456
+    ret = @test_throws ArgumentError RGB24(c >> 16 & 0xFF, c >> 8 & 0xFF, c & 0xFF)
+    @test !occursin("Use `reinterpret(RGB24", ret.value.msg)
+    @test occursin("(0x00000012, 0x00000034, 0x00000056) do not lie", ret.value.msg)
     @test_throws ArgumentError RGB24[0x00000000,0x00808080]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
