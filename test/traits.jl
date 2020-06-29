@@ -3,6 +3,21 @@ using ColorTypes.FixedPointNumbers
 using Test
 using ColorTypes: ColorTypeResolutionError
 
+# dummy types
+struct C2{T} <: Color{T,2}
+    c1::T; c2::T;
+end
+struct C2A{T} <: ColorAlpha{C2{T},T,3}
+    c1::T; c2::T; alpha::T
+end
+struct C4{T} <: Color{T,4}
+    c1::T; c2::T; c3::T; c4::T
+end
+struct AC4{T} <: AlphaColor{C4{T},T,5}
+    alpha::T; c1::T; c2::T; c3::T; c4::T
+    AC4{T}(c1, c2, c3, c4, alpha=1) where T = new{T}(alpha, c1, c2, c3, c4)
+end
+
 @testset "RGB accessors" begin
 
     # This also checks that the constructor order is the same, even if the
@@ -103,6 +118,34 @@ end
     @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
 end
 
+@testset "compN" begin
+    argb32 = ARGB32(1, 0.5, 0, 0.8)
+    @test comp1(argb32) === 1N0f8
+    @test comp2(argb32) === 0.5N0f8
+    @test comp3(argb32) === 0N0f8
+    @test comp4(argb32) === 0.8N0f8
+    @test_throws BoundsError comp5(argb32)
+    agray32 = AGray32(0.2, 0.8)
+    @test comp1(agray32) === 0.2N0f8
+    @test comp2(agray32) === 0.8N0f8
+    xrgb = XRGB(1, 0.5, 0)
+    @test comp1(xrgb) === 1.0
+    @test comp2(xrgb) === 0.5
+    @test comp3(xrgb) === 0.0
+    @test_throws BoundsError comp4(xrgb)
+    ahsv = AHSV(100f0, 0.4f0, 0.6f0, 0.8f0)
+    @test comp1(ahsv) === 100f0
+    @test comp2(ahsv) === 0.4f0
+    @test comp3(ahsv) === 0.6f0
+    @test comp4(ahsv) === 0.8f0
+    ac4 = AC4{Float32}(0.1, 0.2, 0.3, 0.4, 0.5)
+    @test comp1(ac4) === 0.1f0
+    @test comp2(ac4) === 0.2f0
+    @test comp3(ac4) === 0.3f0
+    @test comp4(ac4) === 0.4f0
+    @test comp5(ac4) === 0.5f0
+end
+
 @testset "color" begin
     @test color(RGB(1, 0.5, 0)) === RGB{Float64}(1, 0.5, 0)
     @test color(RGBA{N0f8}(1, 0.5, 0, 0.8)) === RGB{N0f8}(1, 0.5, 0)
@@ -119,6 +162,9 @@ end
     @test color(AGray{Float32}(0.2, 0.8)) === Gray{Float32}(0.2)
     @test color(Gray24(0.2)) === Gray24(0.2)
     @test color(AGray32(0.2, 0.8)) === Gray24(0.2)
+
+    @test color(C2A{Float64}(0.1, 0.2, 0.8)) === C2{Float64}(0.1, 0.2)
+    @test color(AC4{Float32}(0.1, 0.2, 0.3, 0.4, 0.8)) === C4{Float32}(0.1, 0.2, 0.3, 0.4)
 end
 
 @testset "to_top" begin
