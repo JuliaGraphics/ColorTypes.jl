@@ -106,6 +106,9 @@ end
                 @test C{N0f8}(val1,val2,val1) === C(0.2N0f8,0.6N0f8,0.2N0f8)
                 @test C{N0f16}(val1,val2,val1) === C(0.2N0f16,0.6N0f16,0.2N0f16)
             end
+            # 1-arg constructor
+            @test C(val1) === C{typeof(val1)}(0.2,0.2,0.2)
+            @test C{N0f8}(val1) === C{N0f8}(0.2,0.2,0.2)
         end
 
         @test_throws ArgumentError C(2,1,0) # integers
@@ -137,6 +140,9 @@ end
                 @test C{N0f8}(val1,val2,val1) === C(0.2N0f8,0.6N0f8,0.2N0f8,1N0f8)
                 @test C{N0f16}(val1,val2,val1,0.8) === C(0.2N0f16,0.6N0f16,0.2N0f16,0.8N0f16)
             end
+            # 1-arg constructor
+            @test_broken C(val1) === C{typeof(val1)}(0.2,0.2,0.2,1)
+            @test_broken C{N0f8}(val1) === C{N0f8}(0.2,0.2,0.2,1)
         end
 
         @test_throws ArgumentError C(2,1,0) # integers
@@ -165,6 +171,7 @@ end
             @test ARGB32(c0) === ARGB32(val1,val2,val1,1)
             @test ARGB32(c0,0.8) === ARGB32(val1,val2,val1,0.8)
         end
+        # 1-arg constructor
         @test RGB24(val1) === RGB24(0.2,0.2,0.2)
         @test ARGB32(val1) === ARGB32(0.2,0.2,0.2,1)
     end
