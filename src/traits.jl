@@ -308,8 +308,8 @@ RGB{Float32}
 julia> parametric_colorant(BGR)
 BGR
 
-julia> parametric_colorant(RGB24)
-RGB{Normed{UInt8,8}}
+julia> parametric_colorant(RGB24) == RGB{N0f8}
+true
 ```
 """
 parametric_colorant(::Type{C}) where C<:Colorant = C
@@ -368,8 +368,8 @@ numeric element type. `ccolor` chooses the numeric element type from
 julia> ccolor(RGB, Gray{Float32})
 RGB{Float32}
 
-julia> ccolor(RGB, Gray{N0f8})
-RGB{Normed{UInt8,8}}
+julia> ccolor(RGB, Gray{N0f8}) == RGB{N0f8}
+true
 
 julia> ccolor(RGB{Float32}, Gray{N0f8})
 RGB{Float32}

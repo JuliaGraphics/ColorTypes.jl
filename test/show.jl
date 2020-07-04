@@ -70,14 +70,29 @@ end
 @testset "collection of colors" begin
     iob = IOBuffer()
     summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
-    @test String(take!(iob)) == "3-element Array{Gray{N0f8},1} with eltype Gray{Normed{UInt8,8}}"
+    vec_summary = String(take!(iob))
+
     mat = RGB{Float64}[RGB(1,0,0) RGB(0,1,0); RGB(0,0,1) RGB(1,1,1)]
     summary(iob, mat)
-    @test String(take!(iob)) == "2×2 Array{RGB{Float64},2} with eltype RGB{Float64}"
+    mat_summary = String(take!(iob))
+
     summary(iob, view(mat,:,:))
-    @test String(take!(iob)) == "2×2 view(::Array{RGB{Float64},2}, :, :) with eltype RGB{Float64}"
+    view_summary = String(take!(iob))
+
     summary(iob, TransparentColor[ARGB32(), HSVA(30,1,1,0.5)])
-    @test String(take!(iob)) == "2-element Array{TransparentColor,1} with eltype TransparentColor"
+    avec_summary = String(take!(iob))
+
+    if VERSION >= v"1.6.0-DEV.356"
+        @test_broken vec_summary == "3-element Vector{Gray{N0f8}}"
+        @test_broken mat_summary == "2×2 Matrix{RGB{Float64}}"
+        @test_broken view_summary == "2×2 view(::Matrix{RGB{Float64}}, :, :) with eltype RGB{Float64}"
+        @test_broken avec_summary == "2-element Vector{TransparentColor}"
+    else
+        @test vec_summary == "3-element Array{Gray{N0f8},1} with eltype Gray{Normed{UInt8,8}}"
+        @test mat_summary == "2×2 Array{RGB{Float64},2} with eltype RGB{Float64}"
+        @test view_summary == "2×2 view(::Array{RGB{Float64},2}, :, :) with eltype RGB{Float64}"
+        @test avec_summary == "2-element Array{TransparentColor,1} with eltype TransparentColor"
+    end
 end
 
 @testset "colorant_string" begin
@@ -104,7 +119,12 @@ end
     @test ColorTypes.colorant_string_with_eltype(RGB{Union{}}) == "RGB{Union{}}"
     @test ColorTypes.colorant_string_with_eltype(RGB{<:Fractional}) == "RGB"
     @test ColorTypes.colorant_string_with_eltype(HSV{<:AbstractFloat}) == "HSV"
-    @test ColorTypes.colorant_string_with_eltype(RGB{Fractional}) == "RGB{Union{AbstractFloat, FixedPoint}}"
+    rgb_fractional = ColorTypes.colorant_string_with_eltype(RGB{Fractional})
+    if VERSION >= v"1.6.0-DEV.356"
+        @test eval(Meta.parse(rgb_fractional)) == RGB{Union{AbstractFloat, FixedPoint}}
+    else
+        @test rgb_fractional == "RGB{Union{AbstractFloat, FixedPoint}}"
+    end
     @test ColorTypes.colorant_string_with_eltype(HSV{AbstractFloat}) == "HSV{AbstractFloat}"
     @test ColorTypes.colorant_string_with_eltype(TransparentColor) == "TransparentColor"
     @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
