@@ -2,6 +2,20 @@ using ColorTypes
 using ColorTypes.FixedPointNumbers
 using Test
 
+# dummy type for testing 2-component color
+struct AnaglyphColor{T} <: Color{T,2} # not `TransparentGray`
+    left::T; right::T
+end
+# dummy type for testing 4-component color
+struct CMYK{T} <: Color{T,4} # not `Transparent3`
+    c::T; m::T; y::T; k::T
+end
+# dummy type for testing 5-component color
+struct ACMYK{T} <: AlphaColor{CMYK{T},T,5}
+    alpha::T; c::T; m::T; y::T; k::T
+    ACMYK{T}(c, m, y, k, alpha=1) where T = new{T}(alpha, c, m, y, k)
+end
+
 @testset "single color" begin
     iob = IOBuffer()
     cf  = RGB{Float32}(0.32218,0.14983,0.87819)
@@ -31,6 +45,8 @@ using Test
     @test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
     show(iob, ARGB32(0.4,0.2,0.8,1.0))
     @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+    show(IOContext(iob, :compact => true), ARGB32(0.4,0.2,0.8,1.0))
+    @test String(take!(iob)) == "ARGB32(0.4,0.2,0.8,1.0)"
 
     show(iob, Gray(0.8))
     @test String(take!(iob)) == "Gray{Float64}(0.8)"
@@ -41,7 +57,14 @@ using Test
     show(iob, Gray24(0.4))
     @test String(take!(iob)) == "Gray24(0.4N0f8)"
     show(iob, AGray32(0.8))
-    @test String(take!(iob)) == "AGray32{N0f8}(0.8,1.0)"
+    @test_broken String(take!(iob)) == "AGray32(0.8N0f8,1.0N0f8)"
+
+    show(iob, AnaglyphColor{Float32}(0.4, 0.2))
+    @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4f0,0.2f0)"
+    show(iob, CMYK{Float64}(0.1, 0.2, 0.3, 0.4))
+    @test String(take!(iob)) == "CMYK{Float64}(0.1,0.2,0.3,0.4)"
+    show(iob, ACMYK{N0f8}(0.2, 0.4, 0.6, 0.8))
+    @test String(take!(iob)) == "ACMYK{N0f8}(0.2,0.4,0.6,0.8,1.0)"
 end
 
 @testset "collection of colors" begin

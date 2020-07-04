@@ -61,6 +61,13 @@ _comp(::Val{N}, c::Colorant) where N = getfield(c, N)
 _comp(::Val{N}, c::AlphaColor) where N = getfield(c, N + 1)
 _comp(::Val{N}, c::AlphaColorN{N}) where N = alpha(c)
 
+@noinline function _comp_error(c::ColorantN{N}, n::Int) where N
+    io = IOBuffer()
+    print(io, "attempt to access ", N, "-component color ")
+    print(IOContext(io, :compact=>true), typeof(c), " with `comp", n, "`")
+    throw(ArgumentError(String(take!(io))))
+end
+
 """
 `comp1(c)` extracts the first component you'd pass to the constructor
 of the corresponding object.  For most color types without an alpha
@@ -74,24 +81,27 @@ Specifically, for any `Color{T,3}`,
 
 returns true.
 """
-comp1(c) = _comp(Val(1), c)
+comp1(c::Colorant) = _comp(Val(1), c)
 comp1(c::Union{AbstractRGB, TransparentRGB}) = red(c)
 comp1(c::Union{AbstractGray, TransparentGray}) = gray(c)
 
 "`comp2(c)` extracts the second constructor argument (see `comp1`)."
-comp2(c) = _comp(Val(2), c)
+comp2(c::Colorant) = _comp(Val(2), c)
+comp2(c::ColorantN{1}) = _comp_error(c, 2)
 comp2(c::Union{AbstractRGB, TransparentRGB}) = green(c)
 
 "`comp3(c)` extracts the third constructor argument (see `comp1`)."
-comp3(c) = _comp(Val(3), c)
+comp3(c::Colorant) = _comp(Val(3), c)
+comp3(c::Union{ColorantN{1}, ColorantN{2}}) = _comp_error(c, 3)
 comp3(c::Union{AbstractRGB, TransparentRGB}) = blue(c)
 
 "`comp4(c)` extracts the fourth constructor argument (see `comp1`)."
-comp4(c) = _comp(Val(4), c)
-comp4(c::AbstractRGB) = throw(BoundsError(c, 4)) # for XRGB/RGBX
+comp4(c::Colorant) = _comp(Val(4), c)
+comp4(c::Union{ColorantN{1}, ColorantN{2}, ColorantN{3}}) = _comp_error(c, 4)
 
 "`comp5(c)` extracts the fifth constructor argument (see `comp1`)."
-comp5(c) = _comp(Val(5), c)
+comp5(c::Colorant) = _comp(Val(5), c)
+comp5(c::Union{ColorantN{1}, ColorantN{2}, ColorantN{3}, ColorantN{4}}) = _comp_error(c, 5)
 
 
 "`color(c)` extracts the opaque color component from a Colorant (e.g., omits the alpha channel, if present)."
