@@ -7,6 +7,9 @@ julia:
   - 1.0
   - 1
   - nightly
+cache:
+  directories:
+    - $HOME/.julia/artifacts
 notifications:
   email: false
 after_success:
