@@ -9,28 +9,22 @@ SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
 
 @testset "single color" begin
     iob = IOBuffer()
-    cf  = RGB{Float32}(0.32218,0.14983,0.87819)
-    c   = convert(RGB{N0f8}, cf)
-    c16 = RGB{N0f16}(0.32218,0.14983,0.87819)
-    ca  = RGBA{N0f8}(0.32218,0.14983,0.87819,0.99241)
-    ac  = alphacolor(ca)
-
-    show(iob, c)
-    @test String(take!(iob)) == "RGB{N0f8}(0.322,0.149,0.878)"
-    show(iob, c16)
-    @test String(take!(iob)) == "RGB{N0f16}(0.32218,0.14983,0.87819)"
-    show(iob, cf)
-    @test String(take!(iob)) == "RGB{Float32}(0.32218f0,0.14983f0,0.87819f0)"
-    show(IOContext(iob, :compact => true), cf)
-    @test String(take!(iob)) == "RGB{Float32}(0.32218,0.14983,0.87819)"
-    show(iob, ca)
-    @test String(take!(iob)) == "RGBA{N0f8}(0.322,0.149,0.878,0.992)"
-    show(IOContext(iob, :compact => true), ca)
-    @test String(take!(iob)) == "RGBA{N0f8}(0.322,0.149,0.878,0.992)"
-    show(iob, ac)
-    @test String(take!(iob)) == "ARGB{N0f8}(0.322,0.149,0.878,0.992)"
-    show(IOContext(iob, :compact => true), ac)
-    @test String(take!(iob)) == "ARGB{N0f8}(0.322,0.149,0.878,0.992)"
+    show(iob, RGB{N0f8}(0, 1/3, 1))
+    @test String(take!(iob)) == "RGB{N0f8}(0.0,0.333,1.0)"
+    show(iob, RGB{N0f16}(0, 1/3, 1))
+    @test String(take!(iob)) == "RGB{N0f16}(0.0,0.33333,1.0)"
+    show(iob, RGB{Float64}(0, 1/3, 1))
+    @test String(take!(iob)) == "RGB{Float64}(0.0,0.3333333333333333,1.0)"
+    show(IOContext(iob, :compact => true), RGB{Float64}(0, 1/3, 1))
+    @test String(take!(iob)) == "RGB{Float64}(0.0,0.333333,1.0)"
+    show(iob, RGBA{N0f8}(0, 1/3, 1, 0.5))
+    @test String(take!(iob)) == "RGBA{N0f8}(0.0,0.333,1.0,0.502)"
+    show(IOContext(iob, :compact => true), RGBA{N0f8}(0, 1/3, 1, 0.5))
+    @test String(take!(iob)) == "RGBA{N0f8}(0.0,0.333,1.0,0.502)"
+    show(iob, ARGB{N0f8}(0, 1/3, 1, 0.5))
+    @test String(take!(iob)) == "ARGB{N0f8}(0.0,0.333,1.0,0.502)"
+    show(IOContext(iob, :compact => true), ARGB{N0f8}(0, 1/3, 1, 0.5))
+    @test String(take!(iob)) == "ARGB{N0f8}(0.0,0.333,1.0,0.502)"
 
     show(iob, RGB24(0.4,0.2,0.8))
     @test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
@@ -45,6 +39,8 @@ SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
     @test String(take!(iob)) == "GrayA{Float64}(0.8,1.0)"
     show(iob, AGray(0.8))
     @test String(take!(iob)) == "AGray{Float64}(0.8,1.0)"
+    show(iob, Gray{Bool}(1))
+    @test String(take!(iob)) == "Gray{Bool}(1)"
     show(iob, Gray24(0.4))
     @test String(take!(iob)) == "Gray24(0.4N0f8)"
     show(iob, AGray32(0.8))
@@ -53,14 +49,49 @@ SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
     show(iob, CustomTypes.RGBA32(0.4, 0.2, 0.8, 1.0))
     @test String(take!(iob)) == "RGBA32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
     show(iob, AnaglyphColor{Float32}(0.4, 0.2))
-    @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4f0,0.2f0)"
+    @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4,0.2)"
     show(iob, CMYK{Float64}(0.1, 0.2, 0.3, 0.4))
     @test String(take!(iob)) == "CMYK{Float64}(0.1,0.2,0.3,0.4)"
     show(iob, ACMYK{N0f8}(0.2, 0.4, 0.6, 0.8))
     @test String(take!(iob)) == "ACMYK{N0f8}(0.2,0.4,0.6,0.8,1.0)"
 end
 
-@testset "collection of colors" begin
+@testset "array element" begin
+    iob = IOBuffer()
+    rgbf64 = RGB{Float64}(0, 1/3, 1)
+    show(IOContext(iob, :typeinfo=>RGB{Float64}), rgbf64)
+    @test String(take!(iob)) == "RGB(0.0,0.3333333333333333,1.0)"
+    show(IOContext(iob, :typeinfo=>RGB{Float64}, :compact=>true), rgbf64)
+    @test String(take!(iob)) == "RGB(0.0,0.333333,1.0)"
+    show(IOContext(iob, :typeinfo=>RGB), rgbf64)
+    @test String(take!(iob)) == "RGB{Float64}(0.0,0.3333333333333333,1.0)"
+
+    argb32 = ARGB32(0.4,0.2,0.8,1.0)
+    show(IOContext(iob, :typeinfo=>ARGB32), argb32)
+    @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+    show(IOContext(iob, :typeinfo=>ARGB32, :compact=>true), argb32)
+    @test String(take!(iob)) == "ARGB32(0.4,0.2,0.8,1.0)"
+    show(IOContext(iob, :typeinfo=>ARGB), argb32)
+    @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+
+    grayf64 = Gray{Float64}(1/3)
+    show(IOContext(iob, :typeinfo=>Gray{Float64}), grayf64)
+    @test String(take!(iob)) == "0.3333333333333333"
+    show(IOContext(iob, :typeinfo=>Gray{Float64}, :compact=>true), grayf64)
+    @test String(take!(iob)) == "0.333333"
+    show(IOContext(iob, :typeinfo=>Gray), grayf64)
+    @test String(take!(iob)) == "Gray{Float64}(0.3333333333333333)"
+
+    grayb = Gray{Bool}(1)
+    show(IOContext(iob, :typeinfo=>Gray{Bool}), grayb)
+    @test String(take!(iob)) == "1"
+    show(IOContext(iob, :typeinfo=>Gray{Bool}, :compact=>true), grayb)
+    @test String(take!(iob)) == "1"
+    show(IOContext(iob, :typeinfo=>Gray), grayb)
+    @test String(take!(iob)) == "Gray{Bool}(1)"
+end
+
+@testset "summary" begin
     iob = IOBuffer()
     summary(iob, Gray{N0f8}[0.2, 0.4, 0.6])
     vec_summary = String(take!(iob))
@@ -76,15 +107,15 @@ end
     avec_summary = String(take!(iob))
 
     if VERSION >= v"1.6.0-DEV.356"
-        @test_broken vec_summary == "3-element Vector{Gray{N0f8}}"
-        @test_broken mat_summary == "2×2 Matrix{RGB{Float64}}"
-        @test_broken view_summary == "2×2 view(::Matrix{RGB{Float64}}, :, :) with eltype RGB{Float64}"
-        @test_broken avec_summary == "2-element Vector{TransparentColor}"
+        @test vec_summary == "3-element Vector{Gray{N0f8}}"
+        @test mat_summary == "2×2 Matrix{RGB{Float64}}"
+        @test view_summary == "2×2 view(::Matrix{RGB{Float64}}, :, :) with eltype RGB{Float64}"
+        @test avec_summary == "2-element Vector{TransparentColor}"
     else
         @test vec_summary == "3-element Array{Gray{N0f8},1} with eltype Gray{Normed{UInt8,8}}"
-        @test mat_summary == "2×2 Array{RGB{Float64},2} with eltype RGB{Float64}"
+        @test mat_summary == "2×2 Array{RGB{Float64},2}"
         @test view_summary == "2×2 view(::Array{RGB{Float64},2}, :, :) with eltype RGB{Float64}"
-        @test avec_summary == "2-element Array{TransparentColor,1} with eltype TransparentColor"
+        @test avec_summary == "2-element Array{TransparentColor,1}"
     end
 end
 

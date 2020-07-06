@@ -1,20 +1,49 @@
 
 function show(io::IO, c::Colorant)
-    show_colorant_string_with_eltype(io, typeof(c))
+    if get(io, :typeinfo, Any) === typeof(c)
+        print(io, colorant_string(typeof(c)))
+    else
+        show_colorant_string_with_eltype(io, typeof(c))
+    end
     _show_components(io, c)
 end
 
-# Special handling for Normed types: don't print the giant type name
-function show(io::IO, c::ColorantNormed)
-    show_colorant_string_with_eltype(io, typeof(c))
-    if typeof(c) === base_colorant_type(typeof(c)) # non-parametric
-        _show_components(io, c) # with trailing "N0f8" unless :compat=>true
+function show(io::IO, c::AbstractGray)
+    if get(io, :typeinfo, Any) === typeof(c)
+        show(_components_iocontext(io, c), comp1(c))
     else
-        _show_components(IOContext(io, :compact=>true), c)
+        show_colorant_string_with_eltype(io, typeof(c))
+        _show_components(io, c)
     end
 end
 
-function _show_components(io::IO, c::Colorant{T,N}) where {T, N}
+function show(io::IO, c::AbstractGray{Bool})
+    if get(io, :typeinfo, Any) === typeof(c)
+        print(io, gray(c) ? '1' : '0')
+    else
+        show_colorant_string_with_eltype(io, typeof(c))
+        print(io, gray(c) ? "(1)" : "(0)")
+    end
+end
+
+
+@inline function _components_iocontext(io::IO, c::Colorant{T}) where T
+    if typeof(c) === base_colorant_type(c)
+        # For non-parametric colors, we do not set :typeinfo since they do not
+        # explicitly show their element type. Therefore, the suffix "N0f8" is
+        # displayed in RGB24 etc. unless :compact=>true.
+        return io
+    elseif T === Float64
+        return io
+    elseif T <: FixedPoint # workaround for FPN v0.8 or earlier
+        return IOContext(io, :typeinfo => T, :compact => true)
+    else
+        return IOContext(io, :typeinfo => T)
+    end
+end
+
+function _show_components(io::IO, c::Colorant{T, N}) where {T, N}
+    io = _components_iocontext(io, c)
     print(io, '(')
     for i = 1:N
         i == 1 && show(io, comp1(c))
@@ -26,12 +55,15 @@ function _show_components(io::IO, c::Colorant{T,N}) where {T, N}
     end
 end
 
-function Base.showarg(io::IO, a::Array{C}, toplevel) where C<:Colorant
-    toplevel || print(io, "::")
-    print(io, "Array{")
-    show_colorant_string_with_eltype(io, C)
-    print(io, ",$(ndims(a))}")
-    toplevel && print(io, " with eltype ", C)
+if VERSION < v"1.6.0-DEV.356" # JuliaLang/julia#36107
+    function Base.showarg(io::IO, a::Array{C}, toplevel) where C<:Colorant
+        toplevel || print(io, "::")
+        print(io, "Array{")
+        show_colorant_string_with_eltype(io, C)
+        print(io, ',', ndims(a), '}')
+        is_parametric_fixed = C <: Colorant{<:FixedPoint} && !isempty(C.parameters)
+        toplevel && is_parametric_fixed && print(io, " with eltype ", C)
+    end
 end
 
 
