@@ -129,13 +129,16 @@ eltype(::Type{Colorant{T,N}}) where {T,N}   = T
 
 eltype(c::Colorant) = eltype(typeof(c))
 
+@pure function _parameter_upper_bound(t::UnionAll, idx)
+    Base.rewrap_unionall((Base.unwrap_unionall(t)::DataType).parameters[idx], t)
+end
+
 # eltypes_supported(Colorant{T<:X}) -> X
-@pure eltypes_supported(::Type{C}) where {C<:Colorant} =
-    Base.parameter_upper_bound(base_colorant_type(C), 1)
-eltypes_supported(::Type{RGB24})   = N0f8
-eltypes_supported(::Type{Gray24})  = N0f8
-eltypes_supported(::Type{ARGB32})  = N0f8
-eltypes_supported(::Type{AGray32}) = N0f8
+function eltypes_supported(::Type{C}) where {C<:Colorant}
+    Cb = base_colorant_type(C)
+    isconcretetype(C) && C === Cb && return eltype(C)
+    _parameter_upper_bound(Cb, 1)
+end
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
@@ -167,7 +170,7 @@ color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
 color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
 function color_type(::Type{TC}) where TC<:TransparentColor
     _color_type(::Type{TC}) where TC<:TransparentColor{C, T} where {C,T} = C
-    return isa(TC, UnionAll) ? Base.parameter_upper_bound(TC, 1) : _color_type(TC)
+    return isa(TC, UnionAll) ? _parameter_upper_bound(TC, 1) : _color_type(TC)
 end
 color_type(::Type{Colorant{T,N}}) where {T,N} = Color{T,N}
 color_type(::Type{ColorantN{N}}) where {N} = ColorN{N}
@@ -227,7 +230,7 @@ abstract_basetype(::Type{<:TransparentColorN{N,C}}) where {N,C<:Color} = Transpa
 abstract_basetype(::Type{<:TransparentColor{C}}) where {C<:Color} = TransparentColor{base_colorant_type(C){T},T} where T
 abstract_basetype(::Type{<:TransparentColor}) = TransparentColor
 # These handle things like base_colorant_type(AbstractRGBA)
-parameter1(::Type{C}) where C = C isa DataType ? C.parameters[1] : Base.parameter_upper_bound(C, 1)
+parameter1(::Type{C}) where C = C isa DataType ? C.parameters[1] : _parameter_upper_bound(C, 1)
 function abstract_basetype(::Type{AC}) where AC <: AlphaColorN{N} where {N}
     Cb = parameter1(AC)
     Cb === Color && return AlphaColor{C,T,N} where {T,C<:ColorN{N-1,T}}
