@@ -57,7 +57,7 @@ end
     show(iob, Gray24(0.4))
     @test String(take!(iob)) == "Gray24(0.4N0f8)"
     show(iob, AGray32(0.8))
-    @test_broken String(take!(iob)) == "AGray32(0.8N0f8,1.0N0f8)"
+    @test String(take!(iob)) == "AGray32(0.8N0f8,1.0N0f8)"
 
     show(iob, AnaglyphColor{Float32}(0.4, 0.2))
     @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4f0,0.2f0)"
