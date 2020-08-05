@@ -137,7 +137,11 @@ end
 function eltypes_supported(::Type{C}) where {C<:Colorant}
     Cb = base_colorant_type(C)
     isconcretetype(C) && C === Cb && return eltype(C)
-    _parameter_upper_bound(Cb, 1)
+    _eltypes_supported(Cb)
+end
+@pure function _eltypes_supported(::Type{C}) where {C<:Colorant}
+    nameof(C) === :Colorant || return _eltypes_supported(supertype(C))
+    _parameter_upper_bound(C, 1)
 end
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
@@ -168,9 +172,14 @@ when writing generic code.
 color_type(::Type{C}) where {C<:Color} = C
 color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
 color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
-function color_type(::Type{TC}) where TC<:TransparentColor
-    _color_type(::Type{TC}) where TC<:TransparentColor{C, T} where {C,T} = C
-    return isa(TC, UnionAll) ? _parameter_upper_bound(TC, 1) : _color_type(TC)
+function color_type(::Type{TC}) where {TC <: TransparentColor}
+    _color_type(::Type{TC}) where {C, TC <: TransparentColor{C}} = C
+    if TC isa UnionAll && nameof(TC) === :TransparentColor
+        C1 = _parameter_upper_bound(TC, 1)
+        color_type(C1) # simplify
+    else
+        _color_type(TC)
+    end
 end
 color_type(::Type{Colorant{T,N}}) where {T,N} = Color{T,N}
 color_type(::Type{ColorantN{N}}) where {N} = ColorN{N}
@@ -220,34 +229,19 @@ base_colorant_type(::Type{<:Number}) = Gray
 abstract_basetype(::Type{<:AbstractRGB}) = AbstractRGB
 abstract_basetype(::Type{<:ColorN{N}}) where N = ColorN{N}
 abstract_basetype(::Type{<:Color}) = Color
-abstract_basetype(::Type{<:AlphaColorN{N,C}}) where {N,C<:Color} = AlphaColor{base_colorant_type(C){T},T,N} where T
-abstract_basetype(::Type{<:ColorAlphaN{N,C}}) where {N,C<:Color} = ColorAlpha{base_colorant_type(C){T},T,N} where T
-abstract_basetype(::Type{<:AlphaColor{C}}) where {C<:Color} = AlphaColor{base_colorant_type(C){T},T} where T
-abstract_basetype(::Type{<:ColorAlpha{C}}) where {C<:Color} = ColorAlpha{base_colorant_type(C){T},T} where T
-abstract_basetype(::Type{<:AlphaColor}) = AlphaColor
-abstract_basetype(::Type{<:ColorAlpha}) = ColorAlpha
-abstract_basetype(::Type{<:TransparentColorN{N,C}}) where {N,C<:Color} = TransparentColor{base_colorant_type(C){T},T,N} where T
-abstract_basetype(::Type{<:TransparentColor{C}}) where {C<:Color} = TransparentColor{base_colorant_type(C){T},T} where T
-abstract_basetype(::Type{<:TransparentColor}) = TransparentColor
-# These handle things like base_colorant_type(AbstractRGBA)
-parameter1(::Type{C}) where C = C isa DataType ? C.parameters[1] : _parameter_upper_bound(C, 1)
-function abstract_basetype(::Type{AC}) where AC <: AlphaColorN{N} where {N}
-    Cb = parameter1(AC)
-    Cb === Color && return AlphaColor{C,T,N} where {T,C<:ColorN{N-1,T}}
-    isabstracttype(Cb) || return AlphaColor{Cb{T},T,N} where T
-    return AlphaColor{C,T,N} where {T,C<:Cb{T}}
+function abstract_basetype(::Type{TC}) where {TC<:TransparentColor}
+    P = TC <: AlphaColor ? AlphaColor : TC <: ColorAlpha ? ColorAlpha : TransparentColor
+    _abstract_transparent_basetype(TC, P, base_color_type(TC))
 end
-function abstract_basetype(::Type{CA}) where CA <: ColorAlphaN{N} where {N}
-    Cb = parameter1(CA)
-    Cb === Color && return ColorAlpha{C,T,N} where {T,C<:ColorN{N-1,T}}
-    isabstracttype(Cb) || return ColorAlpha{Cb{T},T,N} where T
-    return ColorAlpha{C,T,N} where {T,C<:Cb{T}}
+function _abstract_transparent_basetype(::Type{TC}, P, Cb) where {N, TC <: TransparentColorN{N}}
+    Cb === Color && return P{C,T,N} where {T,C<:ColorN{N-1,T}}
+    isabstracttype(Cb) || return P{Cb{T},T,N} where T
+    return P{C,T,N} where {T,C<:Cb{T}}
 end
-function abstract_basetype(::Type{TC}) where TC <: TransparentColorN{N} where {N}
-    Cb = parameter1(TC)
-    Cb === Color && return TransparentColor{C,T,N} where {T,C<:ColorN{N-1,T}}
-    isabstracttype(Cb) || return TransparentColor{Cb{T},T,N} where T
-    return TransparentColor{C,T,N} where {T,C<:Cb{T}}
+function _abstract_transparent_basetype(::Type{TC}, P, Cb) where {TC <: TransparentColor}
+    TC === P && return P
+    isabstracttype(Cb) || return P{Cb{T},T} where T
+    return P{C,T} where {T,C<:Cb{T}}
 end
 # This fallback dispatches to a separate function to control method ordering.
 # Otherwise the generic ColorantN methods supersede the AlphaColor/ColorAlpha/Transparent methods

@@ -4,7 +4,7 @@ using Test
 using ColorTypes: ColorTypeResolutionError
 
 # dummy types
-struct C2{T} <: Color{T,2}
+struct C2{T <: Real} <: Color{T,2}
     c1::T; c2::T;
 end
 struct C2A{T} <: ColorAlpha{C2{T},T,3}
@@ -17,6 +17,15 @@ struct AC4{T} <: AlphaColor{C4{T},T,5}
     alpha::T; c1::T; c2::T; c3::T; c4::T
     AC4{T}(c1, c2, c3, c4, alpha=1) where T = new{T}(alpha, c1, c2, c3, c4)
 end
+
+struct StrangeGray{Something,T <: Integer} <: AbstractGray{Normed{T}}
+    val::T
+    function StrangeGray{T}(g::Normed{T,f}) where {T,f}
+        f == sizeof(T) || error()
+        new{:X,T}(reinterpret(g))
+    end
+end
+ColorTypes.gray(g::StrangeGray{X,T}) where {X, T} = reinterpret(Normed{T,sizeof(T)}, g.val)
 
 @testset "RGB accessors" begin
 
@@ -224,9 +233,22 @@ end
 
     @test @inferred(eltype(HSV(30,1,0))) === Float32
     @test @inferred(eltype(HSV(30,1.0,0.0))) === Float64
+end
 
-    # eltypes_supported
-    @test N0f8 <: ColorTypes.eltypes_supported(RGB(1,0,0))
+@testset "eltype_supported/issupported" begin
+    @test Fractional <: @inferred(ColorTypes.eltypes_supported(RGB))
+    @test N0f8 <: @inferred(ColorTypes.eltypes_supported(RGB(1,0,0)))
+    @test @inferred(ColorTypes.issupported(Gray, Bool))
+    @test @inferred(!ColorTypes.issupported(AGray, Bool))
+
+    @test @inferred(ColorTypes.eltypes_supported(C2{Float32})) === Real
+    @test_broken @inferred(ColorTypes.eltypes_supported(C2A)) === Real
+
+    @test @inferred(ColorTypes.eltypes_supported(TransparentColor)) === Any
+
+    ST = @inferred(ColorTypes.eltypes_supported(StrangeGray{:X}))
+    @test ST == (Normed{T} where T <: Integer) # This is not a "strict" result.
+    @test comp1(StrangeGray{UInt16}(1N14f2)) isa ST
 end
 
 @testset "color_type" begin
