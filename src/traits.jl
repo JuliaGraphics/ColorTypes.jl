@@ -123,9 +123,7 @@ to_top(::Type{Colorant{T,N}}) where {T,N} = Colorant{T,N}
 to_top(c::Colorant) = to_top(typeof(c))
 
 # eltype(RGB{Float32}) -> Float32
-eltype(::Type{Colorant{T}}) where {T}       = T
-eltype(::Type{Colorant{T,N}}) where {T,N}   = T
-@pure eltype(::Type{C}) where {C<:Colorant} = eltype(supertype(C))
+eltype(::Type{C}) where {C<:Colorant{T}} where {T} = T
 
 eltype(c::Colorant) = eltype(typeof(c))
 
