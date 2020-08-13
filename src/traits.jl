@@ -514,5 +514,10 @@ end
 
 Base.broadcastable(x::Colorant) = Ref(x)
 
-Base.isless(a::AbstractGray, b::AbstractGray) =
-    isless(gray(a), gray(b))
+isless(a::AbstractGray, b::AbstractGray) = isless(gray(a), gray(b))
+isless(a::AbstractGray, b::Real)         = isless(gray(a), b)
+isless(a::Real,         b::AbstractGray) = isless(a,       gray(b))
+
+<(a::AbstractGray, b::AbstractGray) = gray(a) < gray(b)
+<(a::AbstractGray, b::Real)         = gray(a) < b
+<(a::Real,         b::AbstractGray) = a       < gray(b)

@@ -682,6 +682,8 @@ end
 
 @testset "isless" begin
     @test Gray(0.8) < Gray(0.9)
+    @test Gray(0.8) <      0.9
+    @test      0.8  < Gray(0.9)
     @test Gray(0.8) <= Gray(0.9)
     @test Gray(0.9) <= Gray(0.9)
     @test Gray(0.9) > Gray(0.8)
@@ -715,6 +717,15 @@ end
     @test Gray(0.9f0) > Gray(0.8N0f8)
     @test Gray(0.9f0) >= Gray(0.8N0f8)
     # @test Gray(0.9f0) >= Gray(0.9N0f8) is not true, since 0.9N0f8 = 0.902
+
+    @test (Gray(0.3) < Gray(NaN)) == (0.3 < NaN)
+    @test (Gray(NaN) < Gray(0.3)) == (NaN < 0.3)
+    @test isless(Gray(0.3), Gray(NaN)) == isless(0.3, NaN)
+    @test isless(Gray(NaN), Gray(0.3)) == isless(NaN, 0.3)
+    @test isless(Gray(0.3), NaN) == isless(0.3, NaN)
+    @test isless(Gray(NaN), 0.3) == isless(NaN, 0.3)
+    @test isless(0.3, Gray(NaN)) == isless(0.3, NaN)
+    @test isless(NaN, Gray(0.3)) == isless(NaN, 0.3)
 
     # transparent gray doesn't support comparison
     @test_throws MethodError GrayA(0.8, 0.4) < GrayA(0.9, 0.4)
