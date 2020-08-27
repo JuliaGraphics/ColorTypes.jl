@@ -59,6 +59,8 @@ function _precompile_()
     end
     # traits
     for T in eltypes, C in pctypes
+        @assert precompile(Tuple{typeof(eltype),Type{C}})
+        @assert precompile(Tuple{typeof(eltype),Type{C{T}}})
         @assert precompile(Tuple{typeof(alpha),C{T}})
         C <: AbstractGray && @assert precompile(Tuple{typeof(gray),C{T}})
         C <: AbstractRGB || continue
@@ -67,6 +69,7 @@ function _precompile_()
         @assert precompile(Tuple{typeof(blue),C{T}})
     end
     for C in cctypes
+        @assert precompile(Tuple{typeof(eltype),Type{C}})
         @assert precompile(Tuple{typeof(alpha),C})
         C <: AbstractGray && @assert precompile(Tuple{typeof(gray),C})
         C <: AbstractRGB || continue
@@ -74,6 +77,8 @@ function _precompile_()
         @assert precompile(Tuple{typeof(green),C})
         @assert precompile(Tuple{typeof(blue),C})
     end
+    @assert precompile(Tuple{typeof(eltype),Type{AbstractGray{T} where T<:Fractional}})
+    @assert precompile(Tuple{typeof(eltype),Type{AbstractRGB{T} where T<:Fractional}})
     # ccolor typically gets compiled as part of other things
     # hash
     for T in eltypes, C in pctypes
@@ -93,6 +98,24 @@ function _precompile_()
         @assert precompile(Tuple{typeof(rand),Type{C},Tuple{Int}})
         @assert precompile(Tuple{typeof(rand),Type{C},Tuple{Int,Int}})
     end
+    # FIXME the following do not yet "work", meaning you can issue these precompile directives but no value comes of it.
+    # Possibly this is https://github.com/JuliaLang/julia/pull/32705, but the actual cause is unknown.
+    # # permutedims
+    # for T in eltypes, C in pctypes, n = 2:4
+    #     @assert precompile(permutedims, (Array{C{T},n}, Tuple{Vararg{Int,n}}))
+    # end
+    # # broadcast
+    # for T1 in eltypes, T2 in eltypes, n = 2:4
+    #     @assert precompile(broadcast, (Type{T1}, Array{Gray{T2},n}))
+    #     @assert precompile(broadcast, (Type{Gray{T1}}, Array{T2,n}))
+    #     @assert precompile(broadcast, (Type{Gray{T1}}, Array{Gray{T2},n}))
+    #     @assert precompile(broadcast, (Type{RGB{T1}}, Array{RGB{T2},n}))
+    #     @assert precompile(Broadcast.materialize, (Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{n},Nothing,Type{T1},Tuple{Array{Gray{T2},n}}},))
+    #     @assert precompile(Broadcast.materialize, (Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{n},Nothing,Type{Gray{T1}},Tuple{Array{T2,n}}},))
+    #     @assert precompile(Broadcast.materialize, (Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{n},Nothing,Type{Gray{T1}},Tuple{Array{Gray{T2},n}}},))
+    #     @assert precompile(Broadcast.materialize, (Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{n},Nothing,Type{RGB{T1}},Tuple{Array{RGB{T2},n}}},))
+    # end
+
     # mapc, reducec, and mapreducec are not really precompilable,
     # since they will be specialized for f
 end
