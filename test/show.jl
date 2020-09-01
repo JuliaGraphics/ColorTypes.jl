@@ -16,6 +16,8 @@ struct ACMYK{T} <: AlphaColor{CMYK{T},T,5}
     ACMYK{T}(c, m, y, k, alpha=1) where T = new{T}(alpha, c, m, y, k)
 end
 
+SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
+
 @testset "single color" begin
     iob = IOBuffer()
     cf  = RGB{Float32}(0.32218,0.14983,0.87819)
@@ -128,8 +130,8 @@ end
     @test ColorTypes.colorant_string_with_eltype(HSV{AbstractFloat}) == "HSV{AbstractFloat}"
     @test ColorTypes.colorant_string_with_eltype(TransparentColor) == "TransparentColor"
     @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
-        "TransparentColor{RGB{Float32},Float32,N} where N"
+        "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)N} where N"
     @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32,4}) ==
-        "TransparentColor{RGB{Float32},Float32,4}"
+        "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)4}"
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
