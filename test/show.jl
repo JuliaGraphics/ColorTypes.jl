@@ -10,69 +10,69 @@ SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
 @testset "single color" begin
     iob = IOBuffer()
     show(iob, RGB{N0f8}(0, 1/3, 1))
-    @test String(take!(iob)) == "RGB{N0f8}(0.0,0.333,1.0)"
+    @test String(take!(iob)) == "RGB{N0f8}(0.0, 0.333, 1.0)"
     show(iob, RGB{N0f16}(0, 1/3, 1))
-    @test String(take!(iob)) == "RGB{N0f16}(0.0,0.33333,1.0)"
+    @test String(take!(iob)) == "RGB{N0f16}(0.0, 0.33333, 1.0)"
     show(iob, RGB{Float64}(0, 1/3, 1))
-    @test String(take!(iob)) == "RGB{Float64}(0.0,0.3333333333333333,1.0)"
+    @test String(take!(iob)) == "RGB{Float64}(0.0, 0.3333333333333333, 1.0)"
     show(IOContext(iob, :compact => true), RGB{Float64}(0, 1/3, 1))
-    @test String(take!(iob)) == "RGB{Float64}(0.0,0.333333,1.0)"
+    @test String(take!(iob)) == "RGB{Float64}(0.0, 0.333333, 1.0)"
     show(iob, RGBA{N0f8}(0, 1/3, 1, 0.5))
-    @test String(take!(iob)) == "RGBA{N0f8}(0.0,0.333,1.0,0.502)"
+    @test String(take!(iob)) == "RGBA{N0f8}(0.0, 0.333, 1.0, 0.502)"
     show(IOContext(iob, :compact => true), RGBA{N0f8}(0, 1/3, 1, 0.5))
-    @test String(take!(iob)) == "RGBA{N0f8}(0.0,0.333,1.0,0.502)"
+    @test String(take!(iob)) == "RGBA{N0f8}(0.0, 0.333, 1.0, 0.502)"
     show(iob, ARGB{N0f8}(0, 1/3, 1, 0.5))
-    @test String(take!(iob)) == "ARGB{N0f8}(0.0,0.333,1.0,0.502)"
+    @test String(take!(iob)) == "ARGB{N0f8}(0.0, 0.333, 1.0, 0.502)"
     show(IOContext(iob, :compact => true), ARGB{N0f8}(0, 1/3, 1, 0.5))
-    @test String(take!(iob)) == "ARGB{N0f8}(0.0,0.333,1.0,0.502)"
+    @test String(take!(iob)) == "ARGB{N0f8}(0.0, 0.333, 1.0, 0.502)"
 
     show(iob, RGB24(0.4,0.2,0.8))
-    @test String(take!(iob)) == "RGB24(0.4N0f8,0.2N0f8,0.8N0f8)"
+    @test String(take!(iob)) == "RGB24(0.4N0f8, 0.2N0f8, 0.8N0f8)"
     show(iob, ARGB32(0.4,0.2,0.8,1.0))
-    @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+    @test String(take!(iob)) == "ARGB32(0.4N0f8, 0.2N0f8, 0.8N0f8, 1.0N0f8)"
     show(IOContext(iob, :compact => true), ARGB32(0.4,0.2,0.8,1.0))
-    @test String(take!(iob)) == "ARGB32(0.4,0.2,0.8,1.0)"
+    @test String(take!(iob)) == "ARGB32(0.4, 0.2, 0.8, 1.0)"
 
     show(iob, Gray(0.8))
     @test String(take!(iob)) == "Gray{Float64}(0.8)"
     show(iob, GrayA(0.8))
-    @test String(take!(iob)) == "GrayA{Float64}(0.8,1.0)"
+    @test String(take!(iob)) == "GrayA{Float64}(0.8, 1.0)"
     show(iob, AGray(0.8))
-    @test String(take!(iob)) == "AGray{Float64}(0.8,1.0)"
+    @test String(take!(iob)) == "AGray{Float64}(0.8, 1.0)"
     show(iob, Gray{Bool}(1))
     @test String(take!(iob)) == "Gray{Bool}(1)"
     show(iob, Gray24(0.4))
     @test String(take!(iob)) == "Gray24(0.4N0f8)"
     show(iob, AGray32(0.8))
-    @test String(take!(iob)) == "AGray32(0.8N0f8,1.0N0f8)"
+    @test String(take!(iob)) == "AGray32(0.8N0f8, 1.0N0f8)"
 
     show(iob, CustomTypes.RGBA32(0.4, 0.2, 0.8, 1.0))
-    @test String(take!(iob)) == "RGBA32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+    @test String(take!(iob)) == "RGBA32(0.4N0f8, 0.2N0f8, 0.8N0f8, 1.0N0f8)"
     show(iob, AnaglyphColor{Float32}(0.4, 0.2))
-    @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4,0.2)"
+    @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4, 0.2)"
     show(iob, CMYK{Float64}(0.1, 0.2, 0.3, 0.4))
-    @test String(take!(iob)) == "CMYK{Float64}(0.1,0.2,0.3,0.4)"
+    @test String(take!(iob)) == "CMYK{Float64}(0.1, 0.2, 0.3, 0.4)"
     show(iob, ACMYK{N0f8}(0.2, 0.4, 0.6, 0.8))
-    @test String(take!(iob)) == "ACMYK{N0f8}(0.2,0.4,0.6,0.8,1.0)"
+    @test String(take!(iob)) == "ACMYK{N0f8}(0.2, 0.4, 0.6, 0.8, 1.0)"
 end
 
 @testset "array element" begin
     iob = IOBuffer()
     rgbf64 = RGB{Float64}(0, 1/3, 1)
     show(IOContext(iob, :typeinfo=>RGB{Float64}), rgbf64)
-    @test String(take!(iob)) == "RGB(0.0,0.3333333333333333,1.0)"
+    @test String(take!(iob)) == "RGB(0.0, 0.3333333333333333, 1.0)"
     show(IOContext(iob, :typeinfo=>RGB{Float64}, :compact=>true), rgbf64)
-    @test String(take!(iob)) == "RGB(0.0,0.333333,1.0)"
+    @test String(take!(iob)) == "RGB(0.0, 0.333333, 1.0)"
     show(IOContext(iob, :typeinfo=>RGB), rgbf64)
-    @test String(take!(iob)) == "RGB{Float64}(0.0,0.3333333333333333,1.0)"
+    @test String(take!(iob)) == "RGB{Float64}(0.0, 0.3333333333333333, 1.0)"
 
     argb32 = ARGB32(0.4,0.2,0.8,1.0)
     show(IOContext(iob, :typeinfo=>ARGB32), argb32)
-    @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+    @test String(take!(iob)) == "ARGB32(0.4N0f8, 0.2N0f8, 0.8N0f8, 1.0N0f8)"
     show(IOContext(iob, :typeinfo=>ARGB32, :compact=>true), argb32)
-    @test String(take!(iob)) == "ARGB32(0.4,0.2,0.8,1.0)"
+    @test String(take!(iob)) == "ARGB32(0.4, 0.2, 0.8, 1.0)"
     show(IOContext(iob, :typeinfo=>ARGB), argb32)
-    @test String(take!(iob)) == "ARGB32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
+    @test String(take!(iob)) == "ARGB32(0.4N0f8, 0.2N0f8, 0.8N0f8, 1.0N0f8)"
 
     grayf64 = Gray{Float64}(1/3)
     show(IOContext(iob, :typeinfo=>Gray{Float64}), grayf64)

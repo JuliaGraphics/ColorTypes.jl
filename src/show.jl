@@ -51,7 +51,7 @@ function _show_components(io::IO, c::Colorant{T, N}) where {T, N}
         i == 3 && show(io, comp3(c))
         i == 4 && show(io, comp4(c))
         i == 5 && show(io, comp5(c))
-        print(io, i < N ? ',' : ')') # without spaces
+        print(io, i < N ? ", " : ")")
     end
 end
 
