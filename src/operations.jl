@@ -52,25 +52,28 @@ else
 end
 
 function _rand(::Type{T}, sz::Dims) where T<:Colorant
-    Gmax = gamutmax(T)
-    Gmin = gamutmin(T)
     Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
     A = Array{T}(undef, sz)
     Tr = eltype(T) <: FixedPoint ? FixedPointNumbers.rawtype(eltype(T)) : eltype(T)
     nchannels = sizeof(T)÷sizeof(eltype(T))
     Au = Random.UnsafeView(convert(Ptr{Tr}, pointer(A)), length(A)*nchannels)
     rand!(Au)
-    Ar = reinterpretc(eltype(T), A)
+
+    Gmax = gamutmax(T)
+    Gmin = gamutmin(T)
     s = (Gmax .- Gmin) .* Mi
-    if T<:AbstractGray
-        s1, offset1 = s[1], Gmin[1]
-        for I in CartesianIndices(A)
-            Ar[I] = Ar[I] * s1 + offset1
-        end
-    else
-        for I in CartesianIndices(A)
-            for j in eachindex(s)
-                Ar[j,I] = Ar[j,I] * s[j] + Gmin[j]
+    if !all(iszero, Gmin) || !all(==(1), s)
+        Ar = reinterpretc(eltype(T), A)
+        if T<:AbstractGray
+            s1, offset1 = s[1], Gmin[1]
+            for I in CartesianIndices(A)
+                Ar[I] = Ar[I] * s1 + offset1
+            end
+        else
+            for I in CartesianIndices(A)
+                for j in eachindex(s)
+                    Ar[j,I] = Ar[j,I] * s[j] + Gmin[j]
+                end
             end
         end
     end
