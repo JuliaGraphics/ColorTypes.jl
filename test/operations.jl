@@ -140,7 +140,8 @@ end
         all(((f, gmin, gmax),) -> gmin <= getfield(c, f) <= gmax,
             zip(ColorTypes.colorfields(C), gamutmin(C), gamutmax(C)))
     end
-    eltypes = (N0f8, N2f6, N0f16, N2f14, N0f32, N2f30, Float16, Float32, Float64)
+    eltypes = (N0f8, N2f6, N0f16, N2f14, N0f32, N2f30, Q3f12,
+               Float16, Float32, Float64)
     @testset "rand($C)" for C in (
             (Gray{T} for T in eltypes)...,
             (RGB{T} for T in eltypes)...,
@@ -152,10 +153,6 @@ end
             RGB, ARGB, RGBA, BGR, ABGR, BGRA, XRGB, RGBX,
             HSV, HSL, Lab, LCHab, YIQ,
             AHSV, HSLA)
-        if C <: Transparent3 && !(C <: TransparentRGB)
-            @test_broken rand(C)
-            continue
-        end
         CC = isconcretetype(C) ? C : C{Float64}
         c = rand(C)
         @test c isa CC
@@ -168,24 +165,25 @@ end
         ap = a'
         @test ap[1, 1] == a[1, 1]
     end
-    @testset "rand($C)" for C in (Gray24, AGray32)
+    @testset "rand($C)" for C in (Gray24, AGray32, RGB24, ARGB32)
         c = rand(C)
-        b = c.color
-        @test b&0xff == (b>>8)&0xff == (b>>16)&0xff
         @test c isa C
         a = rand(C, 3, 5)
+        @test eltype(a) === C
+        @test size(a) == (3, 5)
+        C in (RGB24, ARGB32) && continue
+        b = c.color
+        @test b&0xff == (b>>8)&0xff == (b>>16)&0xff
         for el in a
             b = el.color
             @test b&0xff == (b>>8)&0xff == (b>>16)&0xff
         end
-        @test eltype(a) === C
-        @test size(a) == (3, 5)
     end
-    @test_broken rand(RGB24)
-    @test_broken rand(ARGB32)
-    @test_broken rand(MersenneTwister(), RGB{N0f8})
-    @test_broken rand!(Gray{Float32}[0.0, 0.1])
-    @test_broken all(all_in_range, rand(ARGB{Q3f12}, 10, 10))
+    @test rand(MersenneTwister(), RGB{N0f8}) isa RGB{N0f8}
+    @test rand!(Gray{Float32}[0.0, 0.1]) isa Vector{Gray{Float32}}
+    a = rand!(Array{RGB}(undef, 3, 5))
+    @test a isa Matrix{RGB}
+    @test typeof(a[1,1]) === RGB{Float64}
     @test_broken all_in_range(LCHab(50, 10, 359))
     @test_broken all_in_range(YIQ(0.5, 0.59, 0.0))
     @test_broken !all_in_range(YIQ(0.5, 0.0, -0.53))
