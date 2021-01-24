@@ -91,12 +91,27 @@ function _precompile_()
     for T in eltypes, C in pctypes
         @assert precompile(Tuple{typeof(rand),Type{C{T}},Tuple{Int}})
         @assert precompile(Tuple{typeof(rand),Type{C{T}},Tuple{Int,Int}})
+        @assert precompile(Tuple{typeof(rand),Type{C{T}},Tuple{Int,Int,Int}})
         @assert precompile(Tuple{typeof(rand),Type{C{T}},Int})
         @assert precompile(Tuple{typeof(rand),Type{C{T}},Int,Int})
+        @assert precompile(Tuple{typeof(rand),Type{C{T}},Int,Int,Int})
     end
     for C in cctypes
         @assert precompile(Tuple{typeof(rand),Type{C},Tuple{Int}})
         @assert precompile(Tuple{typeof(rand),Type{C},Tuple{Int,Int}})
+    end
+    @assert precompile(Tuple{typeof(rand),Type{Gray{Bool}},Tuple{Int}})
+    @assert precompile(Tuple{typeof(rand),Type{Gray{Bool}},Tuple{Int,Int}})
+    @assert precompile(Tuple{typeof(rand),Type{Gray{Bool}},Tuple{Int,Int,Int}})
+    # show
+    for IO in (IOBuffer, IOContext{IOBuffer}, IOContext{Base.TTY})
+        for T in eltypes, C in pctypes
+            @assert precompile(Tuple{typeof(show),IO,C{T}})
+        end
+        for C in cctypes
+            @assert precompile(Tuple{typeof(show),IO,C})
+        end
+        @assert precompile(Tuple{typeof(show),IO,Gray{Bool}})
     end
     # FIXME the following do not yet "work", meaning you can issue these precompile directives but no value comes of it.
     # Possibly this is https://github.com/JuliaLang/julia/pull/32705, but the actual cause is unknown.

@@ -44,20 +44,37 @@ function _rand(::Type{T}) where T<:Colorant
     T(A...)
 end
 
+if Base.VERSION < v"1.6.0-DEV.1083"
+    reinterpretc(::Type{T}, A::Array{C}) where {T<:Real,C<:AbstractGray} = reinterpret(T, A)
+    reinterpretc(::Type{T}, A::Array{C}) where {T<:Real,C<:Colorant} = reshape(reinterpret(T, A), (sizeof(C)÷sizeof(T), size(A)...))
+else
+    reinterpretc(::Type{T}, A::Array{C}) where {T<:Real,C<:Colorant} = reinterpret(reshape, T, A)
+end
+
 function _rand(::Type{T}, sz::Dims) where T<:Colorant
-    Gmax = gamutmax(T)
-    Gmin = gamutmin(T)
     Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
     A = Array{T}(undef, sz)
     Tr = eltype(T) <: FixedPoint ? FixedPointNumbers.rawtype(eltype(T)) : eltype(T)
     nchannels = sizeof(T)÷sizeof(eltype(T))
     Au = Random.UnsafeView(convert(Ptr{Tr}, pointer(A)), length(A)*nchannels)
     rand!(Au)
-    Ar = reshape(reinterpret(eltype(T), A), (nchannels, sz...))
-    for j in eachindex(Gmax)
-        s = Mi * (Gmax[j]-Gmin[j])
-        for i = j:length(Gmax):length(Ar)
-            Ar[i] = Ar[i] * s + Gmin[j]
+
+    Gmax = gamutmax(T)
+    Gmin = gamutmin(T)
+    s = (Gmax .- Gmin) .* Mi
+    if !all(iszero, Gmin) || !all(==(1), s)
+        Ar = reinterpretc(eltype(T), A)
+        if T<:AbstractGray
+            s1, offset1 = s[1], Gmin[1]
+            for I in CartesianIndices(A)
+                Ar[I] = Ar[I] * s1 + offset1
+            end
+        else
+            for I in CartesianIndices(A)
+                for j in eachindex(s)
+                    Ar[j,I] = Ar[j,I] * s[j] + Gmin[j]
+                end
+            end
         end
     end
     return A
