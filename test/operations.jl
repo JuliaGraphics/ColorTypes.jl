@@ -1,5 +1,6 @@
 using ColorTypes
 using ColorTypes.FixedPointNumbers
+using ColorTypes.Random
 using Test
 
 # dummy type
@@ -8,49 +9,59 @@ struct C5{T} <: Color{T,5}
 end
 
 @testset "rand" begin
-    @testset "rand($T)" for T in (
-            Gray{N0f8}, Gray{N2f6}, Gray{N0f16}, Gray{N2f14}, Gray{N0f32}, Gray{N2f30},
-            Gray{Float16}, Gray{Float32}, Gray{Float64},
-            RGB{N0f8}, RGB{N2f6}, RGB{N0f16}, RGB{N2f14}, RGB{N0f32}, RGB{N2f30},
-            RGB{Float16}, RGB{Float32}, RGB{Float64},
+    function all_in_range(c::C) where {C}
+        all(((f, gmin, gmax),) -> gmin <= getfield(c, f) <= gmax,
+            zip(ColorTypes.colorfields(C), gamutmin(C), gamutmax(C)))
+    end
+    eltypes = (N0f8, N2f6, N0f16, N2f14, N0f32, N2f30, Float16, Float32, Float64)
+    @testset "rand($C)" for C in (
+            (Gray{T} for T in eltypes)...,
+            (RGB{T} for T in eltypes)...,
             AGray{Float32}, GrayA{Float64},
-            RGBA{Float32}, ARGB{N0f16}, XRGB{N0f8}, RGBX{Float64},
+            ARGB{Float32}, RGBA{N0f16}, XRGB{N0f8}, RGBX{Float64},
             BGR{Float16}, ABGR{N0f32}, BGRA{N2f14},
+            HSV{Float32}, HSL{Float64}, ALab{Float32}, LCHabA{Float16},
             Gray, AGray, GrayA,
             RGB, ARGB, RGBA, BGR, ABGR, BGRA, XRGB, RGBX,
-            HSV, HSL, Lab, LCHab, YIQ)
-        a = rand(T)
-        @test all(x->x[2]<=getfield(a,x[1])<=x[3],
-                    zip(ColorTypes.colorfields(T),gamutmin(T),gamutmax(T)))
-        @test isa(a, T)
-        a = rand(T, (3, 5))
-        if isconcretetype(T)
-            @test isa(a, Array{T,2})
+            HSV, HSL, Lab, LCHab, YIQ,
+            AHSV, HSLA)
+        if C <: Transparent3 && !(C <: TransparentRGB)
+            @test_broken rand(C)
+            continue
         end
-        for el in a
-            @test all(x->x[2]<=getfield(el,x[1])<=x[3],
-                        zip(ColorTypes.colorfields(T),gamutmin(T),gamutmax(T)))
-        end
-        @test eltype(a) <: T
-        @test size(a) == (3,5)
+        CC = isconcretetype(C) ? C : C{Float64}
+        c = rand(C)
+        @test c isa CC
+        @test all_in_range(c)
+        a = rand(C, (3, 5))
+        @test a isa Array{CC,2}
+        @test eltype(a) === CC
+        @test size(a) == (3, 5)
+        @test all(all_in_range, a)
         ap = a'
-        @test ap[1,1] == a[1,1]
+        @test ap[1, 1] == a[1, 1]
     end
-    @testset "rand($T)" for T in (Gray24, AGray32)
-        a = rand(T)
-        b = a.color
+    @testset "rand($C)" for C in (Gray24, AGray32)
+        c = rand(C)
+        b = c.color
         @test b&0xff == (b>>8)&0xff == (b>>16)&0xff
-        @test isa(a, T)
-        a = rand(T,3,5)
+        @test c isa C
+        a = rand(C, 3, 5)
         for el in a
             b = el.color
             @test b&0xff == (b>>8)&0xff == (b>>16)&0xff
         end
-        @test eltype(a) <: T
-        @test size(a) == (3,5)
+        @test eltype(a) === C
+        @test size(a) == (3, 5)
     end
     @test_broken rand(RGB24)
     @test_broken rand(ARGB32)
+    @test_broken rand(MersenneTwister(), RGB{N0f8})
+    @test_broken rand!(Gray{Float32}[0.0, 0.1])
+    @test_broken all(all_in_range, rand(ARGB{Q3f12}, 1))
+    @test_broken all_in_range(LCHab(50, 10, 359))
+    @test_broken all_in_range(YIQ(0.5, 0.59, 0.0))
+    @test_broken !all_in_range(YIQ(0.5, 0.0, -0.53))
 end
 
 @testset "mapc" begin
