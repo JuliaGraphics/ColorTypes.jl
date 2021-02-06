@@ -856,3 +856,16 @@ end
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff]
     @test_throws ArgumentError RGB24[0x00000000,0x00808080,0x00ffffff,0x000000ff]
 end
+@testset "Color to Array" begin
+    for v in [RGB{Float32}(0.5,0.5,0.5), BGR{Float32}(0.5,0.5,0.5), HSV{Float32}(0.5,0.5,0.5), HSB{Float32}(0.5,0.5,0.5), HSL{Float32}(0.5,0.5,0.5), HSI{Float32}(0.5,0.5,0.5), XYZ{Float32}(0.5,0.5,0.5), xyY{Float32}(0.5,0.5,0.5), Lab{Float32}(0.5,0.5,0.5), LCHab{Float32}(0.5,0.5,0.5), Luv{Float32}(0.5,0.5,0.5), LCHuv{Float32}(0.5,0.5,0.5), DIN99{Float32}(0.5,0.5,0.5), DIN99d{Float32}(0.5,0.5,0.5), DIN99o{Float32}(0.5,0.5,0.5), LMS{Float32}(0.5,0.5,0.5), YIQ{Float32}(0.5,0.5,0.5), YCbCr{Float32}(0.5,0.5,0.5)]
+        @test convert(Array{Float32},v) == Array{Float32}([0.5,0.5,0.5])
+        @test convert(Array{Float64},v) == Array{Float64}([0.5,0.5,0.5])
+        @test convert(Array{N0f8},v) == Array{N0f8}([0.5,0.5,0.5])
+    end
+    for v in [XRGB{Float32}(0.5,0.5,0.5), RGBX{Float32}(0.5,0.5,0.5)]
+        @test convert(Array{Float32},v) == Array{Float32}([1.0,0.5,0.5,0.5])
+        @test convert(Array{Float64},v) == Array{Float64}([1.0,0.5,0.5,0.5])
+        @test convert(Array{N0f8},v) == Array{N0f8}([1.0,0.5,0.5,0.5])
+    end
+end
+#, 

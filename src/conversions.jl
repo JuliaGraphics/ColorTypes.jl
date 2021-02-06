@@ -139,3 +139,25 @@ coloralpha(c::C) where {C<:Color} = coloralpha(C)(c)
 coloralpha(c::C,a) where {C<:Color} = coloralpha(C)(c,a)
 coloralpha(c::C) where {C<:TransparentColor} = coloralpha(base_color_type(C))(color(c), alpha(c))
 coloralpha(c::C,a) where {C<:TransparentColor} = coloralpha(base_color_type(C))(color(c), a)
+
+#Convery for converting color types to an array of a type
+convert(::Type{Array{T}}, c::RGB{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.r), convert(T,c.g), convert(T,c.b)]::Array{T}
+convert(::Type{Array{T}}, c::BGR{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.b), convert(T,c.g), convert(T,c.r)]::Array{T}
+convert(::Type{Array{T}}, c::XRGB{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.alphadummy), convert(T,c.r), convert(T,c.g), convert(T,c.b)]::Array{T}
+convert(::Type{Array{T}}, c::RGBX{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.b), convert(T,c.g), convert(T,c.r), convert(T,c.alphadummy)]::Array{T}
+convert(::Type{Array{T}}, c::HSV{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.h), convert(T,c.s), convert(T,c.v)]::Array{T}
+convert(::Type{Array{T}}, c::HSB{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.h), convert(T,c.s), convert(T,c.v)]::Array{T}
+convert(::Type{Array{T}}, c::HSL{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.h), convert(T,c.s), convert(T,c.l)]::Array{T}
+convert(::Type{Array{T}}, c::HSI{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.h), convert(T,c.s), convert(T,c.i)]::Array{T}
+convert(::Type{Array{T}}, c::XYZ{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.x), convert(T,c.y), convert(T,c.z)]::Array{T}
+convert(::Type{Array{T}}, c::xyY{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.x), convert(T,c.y), convert(T,c.Y)]::Array{T}
+convert(::Type{Array{T}}, c::Lab{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.a), convert(T,c.b)]::Array{T}
+convert(::Type{Array{T}}, c::LCHab{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.c), convert(T,c.h)]::Array{T}
+convert(::Type{Array{T}}, c::Luv{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.u), convert(T,c.v)]::Array{T}
+convert(::Type{Array{T}}, c::LCHuv{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.c), convert(T,c.h)]::Array{T}
+convert(::Type{Array{T}}, c::DIN99{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.a), convert(T,c.b)]::Array{T}
+convert(::Type{Array{T}}, c::DIN99d{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.a), convert(T,c.b)]::Array{T}
+convert(::Type{Array{T}}, c::DIN99o{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.a), convert(T,c.b)]::Array{T}
+convert(::Type{Array{T}}, c::LMS{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.l), convert(T,c.m), convert(T,c.s)]::Array{T}
+convert(::Type{Array{T}}, c::YIQ{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.y), convert(T,c.i), convert(T,c.q)]::Array{T}
+convert(::Type{Array{T}}, c::YCbCr{G}) where {T <: Fractional, G <: Fractional} = [convert(T,c.y), convert(T,c.cb), convert(T,c.cr)]::Array{T}
