@@ -58,7 +58,7 @@ end
     @test_broken rand(ARGB32)
     @test_broken rand(MersenneTwister(), RGB{N0f8})
     @test_broken rand!(Gray{Float32}[0.0, 0.1])
-    @test_broken all(all_in_range, rand(ARGB{Q3f12}, 1))
+    @test_broken all(all_in_range, rand(ARGB{Q3f12}, 10, 10))
     @test_broken all_in_range(LCHab(50, 10, 359))
     @test_broken all_in_range(YIQ(0.5, 0.59, 0.0))
     @test_broken !all_in_range(YIQ(0.5, 0.0, -0.53))
