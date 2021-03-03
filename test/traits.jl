@@ -666,6 +666,8 @@ end
     @test RGB(0.2, 0.8, 0.4) ≈ RGB(0.2, 0.8 + eps(), 0.4)
     @test RGBA(0.2, 0.8, 0.4, 0.2) ≈ RGBA(0.2, 0.8 + eps(), 0.4, 0.2 - eps())
 
+    @test !isapprox(Gray(1), RGB(1, 1, 1))
+
     c_n0f8 = RGB{N0f8}(0.2, 0.69, 0.4)
     c_f32 = RGB{Float32}(0.2, 0.69, 0.4)
     @test c_n0f8 != c_f32 && c_n0f8 ≈ c_f32
