@@ -423,4 +423,4 @@ In most cases, adding a new color space is quite straightforward:
 In special cases, there may be other considerations:
 - For `AbstractRGB`/`AbstractGray` types, `0` means "black" and `1` means
   "saturated."
-- If your type has extra fields, check the "Generated code" section of `types.jl` carefully. You may need to define a `colorfields` function and/or call `@make_constructors` or `@make_alpha` manually.
+- If your type has extra fields, check the "Generated code" section of `types.jl` carefully. You may need to define a `colorfields` function and/or call `@make_alpha` manually.
