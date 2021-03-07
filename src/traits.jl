@@ -135,12 +135,11 @@ end
 function eltypes_supported(::Type{C}) where {C<:Colorant}
     Cb = base_colorant_type(C)
     isconcretetype(C) && C === Cb && return eltype(C)
-    _eltypes_supported(Cb)
+    _eltypes_supported(Cb, supertype(Cb))
 end
-@pure function _eltypes_supported(::Type{C}) where {C<:Colorant}
-    nameof(C) === :Colorant || return _eltypes_supported(supertype(C))
-    _parameter_upper_bound(C, 1)
-end
+_eltypes_supported(::Type{<:Color   }, ::Type{C}) where {C<:Color   } = _eltypes_supported(C, supertype(C)) # may help caching
+_eltypes_supported(::Type{<:Colorant}, ::Type{C}) where {C<:Colorant} = _eltypes_supported(C, supertype(C))
+_eltypes_supported(::Type{C}, ::Type) where {C<:Colorant} = _parameter_upper_bound(C, 1)
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
@@ -168,11 +167,12 @@ For example,
 when writing generic code.
 """
 color_type(::Type{C}) where {C<:Color} = C
-color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C))
-color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C))
+color_type(::Type{C}) where {C<:AlphaColor} = color_type(supertype(C)) # may help caching
+color_type(::Type{C}) where {C<:ColorAlpha} = color_type(supertype(C)) # may help caching
 function color_type(::Type{TC}) where {TC <: TransparentColor}
     _color_type(::Type{TC}) where {C, TC <: TransparentColor{C}} = C
-    if TC isa UnionAll && nameof(TC) === :TransparentColor
+    if TC isa UnionAll
+        supertype(TC) <: TransparentColor && return color_type(supertype(TC))
         C1 = _parameter_upper_bound(TC, 1)
         color_type(C1) # simplify
     else
