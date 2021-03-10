@@ -46,7 +46,6 @@ function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant
     et, alpha = _promote_et(C1, C2), _promote_alpha(C1, C2)
     Cp1, Cp2 = parametric_colorant(C1), parametric_colorant(C2)
     color = _promote_color(base_color_type(Cp1), base_color_type(Cp2))
-
     _with_et(C::UnionAll, et) = isconcretetype(et) ? C{et} : C
     if !isabstracttype(color)
         alpha <: Color && return _with_et(color, et)
@@ -112,10 +111,11 @@ convert(::Type{GrayA{T}}, x::Real) where {T} = GrayA{T}(x)
 
 convert(::Type{T}, x::Gray  ) where {T<:Real} = convert(T, x.val)
 convert(::Type{T}, x::Gray24) where {T<:Real} = convert(T, gray(x))
-(::Type{T})(x::AbstractGray)  where {T<:Real} = T(gray(x))
 
-real(x::AbstractGray) = gray(x)
-real(::Type{C}) where {C<:AbstractGray} = real(eltype(C))
+(::Type{T})(x::ColorantN{1})  where {T<:Real} = T(comp1(x))
+
+real(x::ColorantN{1}) = comp1(x)
+real(x::Type{<:ColorantN{1}}) = real(eltype(x))
 
 # Define some constructors that just call convert since the fallback constructor in Base
 # is removed in Julia 0.7

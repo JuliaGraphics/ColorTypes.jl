@@ -16,6 +16,17 @@ grayscale) with no transparency.
 abstract type Color{T, N} <: Colorant{T,N} end
 
 """
+`AbstractGray{T}` is an abstract supertype for gray types which corresponds to
+real numbers, where `0` means black and `1` means white.
+
+!!! compat "ColorTypes v0.12"
+    Prior to ColorTypes v0.12, `AbstractGray{T}` was the alias for `Color{T,1}`;
+    after ColorTypes v0.12, `Color{T,1}` does not necessarily correspond to the
+    black-gray-white colors.
+"""
+abstract type AbstractGray{T} <: Color{T,1} end
+
+"""
 `AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
 can be constructed as `C(r, g, b)` and for which the elements can be
 extracted as `red(c)`, `green(c)`, `blue(c)`. You should *not* make
@@ -65,7 +76,6 @@ alpha channel comes last in the internal storage order.
 abstract type ColorAlpha{C<:Color,T,N} <: TransparentColor{C,T,N} end
 
 # These are types we'll dispatch on.
-AbstractGray{T}                    = Color{T,1}
 Color3{T}                          = Color{T,3}
 TransparentGray{C<:AbstractGray,T} = TransparentColor{C,T,2}
 Transparent3{C<:Color3,T}          = TransparentColor{C,T,4}

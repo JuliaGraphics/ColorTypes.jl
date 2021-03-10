@@ -133,6 +133,12 @@ end
     @test_throws MethodError GrayA(0.8, 0.4) <= GrayA(0.9, 0.4)
     @test_throws MethodError GrayA(0.9, 0.4) > GrayA(0.8, 0.4)
     @test_throws MethodError GrayA(0.9, 0.4) >= GrayA(0.8, 0.4)
+
+    # 1-component color but not a gray
+    @test_throws MethodError Cyanotype{Float32}(0.8) < Cyanotype{Float32}(0.9)
+    @test_throws MethodError isless(Cyanotype{Float32}(0.8), Cyanotype{Float32}(0.9))
+    @test_throws MethodError Cyanotype{Float64}(0.8) < Gray(0.9)
+    @test_throws MethodError Cyanotype{Float64}(0.8) < 0.9
 end
 
 @testset "rand" begin

@@ -152,7 +152,7 @@ end
     @test comp4(ac4) === 0.4f0
     @test comp5(ac4) === 0.5f0
     ct = Cyanotype{Float32}(0.8) # 1-component color but not a gray
-    @test_broken comp1(ct) === 0.8f0
+    @test comp1(ct) === 0.8f0
     rgba32 = CustomTypes.RGBA32(1, 0.5, 0, 0.8)
     @test comp1(rgba32) === 1N0f8
     @test comp2(rgba32) === 0.5N0f8
