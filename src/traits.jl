@@ -137,8 +137,7 @@ function eltypes_supported(::Type{C}) where {C<:Colorant}
     isconcretetype(C) && C === Cb && return eltype(C)
     _eltypes_supported(Cb, supertype(Cb))
 end
-_eltypes_supported(::Type{<:Color   }, ::Type{C}) where {C<:Color   } = _eltypes_supported(C, supertype(C)) # may help caching
-_eltypes_supported(::Type{<:Colorant}, ::Type{C}) where {C<:Colorant} = _eltypes_supported(C, supertype(C))
+@pure _eltypes_supported(::Type{<:Colorant}, ::Type{C}) where {C<:Colorant} = _eltypes_supported(C, supertype(C))
 _eltypes_supported(::Type{C}, ::Type) where {C<:Colorant} = _parameter_upper_bound(C, 1)
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
