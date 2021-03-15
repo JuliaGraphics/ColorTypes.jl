@@ -448,34 +448,6 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Union
     return C{Tdef}
 end
 
-struct BoolTuple end
-@inline BoolTuple(args::Bool...) = args
-
-### Equality
-_is_same_colorspace(a, b) = base_colorant_type(a) === base_colorant_type(b)
-_is_same_colorspace(a::TransparentColor, b::TransparentColor) = base_color_type(a) === base_color_type(b)
-_is_same_colorspace(a::AbstractGray, b::AbstractGray) = true
-_is_same_colorspace(a::TransparentGray, b::TransparentGray) = true
-_is_same_colorspace(a::AbstractRGB, b::AbstractRGB) = true
-_is_same_colorspace(a::TransparentRGB, b::TransparentRGB) = true
-
-function ==(a::ColorantN{N}, b::ColorantN{N}) where {N}
-    _is_same_colorspace(a, b) || return false
-    all(_mapc(BoolTuple, ==, a, b))
-end
-==(x::Number, y::AbstractGray) = x == gray(y)
-==(x::AbstractGray, y::Number) = ==(y, x)
-
-
-function isapprox(a::ColorantN{N}, b::ColorantN{N}; kwargs...) where {N}
-    _is_same_colorspace(a, b) || return false
-    componentapprox(x, y) = isapprox(x, y; kwargs...)
-    all(_mapc(BoolTuple, componentapprox, a, b))
-end
-isapprox(a::Colorant, b::Colorant; kwargs...) = false
-isapprox(a::Number, b::AbstractGray; kwargs...) = isapprox(a, gray(b); kwargs...)
-isapprox(a::AbstractGray, b::Number; kwargs...) = isapprox(b, a; kwargs...)
-
 zero(::Type{C}) where {C<:Gray} = C(0)
 oneunit(::Type{C}) where {C<:Gray} = C(1)
 
@@ -485,11 +457,3 @@ function Base.one(::Type{C}) where {C<:Gray}
 end
 
 Base.broadcastable(x::Colorant) = Ref(x)
-
-isless(a::AbstractGray, b::AbstractGray) = isless(gray(a), gray(b))
-isless(a::AbstractGray, b::Real)         = isless(gray(a), b)
-isless(a::Real,         b::AbstractGray) = isless(a,       gray(b))
-
-<(a::AbstractGray, b::AbstractGray) = gray(a) < gray(b)
-<(a::AbstractGray, b::Real)         = gray(a) < b
-<(a::Real,         b::AbstractGray) = a       < gray(b)
