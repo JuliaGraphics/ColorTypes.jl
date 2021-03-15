@@ -76,6 +76,11 @@ struct CMYK{T <: Fractional} <: Color{T,4} # not `Transparent3`
     k::T
     CMYK{T}(c::T, m::T, y::T, k::T) where {T} = new{T}(c, m, y, k)
 end
+# TODO: The following should be generated automatically
+CMYK{T}(c, m, y, k) where {T} = CMYK{T}(T(c), T(m), T(y), T(k))
+
+ColorTypes.eltype_default(::Type{<:CMYK}) = N0f8
+Base.oneunit(::Type{C}) where {C <: CMYK} = (isconcretetype(C) ? C : C{N0f8})(1, 1, 1, 1)
 
 # minimal type for testing 5-component color
 struct ACMYK{T <: Fractional} <: AlphaColor{CMYK{T},T,5}
@@ -89,5 +94,5 @@ end
 # TODO: The following should be generated automatically
 ACMYK{T}(c, m, y, k, alpha=1) where {T} = ACMYK{T}(T(c), T(m), T(y), T(k), T(alpha))
 ACMYK(c::T, m::T, y::T, k::T, alpha::T=oneunit(T)) where {T} = ACMYK{T}(c, m, y, k, alpha)
-
+ACMYK{T}(col::CMYK{T}, alpha::T=oneunit(T)) where {T} = ACMYK{T}(col.c, col.m, col.y, col.k, alpha)
 end # module
