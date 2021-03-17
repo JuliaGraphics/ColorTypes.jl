@@ -2,19 +2,8 @@ using ColorTypes
 using ColorTypes.FixedPointNumbers
 using Test
 
-# dummy type for testing 2-component color
-struct AnaglyphColor{T} <: Color{T,2} # not `TransparentGray`
-    left::T; right::T
-end
-# dummy type for testing 4-component color
-struct CMYK{T} <: Color{T,4} # not `Transparent3`
-    c::T; m::T; y::T; k::T
-end
-# dummy type for testing 5-component color
-struct ACMYK{T} <: AlphaColor{CMYK{T},T,5}
-    alpha::T; c::T; m::T; y::T; k::T
-    ACMYK{T}(c, m, y, k, alpha=1) where T = new{T}(alpha, c, m, y, k)
-end
+@isdefined(CustomTypes) || include("customtypes.jl")
+using .CustomTypes
 
 SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
 

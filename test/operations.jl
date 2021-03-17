@@ -3,10 +3,8 @@ using ColorTypes.FixedPointNumbers
 using ColorTypes.Random
 using Test
 
-# dummy type
-struct C5{T} <: Color{T,5}
-    c1::T; c2::T; c3::T; c4::T; c5::T
-end
+@isdefined(CustomTypes) || include("customtypes.jl")
+using .CustomTypes
 
 @testset "comparisons" begin
     Cp3 = ColorTypes.parametric3
@@ -200,14 +198,14 @@ end
     @test @inferred(mapc(x->2x, RGB{N0f8}(0.04,0.2,0.3))) === RGB(map(x->2*N0f8(x), (0.04,0.2,0.3))...)
     @test @inferred(mapc(sqrt, RGBA{N0f8}(0.04,0.2,0.3,0.7))) === RGBA(map(x->sqrt(N0f8(x)), (0.04,0.2,0.3,0.7))...)
     @test @inferred(mapc(x->1.5f0x, RGBA{N0f8}(0.04,0.2,0.3,0.4))) === RGBA(map(x->1.5f0*N0f8(x), (0.04,0.2,0.3,0.4))...)
-    @test @inferred(mapc(sqrt, C5{N0f8}(0.04,0.2,0.3,0.7,0.1))) === C5(map(x->sqrt(N0f8(x)), (0.04,0.2,0.3,0.7,0.1))...)
+    @test @inferred(mapc(sqrt, ACMYK{N0f8}(0.04,0.2,0.3,0.7,0.1))) === ACMYK(map(x->sqrt(N0f8(x)), (0.04,0.2,0.3,0.7,0.1))...)
 
     @test @inferred(mapc(max, Gray{N0f8}(0.2), Gray{N0f8}(0.3))) === Gray{N0f8}(0.3)
     @test @inferred(mapc(-, AGray{Float32}(0.3), AGray{Float32}(0.2))) === AGray{Float32}(0.3f0-0.2f0,0.0)
     @test @inferred(mapc(min, RGB{N0f8}(0.2,0.8,0.7), RGB{N0f8}(0.5,0.2,0.99))) === RGB{N0f8}(0.2,0.2,0.7)
     @test @inferred(mapc(+, RGBA{N0f8}(0.2,0.8,0.7,0.3), RGBA{Float32}(0.5,0.2,0.99,0.5))) === RGBA(0.5f0+N0f8(0.2),0.2f0+N0f8(0.8),0.99f0+N0f8(0.7),0.5f0+N0f8(0.3))
     @test @inferred(mapc(+, HSVA(0.1,0.8,0.3,0.5), HSVA(0.5,0.5,0.5,0.3))) === HSVA(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.3)
-    @test @inferred(mapc(+, C5(0.1,0.8,0.3,0.5,0.2), C5(0.5,0.5,0.5,0.5,0.5))) === C5(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.5,0.2+0.5)
+    @test @inferred(mapc(+, ACMYK(0.1,0.8,0.3,0.5,0.2), ACMYK(0.5,0.5,0.5,0.5,0.5))) === ACMYK(0.1+0.5,0.8+0.5,0.3+0.5,0.5+0.5,0.2+0.5)
 
     @test_throws ArgumentError mapc(min, RGB{N0f8}(0.2,0.8,0.7), BGR{N0f8}(0.5,0.2,0.99))
     @test @inferred(mapc(abs, -2)) === 2
@@ -220,7 +218,7 @@ end
     @test @inferred(reducec(+, 0.0, AGray(0.3, 0.8))) === 0.3 + 0.8
     @test @inferred(reducec(+, 0.0, RGB(0.3, 0.8, 0.5))) === (0.3 + 0.8) + 0.5
     @test @inferred(reducec(+, 0.0, RGBA(0.3, 0.8, 0.5, 0.7))) === ((0.3 + 0.8) + 0.5) + 0.7
-    @test @inferred(reducec(+, 0.0, C5(0.3, 0.8, 0.5, 0.7, 0.2))) === (((0.3 + 0.8) + 0.5) + 0.7) + 0.2
+    @test @inferred(reducec(+, 0.0, ACMYK(0.3, 0.8, 0.5, 0.7, 0.2))) === (((0.3 + 0.8) + 0.5) + 0.7) + 0.2
     @test @inferred(reducec(&, true, Gray(true)))
     @test !(@inferred(reducec(&, false, Gray(true))))
     @test !(@inferred(reducec(&, true, Gray(false))))
@@ -239,7 +237,7 @@ end
     @test @inferred(mapreducec(x->x^2, +, 0.0, AGray(0.3, 0.8))) === 0.3^2 + 0.8^2
     @test @inferred(mapreducec(x->x^2, +, 0.0, RGB(0.3, 0.8, 0.5))) === (0.3^2 + 0.8^2) + 0.5^2
     @test @inferred(mapreducec(x->x^2, +, 0.0, RGBA(0.3, 0.8, 0.5, 0.7))) === ((0.3^2 + 0.8^2) + 0.5^2) + 0.7^2
-    @test @inferred(mapreducec(x->x^2, +, 0.0, C5(0.3, 0.8, 0.5, 0.7, 0.2))) === (((0.3^2 + 0.8^2) + 0.5^2) + 0.7^2) + 0.2^2
+    @test @inferred(mapreducec(x->x^2, +, 0.0, ACMYK(0.3, 0.8, 0.5, 0.7, 0.2))) === (((0.3^2 + 0.8^2) + 0.5^2) + 0.7^2) + 0.2^2
 
     @test !(@inferred(mapreducec(x->!x, &, true, Gray(true))))
     @test !(@inferred(mapreducec(x->!x, &, false, Gray(true))))
