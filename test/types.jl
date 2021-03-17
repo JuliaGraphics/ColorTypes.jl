@@ -2,7 +2,6 @@ using ColorTypes
 using ColorTypes.FixedPointNumbers
 using Test
 
-
 @testset "compatibility tests for ARGB32/AGray32" begin
     # cf. PR #146
     @test ARGB32 <: AlphaColor{RGB24, N0f8, 4}

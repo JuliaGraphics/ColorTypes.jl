@@ -3,20 +3,8 @@ using ColorTypes.FixedPointNumbers
 using Test
 using ColorTypes: ColorTypeResolutionError
 
-# dummy types
-struct C2{T <: Real} <: Color{T,2}
-    c1::T; c2::T;
-end
-struct C2A{T} <: ColorAlpha{C2{T},T,3}
-    c1::T; c2::T; alpha::T
-end
-struct C4{T} <: Color{T,4}
-    c1::T; c2::T; c3::T; c4::T
-end
-struct AC4{T} <: AlphaColor{C4{T},T,5}
-    alpha::T; c1::T; c2::T; c3::T; c4::T
-    AC4{T}(c1, c2, c3, c4, alpha=1) where T = new{T}(alpha, c1, c2, c3, c4)
-end
+@isdefined(CustomTypes) || include("customtypes.jl")
+using .CustomTypes
 
 struct StrangeGray{Something,T <: Integer} <: AbstractGray{Normed{T}}
     val::T
