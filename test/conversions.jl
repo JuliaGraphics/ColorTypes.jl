@@ -818,7 +818,7 @@ end
 
     @test reinterpret(AGray32, 0xab121212) === AGray32(0.071, 0.671)
 
-    @test_throws MethodError reinterpret(UInt32, ARGB{N0f8}())
+    @test_throws ErrorException reinterpret(UInt32, ARGB{N0f8}(1, 0, 0))
     @test_throws ErrorException reinterpret(ARGB{N0f8}, 0x12345678)
 end
 
