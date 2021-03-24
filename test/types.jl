@@ -2,6 +2,9 @@ using ColorTypes
 using ColorTypes.FixedPointNumbers
 using Test
 
+@isdefined(CustomTypes) || include("customtypes.jl")
+using .CustomTypes
+
 @testset "compatibility tests for ARGB32/AGray32" begin
     # cf. PR #146
     @test ARGB32 <: AlphaColor{RGB24, N0f8, 4}
@@ -109,6 +112,8 @@ end
             @test C(val1) === C{typeof(val1)}(0.2,0.2,0.2)
             @test C{N0f8}(val1) === C{N0f8}(0.2,0.2,0.2)
         end
+        # 0-arg constructor
+        @test C() === C{N0f8}(0, 0, 0)
 
         @test_throws ArgumentError C(2,1,0) # integers
 
@@ -174,6 +179,9 @@ end
         @test RGB24(val1) === RGB24(0.2,0.2,0.2)
         @test ARGB32(val1) === ARGB32(0.2,0.2,0.2,1)
     end
+    # 0-arg constructor
+    @test RGB24() === RGB24(0, 0, 0)
+    @test ARGB32() === ARGB32(0, 0, 0, 1)
 
     @test_throws ArgumentError RGB24(2,1,0) # integers
     @test_throws ArgumentError ARGB32(2,1,0) # integers
@@ -212,40 +220,94 @@ end
     @test ARGB32(0.2, 0.3, 0.4, Gray(0.5)) === ARGB32(0.2, 0.3, 0.4, 0.5)
     @test RGB(0.2, Gray24(0.3), 0.4) === RGB(0.2, 0.3N0f8, 0.4)
     @test_throws MethodError HSV(0.2, 0.3, Gray(0.4))
+    @test_throws MethodError ALab(0.2, 0.3, 0.4, Gray24(0.5))
 end
 
 @testset "gray constructors" begin
     for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
                 Gray{N0f8}(0.2), Gray{N4f12}(0.2), Gray24(0.2))
-        @test isa(Gray(val), Gray)
+        T = val isa AbstractGray ? eltype(val) : typeof(val)
+        @test Gray(val) === Gray{T}(0.2)
         @test Gray{N0f8}(val) === Gray{N0f8}(0.2)
         @test Gray{N0f16}(val) === Gray{N0f16}(0.2)
         @test Gray24(val) === Gray24(0.2)
-        @test GrayA{N0f8}(val) === GrayA{N0f8}(0.2, 1)
-        @test AGray{N0f16}(val) === AGray{N0f16}(0.2, 1)
-        @test AGray32(val) === AGray32(0.2, 1)
-        @test AGray32(val, 0.8) === AGray32(0.2, 0.8)
     end
     for val in (1.2, 1.2f0, N4f12(1.2), Gray{N4f12}(1.2), 2, -0.2)
-        !isa(val, Int) && @test isa(Gray(val), Gray)
+        T = val isa AbstractGray ? eltype(val) : typeof(val)
+        !isa(val, Int) && @test Gray(val) === Gray{T}(val)
         @test_throws ArgumentError Gray{N0f8}(val)
         @test_throws ArgumentError Gray{N0f16}(val)
         @test_throws ArgumentError Gray24(val)
-        @test_throws ArgumentError GrayA{N0f8}(val)
-        @test_throws ArgumentError AGray{N0f16}(val)
-        @test_throws ArgumentError AGray32(val)
-        @test_throws ArgumentError AGray32(val, 0.8)
     end
+    # 0-arg constructor
     @test Gray() === Gray{N0f8}(0)
+    @test Gray24() === Gray24(0)
+
     @test Gray(Gray()) === Gray()  # no StackOverflowError
     @test Gray(1) === Gray{N0f8}(1)
     @test Gray(true) === Gray{Bool}(1)
+    # construction from a "transparent" gray
     @test Gray(GrayA(0.2,0.8)) === Gray{Float64}(0.2)
     @test Gray(AGray32(0.2,0.8)) === Gray{N0f8}(0.2)
     @test Gray24(AGray(0.2,0.8)) === Gray24(0.2)
     @test Gray24(AGray32(0.2,0.8)) === Gray24(0.2)
+
     @test eltype(broadcast(Gray, rand(5))) == Gray{Float64}
     @test eltype(broadcast(Gray, rand(Float32,5))) == Gray{Float32}
+end
+
+@testset "transparent gray constructors" begin
+    for val in (0.2, 0.2f0, N0f8(0.2), N4f12(0.2), N0f16(0.2),
+                Gray{N0f8}(0.2), Gray{N4f12}(0.2), Gray24(0.2))
+        T = val isa AbstractGray ? eltype(val) : typeof(val)
+        @test @inferred(AGray(val)) === AGray{T}(0.2, 1)
+        @test AGray{N0f8}(val) === AGray{N0f8}(0.2, 1)
+        @test GrayA{N0f16}(val) === GrayA{N0f16}(0.2, 1)
+        @test AGray32(val) === AGray32(0.2, 1)
+        @test AGray32(val, 0.8) === AGray32(0.2, 0.8)
+        if val isa FixedPoint
+            @test AGray(val, 1) === AGray{Float32}(0.2, 1) # inconsistent eltype
+            @test_broken @inferred(AGray(val, 1)) === AGray{T}(0.2, 1)
+            @test_broken @inferred(GrayA(val, 0)) === GrayA{T}(0.2, 0)
+        else
+            @test @inferred(AGray(val, 1)) === AGray{T}(0.2, 1)
+            @test @inferred(GrayA(val, 0)) === GrayA{T}(0.2, 0)
+        end
+        Ta = val isa AbstractGray ? T : Float64
+        if val isa Gray24
+            @test_broken @inferred(AGray(val, 0.8)) === AGray{Ta}(val, 0.8)
+            @test_broken @inferred(GrayA(val, 0.8)) === GrayA{Ta}(val, 0.8)
+        else
+            @test @inferred(AGray(val, 0.8)) === AGray{Ta}(val, 0.8)
+            @test @inferred(GrayA(val, 0.8)) === GrayA{Ta}(val, 0.8)
+        end
+        if !(val isa AbstractFloat)
+            @test_broken @inferred(AGray(0, val)) === AGray{T}(0, 0.2)
+            @test_broken @inferred(GrayA(1, val)) === GrayA{T}(1, 0.2)
+        else
+            @test @inferred(AGray(0, val)) === AGray{T}(0, 0.2)
+            @test @inferred(GrayA(1, val)) === GrayA{T}(1, 0.2)
+        end
+    end
+    for val in (1.2, 1.2f0, N4f12(1.2), Gray{N4f12}(1.2), 2, -0.2)
+        T = val isa AbstractGray ? eltype(val) : typeof(val)
+        !isa(val, Int) && @test @inferred(AGray(val)) === AGray{T}(val, 1)
+        !isa(val, Int) && @test @inferred(GrayA(val)) === GrayA{T}(val, 1)
+        @test_throws ArgumentError AGray{N0f8}(val)
+        @test_throws ArgumentError GrayA{N0f16}(val, 0.8)
+        @test_throws ArgumentError AGray32(val)
+        @test_throws ArgumentError AGray32(val, 0.8)
+    end
+    # 0-arg constructor
+    @test AGray() === AGray{N0f8}(0, 1)
+    @test GrayA() === GrayA{N0f8}(0, 1)
+    @test AGray32() === AGray32(0, 1)
+
+    @test AGray(AGray()) === AGray()  # no StackOverflowError
+    # construction from a "transparent" gray
+    @test AGray{N0f16}(AGray(0.2, 0.8)) === AGray{N0f16}(0.2, 0.8)
+    @test_broken GrayA{Float16}(AGray(0.2, 0.8), 0.6) === GrayA{Float16}(0.2, 0.6)
+    @test_broken AGray32(AGray32(0.2, 0.8), 0.6) === AGray32(0.2, 0.6)
 end
 
 @testset "parametric3 constructors" begin
@@ -278,7 +340,52 @@ end
         end
         @test C() === C{et}(0,0,0,1)
         @test C(C()) === C()  # no StackOverflowError
+        @test C{Float16}(C(1, 0, 0, 0.8)) === C{Float16}(1, 0, 0, 0.8)
     end
+end
+
+@testset "constructors for other types" begin
+    # @test Cyanotype() === Cyanotype{Float32}(0)
+    # @test Cyanotype(1) === Cyanotype{Float32}(1)
+
+    # @test C2() === C2{Float32}(0, 0)
+    @test_throws MethodError C2(1)
+    # @test C2(0.2, 0) === C2{Float64}(0.2, 0.0)
+    # The following is the result of the default constructor having priority.
+    # If you give preference to `eltype_default`, define the constructor
+    # explicitly to prevent implicit argument conversion.
+    @test C2(0, 1) === C2{Int}(0, 1) # !== C2{Float32}(0, 1)
+
+    # @test C2A() === C2A{Float32}(0, 0, 1)
+    @test_throws MethodError C2A(1)
+    # @test C2A(0.2, 0) === C2A{Float64}(0.2, 0.0, 1.0)
+    # @test C2A(0, 2, 1) === C2A{Float32}(0, 2, 1)
+
+    # @test C4() === C4{Int16}(0, 0, 0, 0)
+    @test_throws MethodError C4(1)
+    @test_throws MethodError C4(1, 2)
+    @test_throws MethodError C4(1, 2, 3)
+    # @test C4(0.2, 0.5f0, 0.4, 0) === C4{Float64}(0.2, 0.5, 0.4, 0.0)
+    # @test C4(0, true, 0x2, 3) === C4{Int}(0, 1, 2, 3)
+    # @test C4(false, true, 0x2, Int8(3)) === C4{Int16}(0, 1, 2, 3)
+
+    @test_broken AC4() === AC4{Int16}(0, 0, 0, 0, 1)
+    @test_throws MethodError AC4(1)
+    @test_throws MethodError AC4(1, 2)
+    @test_throws MethodError AC4(1, 2, 3)
+    # @test AC4(0.2, 0.5f0, 0.4, 0) === AC4{Float64}(0.2, 0.5, 0.4, 0.0, 1.0)
+    # @test AC4(false, true, 0x2, Int8(3), Int16(1)) === AC4{Int16}(0, 1, 2, 3, 1)
+end
+
+@testset "construction from a non-gray Color1" begin
+    ct = Cyanotype{Float32}(0.8) # blue (#006B8F), not light gray
+    @test_broken Gray(ct) != Gray{Float32}(0.8)
+    @test_broken AGray(ct) != AGray{Float32}(0.8, 1)
+    @test_broken GrayA(ct, 0.2) != AGray{Float32}(0.8, 0.2)
+    @test_throws MethodError AGray(1, ct)
+    @test RGB(ct) === RGB{Float32}(0, 0.42, 0.56)
+    @test_broken ARGB(ct) === ARGB{Float32}(0, 0.42, 0.56, 1)
+    @test RGBA(ct, 0.2) === RGBA{Float32}(0, 0.42, 0.56, 0.2)
 end
 
 @testset "coloralpha for types" begin

@@ -5,7 +5,7 @@ using ColorTypes
 using ColorTypes.FixedPointNumbers
 
 export C2, C2A, C4, AC4
-export StrangeGray
+export StrangeGray, Cyanotype
 export AnaglyphColor, CMYK, ACMYK
 
 struct C2{T <: Real} <: Color{T,2}
@@ -40,7 +40,6 @@ ColorTypes.alphacolor(::Type{<:C4}) = AC4
 ColorTypes.eltype_default(::Type{<:AC4}) = Int16
 # TODO: The following should be generated automatically
 AC4{T}(c1, c2, c3, c4, alpha=1) where {T} = AC4{T}(T(c1), T(c2), T(c3), T(c4), T(alpha))
-
 
 struct StrangeGray{Something,T <: Integer} <: AbstractGray{Normed{T}}
     val::T

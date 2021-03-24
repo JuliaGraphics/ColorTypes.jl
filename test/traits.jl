@@ -6,15 +6,6 @@ using ColorTypes: ColorTypeResolutionError
 @isdefined(CustomTypes) || include("customtypes.jl")
 using .CustomTypes
 
-struct StrangeGray{Something,T <: Integer} <: AbstractGray{Normed{T}}
-    val::T
-    function StrangeGray{T}(g::Normed{T,f}) where {T,f}
-        f == sizeof(T) || error()
-        new{:X,T}(reinterpret(g))
-    end
-end
-ColorTypes.gray(g::StrangeGray{X,T}) where {X, T} = reinterpret(Normed{T,sizeof(T)}, g.val)
-
 @testset "RGB accessors" begin
 
     # This also checks that the constructor order is the same, even if the
@@ -61,8 +52,11 @@ end
     @test alpha(RGB24(0.2, 0.3, 0.4)) === 1N0f8
     @test alpha(ARGB32(0.2, 0.3, 0.4, 0.8)) === 0.8N0f8
     @test alpha(HSV(100, 0.4, 0.6)) === 1.0
+    @test alpha(HSV{Float16}(100, 0.4, 0.6)) === Float16(1.0)
     @test alpha(HSVA(100, 0.4, 0.6, 0.8)) === 0.8
     @test alpha(AHSV{Float32}(100, 0.4, 0.6, 0.8)) === 0.8f0
+    @test_broken alpha(0) === N0f8(1)
+    @test_broken alpha(0.0f0) === 1.0f0
 end
 
 @testset "gray" begin
@@ -75,13 +69,14 @@ end
     @test gray(Gray{Bool}(0)) === false
 
     @testset "gray for Real" begin
-        @test gray(1) === 1
+        @test gray(1) === 1 # TODO: change it to return `N0f8(1)`
         @test gray(0.8) === 0.8
         @test gray(0.8N0f8) === 0.8N0f8
         @test gray(true) === true
         @test gray(false) === false
     end
     @test_throws MethodError gray(HSVA(100, 0.4, 0.6, 0.8))
+    @test_throws MethodError gray(Cyanotype{Float32}(0.8)) # 1-component color but not a gray
 end
 
 @testset "chroma" begin
@@ -148,6 +143,8 @@ end
     @test comp3(ac4) === 0.3f0
     @test comp4(ac4) === 0.4f0
     @test comp5(ac4) === 0.5f0
+    ct = Cyanotype{Float32}(0.8) # 1-component color but not a gray
+    @test_broken comp1(ct) === 0.8f0
 end
 
 @testset "color" begin
