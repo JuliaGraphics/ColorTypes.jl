@@ -118,8 +118,13 @@ end
     end
     @test ColorTypes.colorant_string_with_eltype(HSV{AbstractFloat}) == "HSV{AbstractFloat}"
     @test ColorTypes.colorant_string_with_eltype(TransparentColor) == "TransparentColor"
-    @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
-        "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)N} where N"
+    if occursin("where", sprint(show, Array{Float32, N} where N)) # cf. JuliaLang/julia PR #39395
+        @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
+            "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)N} where N"
+    else
+        @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
+            "TransparentColor{RGB{Float32},$(SP)Float32}"
+    end
     @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32,4}) ==
         "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)4}"
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
