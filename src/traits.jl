@@ -477,6 +477,10 @@ zero(::Type{C}) where {C<:ColorantN{4}} = C(0, 0, 0, 0)
 zero(::Type{C}) where {C<:ColorantN{5}} = C(0, 0, 0, 0, 0)
 zero(c::Colorant) = zero(typeof(c))
 
+oneunit(::Type{C}) where {C<:Colorant} = throw_oneunit_error(C)
+@noinline function throw_oneunit_error(@nospecialize(C))
+    throw(ArgumentError("`oneunit` for $C is not defined. Perhaps the meaning is not clear."))
+end
 oneunit(::Type{C}) where {C<:AbstractGray} = C(1)
 # It's not clear what `oneunit` means for most Color3s,
 # but for AbstractRGB, XYZ, and LMS, it's OK
@@ -486,9 +490,8 @@ oneunit(::Type{C}) where {C<:TransparentColor} = C(oneunit(color_type(C)))
 oneunit(::Type{C}) where {C<:Union{AGray, GrayA}} = C(1, 1) # workaround for inconsistent `color_type`
 oneunit(c::Colorant) = oneunit(typeof(c))
 
-function Base.one(::Type{C}) where {C<:Gray}
-    Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)
-    C(1)
-end
+one(::Type{C}) where {C<:Colorant} = one(eltype_default(C))
+one(::Type{C}) where {T, C<:Colorant{T}} = one(T)
+one(c::Colorant) = one(typeof(c))
 
 Base.broadcastable(x::Colorant) = Ref(x)

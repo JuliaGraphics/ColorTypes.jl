@@ -15,21 +15,6 @@ macro except_str(expr, err_type)
 end
 
 @testset "error hints" begin
-    @testset "ones" begin
-        for T in (RGB, RGB{N0f8})
-            err_str = @except_str one(T) MethodError
-            @test occursin(r"MethodError: no method matching one\(::Type\{RGB.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
-
-            err_str = @except_str one(T(1, 1, 1)) MethodError
-            @test occursin(r"MethodError: no method matching one\(::RGB\{.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
-
-            err_str = @except_str ones(T) MethodError
-            @test occursin(r"MethodError: no method matching one\(::Type\{RGB.*\}", err_str)
-            @test occursin("You may need to `using ColorVectorSpace`.", err_str)
-        end
-    end
     @testset "Math" begin
         gray = Gray(0.8)
         rgb = RGB{Float32}(1, 0, 0)
