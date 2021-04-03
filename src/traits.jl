@@ -448,8 +448,21 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Union
     return C{Tdef}
 end
 
-zero(::Type{C}) where {C<:Gray} = C(0)
-oneunit(::Type{C}) where {C<:Gray} = C(1)
+zero(::Type{C}) where {C<:ColorantN{1}} = C(0)
+zero(::Type{C}) where {C<:ColorantN{2}} = C(0, 0)
+zero(::Type{C}) where {C<:ColorantN{3}} = C(0, 0, 0)
+zero(::Type{C}) where {C<:ColorantN{4}} = C(0, 0, 0, 0)
+zero(::Type{C}) where {C<:ColorantN{5}} = C(0, 0, 0, 0, 0)
+zero(c::Colorant) = zero(typeof(c))
+
+oneunit(::Type{C}) where {C<:AbstractGray} = C(1)
+# It's not clear what `oneunit` means for most Color3s,
+# but for AbstractRGB, XYZ, and LMS, it's OK
+oneunit(::Type{C}) where {C<:AbstractRGB}      = C(1, 1, 1)
+oneunit(::Type{C}) where {C<:Union{XYZ, LMS}}  = C(1, 1, 1)
+oneunit(::Type{C}) where {C<:TransparentColor} = C(oneunit(color_type(C)))
+oneunit(::Type{C}) where {C<:Union{AGray, GrayA}} = C(1, 1) # workaround for inconsistent `color_type`
+oneunit(c::Colorant) = oneunit(typeof(c))
 
 function Base.one(::Type{C}) where {C<:Gray}
     Base.depwarn("one($C) will soon switch to returning 1; you might need to switch to `oneunit`", :one)
