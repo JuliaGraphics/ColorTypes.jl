@@ -60,6 +60,7 @@ hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} =
 _comp(::Val{N}, c::Colorant) where N = getfield(c, N)
 _comp(::Val{N}, c::AlphaColor) where N = getfield(c, N + 1)
 _comp(::Val{N}, c::AlphaColorN{N}) where N = alpha(c)
+_comp(::Val{N}, c::ColorAlphaN{N}) where N = alpha(c)
 
 @noinline function _comp_error(c::ColorantN{N}, n::Int) where N
     io = IOBuffer()

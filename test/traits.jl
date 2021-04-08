@@ -44,6 +44,13 @@ using .CustomTypes
         @test green(argb32) === 0.5N0f8
         @test blue(argb32)  === 0.0N0f8
     end
+    @testset "accessors for custom RGBA" begin
+        rgba32 = CustomTypes.RGBA32(1, 0.5, 0, 0.8)
+        @test red(rgba32)   === 1.0N0f8
+        @test green(rgba32) === 0.5N0f8
+        @test blue(rgba32)  === 0.0N0f8
+        @test alpha(rgba32) === 0.8N0f8
+    end
 
     @test_throws MethodError red(HSV(100, 0.6, 0.4))
 end
@@ -145,6 +152,11 @@ end
     @test comp5(ac4) === 0.5f0
     ct = Cyanotype{Float32}(0.8) # 1-component color but not a gray
     @test_broken comp1(ct) === 0.8f0
+    rgba32 = CustomTypes.RGBA32(1, 0.5, 0, 0.8)
+    @test comp1(rgba32) === 1N0f8
+    @test comp2(rgba32) === 0.5N0f8
+    @test comp3(rgba32) === 0N0f8
+    @test comp4(rgba32) === 0.8N0f8
 end
 
 @testset "color" begin

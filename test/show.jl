@@ -50,6 +50,8 @@ SP = VERSION >= v"1.6.0-DEV.771" ? " " : "" # JuliaLang/julia #37085
     show(iob, AGray32(0.8))
     @test String(take!(iob)) == "AGray32(0.8N0f8,1.0N0f8)"
 
+    show(iob, CustomTypes.RGBA32(0.4, 0.2, 0.8, 1.0))
+    @test String(take!(iob)) == "RGBA32(0.4N0f8,0.2N0f8,0.8N0f8,1.0N0f8)"
     show(iob, AnaglyphColor{Float32}(0.4, 0.2))
     @test String(take!(iob)) == "AnaglyphColor{Float32}(0.4f0,0.2f0)"
     show(iob, CMYK{Float64}(0.1, 0.2, 0.3, 0.4))
