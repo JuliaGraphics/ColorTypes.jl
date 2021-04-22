@@ -113,7 +113,9 @@ convert(::Type{GrayA{T}}, x::Real) where {T} = GrayA{T}(x)
 convert(::Type{T}, x::Gray  ) where {T<:Real} = convert(T, x.val)
 convert(::Type{T}, x::Gray24) where {T<:Real} = convert(T, gray(x))
 (::Type{T})(x::AbstractGray)  where {T<:Real} = T(gray(x))
-Base.real(x::AbstractGray) = gray(x)
+
+real(x::AbstractGray) = gray(x)
+real(::Type{C}) where {C<:AbstractGray} = real(eltype(C))
 
 # Define some constructors that just call convert since the fallback constructor in Base
 # is removed in Julia 0.7

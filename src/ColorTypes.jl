@@ -7,7 +7,7 @@ using Base: @pure
 const Fractional = Union{AbstractFloat, FixedPoint}
 
 import Base: ==, <, isless, isapprox, isfinite, isinf, isnan, oneunit, zero,
-             hash, eltype, length, convert, reinterpret, show
+             hash, eltype, length, real, convert, reinterpret, show
 using Random
 import Random: rand
 
