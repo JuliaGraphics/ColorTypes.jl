@@ -592,6 +592,34 @@ end
     @test_throws MethodError ccolor(RGB, RGB{N0f8}(1,0,0))
 end
 
+@testset "isfinite/isinf/isnan" begin
+    cfff = RGB(1, 0, 0)
+    @test isfinite(cfff) && !isinf(cfff) && !isnan(cfff)
+    cfffn = ARGB(1, 0, 0, NaN32)
+    @test !isfinite(cfffn) && !isinf(cfffn) && isnan(cfffn)
+    cffif = HSVA(10, 0, Inf16, 0)
+    @test !isfinite(cffif) && isinf(cffif) && !isnan(cffif)
+    cni = GrayA(NaN, Inf)
+    @test !isfinite(cni) && isinf(cni) && isnan(cni)
+end
+
+@testset "nan" begin
+    @test ColorTypes.nan(Float32) === NaN32
+    @test ColorTypes.nan(Gray{Float32}) === Gray{Float32}(NaN32)
+    @test ColorTypes.nan(AGray{Float64}) === AGray{Float64}(NaN, NaN)
+    @test ColorTypes.nan(GrayA{Float16}) === GrayA{Float16}(NaN16, NaN16)
+    @test ColorTypes.nan(RGB{Float32}) === RGB{Float32}(NaN32, NaN32, NaN32)
+    @test ColorTypes.nan(ARGB{Float64}) === ARGB{Float64}(NaN, NaN, NaN, NaN)
+    @test ColorTypes.nan(RGBA{Float16}) === RGBA{Float16}(NaN16, NaN16, NaN16, NaN16)
+    @test ColorTypes.nan(HSV{Float32}) === HSV{Float32}(NaN32, NaN32, NaN32)
+    @test ColorTypes.nan(ALab{Float64}) === ALab{Float64}(NaN, NaN, NaN, NaN)
+    @test ColorTypes.nan(LuvA{Float16}) === LuvA{Float16}(NaN16, NaN16, NaN16, NaN16)
+
+    @test_throws MethodError ColorTypes.nan(RGB)
+    @test_throws MethodError ColorTypes.nan(ARGB32)
+    @test_throws MethodError ColorTypes.nan(Gray(1.0))
+end
+
 @testset "identities for Gray" begin
     @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
     @test zero(   Gray{N0f8}) === Gray{N0f8}(0)
