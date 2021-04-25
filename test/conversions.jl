@@ -532,12 +532,14 @@ end
     @test Float32(Gray(0.6)) === 0.6f0
     @test float(Gray(0.6)) === 0.6
     @test real(Gray(0.6)) === 0.6
+    @test real(Gray{Float16}) === Float16
 
     @test convert(N0f8, Gray24(0.6)) === N0f8(0.6)
     @test convert(Float64, Gray24(0.6)) === 0.6
     @test Float32(Gray24(0.6)) === 0.6f0
     @test float(Gray24(0.6)) === 0.6
     @test real(Gray24(0.6)) === N0f8(0.6)
+    @test real(Gray24) === N0f8
 
     @test convert(Gray, 0.6) === Gray{Float64}(0.6)
     @test convert(Gray, 0.6f0) === Gray{Float32}(0.6)
@@ -562,6 +564,10 @@ end
     @test convert(AGray32, 0.6N0f8) === AGray32(0.6, 1)
     @test convert(AGray32, 0.6, 0.8) === AGray32(0.6, 0.8)
     @test convert(AGray32, 0, 1) === AGray32(0, 1)
+
+    @test_throws MethodError real(Gray) # should be a concrete type
+    @test_throws MethodError real(AGray(1.0))
+    @test_throws MethodError real(GrayA{Float32})
 
     @test_throws ColorTypeResolutionError convert(Colorant, 0.6)
     @test_throws ColorTypeResolutionError convert(Color, 0.6)
