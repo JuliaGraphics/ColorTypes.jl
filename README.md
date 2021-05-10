@@ -43,12 +43,12 @@ Here is the type hierarchy used in ColorTypes:
 - To support generic programming, `TransparentColor` constructors
   always take the alpha channel last, independent of their internal
   storage order. That is, one uses
-```julia
-RGBA(red, green, blue, alpha)
-RGBA(RGB(red, green, blue), alpha)
-ARGB(red, green, blue, alpha)       # note alpha is last
-ARGB(RGB(red, green, blue), alpha)
-```
+  ```julia
+  RGBA(red, green, blue, alpha)
+  ARGB(red, green, blue, alpha) # note alpha is last
+  RGBA(RGB(red, green, blue), alpha)
+  ARGB(RGB(red, green, blue), alpha)
+  ```
   This way you can write code with a generic `C<:Colorant` type and
   not worry about the proper order for supplying arguments to the
   constructor.  See the [traits section](#traits) for some useful
@@ -86,7 +86,7 @@ and `RGB(255, 0, 0)` throws an error.
 
 The analogous `BGR` type is defined as
 
-```jl
+```julia
 struct BGR{T} <: AbstractRGB{T}
     b::T
     g::T
@@ -104,22 +104,30 @@ one extra ("invisible") padding element; when the element type is
 `N0f8`, these have favorable memory alignment for interfacing with
 libraries like OpenGL.
 
-Finally, one may represent an RGB color as 8-bit values packed into a
+Finally, one may encode an RGB or ARGB color as 8-bit values packed into a
 32-bit integer:
 
 ```julia
 struct RGB24 <: AbstractRGB{N0f8}
     color::UInt32
 end
+
+struct ARGB32 <: AbstractARGB{N0f8}
+    color::UInt32
+end
 ```
 
-The storage order is `0xAARRGGBB`, where `RR` means the red channel,
-`GG` means the green, and `BB` means the blue.  `AA` is ignored for
-`RGB24`; there is also an `ARGB32`, for which that byte represents
-alpha. Note that this type can also be constructed as
-`RGB24(0.8,0.5,0.2)`. However, since this type has no fields named
-`r`, `g`, `b`, it is better to extract values from `AbstractRGB`
-objects using `red(c)`, `green(c)`, `blue(c)`.
+The storage order is `0xAARRGGBB`, where `RR` means the red channel, `GG` means
+the green, and `BB` means the blue.
+`AA` means the alpha and is ignored for `RGB24`.
+Note that on little-endian machines, contrary to the names, they are stored in
+memory in BGRA order.
+
+These types can be constructed as `RGB24(1.0, 0.5, 0.0)`, not as
+`RGB24(0xff, 0x80, 0x00)` (for an orange `#ff8000`).
+However, since these types have no fields named `r`, `g`, `b`, it is better to
+extract values from an `AbstractRGB`/`TransparentRGB` object `c` using `red(c)`,
+`green(c)`, `blue(c)`.
 
 
 ### HSV
@@ -130,15 +138,15 @@ sometimes called "HSB" for Hue-Saturation-Brightness.
 
 ```julia
 struct HSV{T} <: Color{T,3}
-    h::T # Hue in [0,360)
+    h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
 ```
 
-For HSV (and all remaining color types), `T` must be of
-`AbstractFloat` type, since the values range beyond what can be
-represented with most `FixedPoint` types.
+For HSV (and all remaining color types), `T` must be of `AbstractFloat` type.
+Due to [rounding errors](https://docs.julialang.org/en/v1/base/math/#Base.mod)
+in floating point arithmetic, `360` should also be handled as a valid hue.
 
 ### HSL
 
@@ -147,7 +155,7 @@ common projection of RGB to cylindrical coordinates.
 
 ```julia
 struct HSL{T} <: Color{T,3}
-    h::T # Hue in [0,360)
+    h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
@@ -160,9 +168,9 @@ in computer vision.
 
 ```julia
 struct HSI{T} <: Color{T,3}
-    h::T
-    s::T
-    i::T
+    h::T # Hue in [0,360]
+    s::T # Saturation in [0,1]
+    i::T # Intensity in [0,1]
 end
 ```
 
@@ -203,11 +211,11 @@ end
 ### Lab
 
 A perceptually uniform colorspace standardized by the CIE in 1976. See
-also LUV, the associated colorspace standardized the same year.
+also Luv, the associated colorspace standardized the same year.
 
 ```julia
 struct Lab{T} <: Color{T,3}
-    l::T # Luminance in approximately [0,100]
+    l::T # Lightness in [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
@@ -216,39 +224,31 @@ end
 ### Luv
 
 A perceptually uniform colorspace standardized by the CIE in 1976. See
-also LAB, a similar colorspace standardized the same year.
+also Lab, a similar colorspace standardized the same year.
 
 ```julia
 struct Luv{T} <: Color{T,3}
-    l::T # Luminance
+    l::T # Lightness in [0,100]
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 ```
 
+### LCHab and LCHuv
 
-### LCHab
-
-The LAB colorspace reparameterized using cylindrical coordinates.
+The Lab/Luv colorspace reparameterized using cylindrical coordinates.
 
 ```julia
 struct LCHab{T} <: Color{T,3}
-    l::T # Luminance in [0,100]
+    l::T # Lightness in [0,100]
     c::T # Chroma
-    h::T # Hue in [0,360)
+    h::T # Hue in [0,360]
 end
-```
 
-
-### LCHuv
-
-The LUV colorspace reparameterized using cylindrical coordinates.
-
-```julia
 struct LCHuv{T} <: Color{T,3}
-    l::T # Luminance
+    l::T # Lightness in [0,100]
     c::T # Chroma
-    h::T # Hue
+    h::T # Hue in [0,360]
 end
 ```
 
@@ -266,29 +266,18 @@ end
 ```
 
 
-### DIN99d
+### DIN99d and DIN99o
 
-The DIN99d uniform colorspace is an improvement on the DIN99 color
-space that adds a correction to the X tristimulus value in order to
-emulate the rotation term present in the DeltaE2000 equation.
+The DIN99d and DIN99o are revised version of the DIN99.
+These colorspaces are mainly used to calculate color differences.
 
 ```julia
 struct DIN99d{T} <: Color{T,3}
     l::T # L99d (Lightness)
-    a::T # a99d (Reddish/Greenish)
-    b::T # b99d (Bluish/Yellowish)
+    a::T # a99d (Red/Green)
+    b::T # b99d (Blue/Yellow)
 end
-```
 
-
-### DIN99o
-
-Revised version of the DIN99 uniform colorspace with modified
-coefficients for an improved metric.  Similar to DIN99d X correction
-and the DeltaE2000 rotation term, DIN99o achieves comparable results
-by optimized `a*/b*` rotation and chroma compression terms.
-
-```julia
 struct DIN99o{T} <: Color{T,3}
     l::T # L99o (Lightness)
     a::T # a99o (Red/Green)
@@ -314,7 +303,7 @@ end
 
 Like `XYZ`, `LMS` is a linear color space.
 
-### YIQ (NTSC)
+### YIQ
 
 A color-encoding format used by the NTSC broadcast standard.
 
@@ -330,7 +319,7 @@ end
 
 A color-encoding format common in video and digital photography.
 
-```jl
+```julia
 struct YCbCr{T} <: Color{T,3}
     y::T
     cb::T
@@ -342,8 +331,10 @@ end
 
 ### Gray
 
-`Gray` is a simple wrapper around a number:
-```jl
+`Gray` is a simple wrapper around a real number, where `0` means black and `1`
+means white.
+
+```julia
 struct Gray{T} <: AbstractGray{T}
     val::T
 end
@@ -358,13 +349,13 @@ types, `AGray` and `GrayA`.
 ### Gray24 and AGray32
 
 `Gray24` is a grayscale value encoded as a `UInt32`:
-```jl
+```julia
 struct Gray24 <: AbstractGray{N0f8}
     color::UInt32
 end
 ```
 
-The storage format is `0xAAIIIIII`, where each `II` pair (I=intensity)
+The storage format is `0xAAIIIIII`, where each `II` (intensity) pair
 must be identical.  The `AA` is ignored, but in the corresponding
 `AGray32` type it encodes alpha.
 
@@ -399,11 +390,15 @@ greater detail); just type `?ccolor` at the REPL.
 - `red`, `green`, `blue` extract channels from `AbstractRGB` types;
   `gray` extracts the intensity from a grayscale object
 
-- `alpha` extracts the alpha channel from any `Color` object
+- `alpha` extracts the alpha channel from any `Colorant` object
   (returning 1 if there is no alpha channel)
 
 - `comp1`, `comp2`, `comp3`, `comp4` and `comp5` extract color components in the
   order expected by the constructor
+
+- `hue` extracts the hue from an `HSV`-like or `Lab`-like object
+
+- `chroma` extracts the chroma (not the saturation) from a `Lab`-like object
 
 ### Functions
 
@@ -426,5 +421,6 @@ In most cases, adding a new color space is quite straightforward:
 - In the Colors package, add [conversions](https://github.com/JuliaGraphics/Colors.jl/blob/master/src/conversions.jl) to and from your new colorspace.
 
 In special cases, there may be other considerations:
-- For RGB-related types, 0 means "black" and 1 means "saturated." If your type has unusual numeric interpretation, you may need to add a new number type to [FixedPointNumbers](https://github.com/JeffBezanson/FixedPointNumbers.jl) and set up appropriate `eltype_default` and `eltype_ub` traits.
+- For `AbstractRGB`/`AbstractGray` types, `0` means "black" and `1` means
+  "saturated."
 - If your type has extra fields, check the "Generated code" section of `types.jl` carefully. You may need to define a `colorfields` function and/or call `@make_constructors` or `@make_alpha` manually.
