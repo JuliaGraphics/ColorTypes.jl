@@ -173,7 +173,7 @@ RGBX(r::T, g::T, b::T) where {T<:Fractional} = RGBX{T}(r, g, b)
 
 "`HSV` is the Hue-Saturation-Value colorspace."
 struct HSV{T<:AbstractFloat} <: Color{T,3}
-    h::T # Hue in [0,360)
+    h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     v::T # Value in [0,1]
 end
@@ -183,16 +183,16 @@ const HSB = HSV
 
 "`HSL` is the Hue-Saturation-Lightness colorspace."
 struct HSL{T<:AbstractFloat} <: Color{T,3}
-    h::T # Hue in [0,360)
+    h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
 "`HSI` is the Hue-Saturation-Intensity colorspace."
 struct HSI{T<:AbstractFloat} <: Color{T,3}
-    h::T
-    s::T
-    i::T
+    h::T # Hue in [0,360]
+    s::T # Saturation in [0,1]
+    i::T # Intensity in [0,1]
 end
 
 """
@@ -215,30 +215,30 @@ end
 
 "`Lab` is the CIELAB colorspace."
 struct Lab{T<:AbstractFloat} <: Color{T,3}
-    l::T # Luminance in approximately [0,100]
+    l::T # Lightness in [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
 "`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace"
 struct LCHab{T<:AbstractFloat} <: Color{T,3}
-    l::T # Luminance in [0,100]
+    l::T # Lightness in [0,100]
     c::T # Chroma
-    h::T # Hue in [0,360)
+    h::T # Hue in [0,360]
 end
 
 "`Luv` is the CIELUV colorspace"
 struct Luv{T<:AbstractFloat} <: Color{T,3}
-    l::T # Luminance
+    l::T # Lightness in [0,100]
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
 "`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace"
 struct LCHuv{T<:AbstractFloat} <: Color{T,3}
-    l::T # Luminance
+    l::T # Lightness in [0,100]
     c::T # Chroma
-    h::T # Hue
+    h::T # Hue in [0,360]
 end
 
 "`DIN99` is the (L99, a99, b99) adaptation of CIELAB"
