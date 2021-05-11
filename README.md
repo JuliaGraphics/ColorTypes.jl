@@ -21,16 +21,17 @@ objects will be broadly usable.
 ## The type hierarchy and abstract types
 
 Here is the type hierarchy used in ColorTypes:
-
+**TODO: Update figure**
 ![Types](images/types.svg?sanitize=true "Types")
 
 - `Colorant` is the general term used for any object exported by this
   package.  True colors are called `Color`; `TransparentColor`
   indicates an object that also has alpha-channel information.
 
-- `Color{T,3}` is a 3-component color (like RGB = red, green, blue);
-  `Color{T,1}` is a 1-component color (i.e., grayscale).
-  `AbstractGray{T}` is a typealias for `Color{T,1}`.
+- `Color{T,3}` is a 3-component color (like RGB = red, green, blue).
+
+- `AbstractGray{T}` is a typical subtype of `Color{T,1}`.
+  In fact, it was a typealias for `Color{T,1}` in v0.11 or earlier.
 
 - Most colors have both `AlphaColor` and `ColorAlpha` variants;
   for example, `RGB` has both `ARGB` and `RGBA`.  These indicate
@@ -58,7 +59,8 @@ Here is the type hierarchy used in ColorTypes:
 
 ### RGB plus BGR, XRGB, RGBX, and RGB24: the AbstractRGB group
 
-The [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
+The [RGB (Red-Green-Blue) colorspace](https://en.wikipedia.org/wiki/RGB_color_model).
+By default, it is interpreted as the [sRGB colorspace](https://en.wikipedia.org/wiki/SRGB).
 
 ```julia
 struct RGB{T} <: AbstractRGB{T}
@@ -132,9 +134,9 @@ extract values from an `AbstractRGB`/`TransparentRGB` object `c` using `red(c)`,
 
 ### HSV
 
-[Hue-Saturation-Value](https://en.wikipedia.org/wiki/HSL_and_HSV). A
-common projection of RGB to cylindrical coordinates.  This is also
-sometimes called "HSB" for Hue-Saturation-Brightness.
+[Hue-Saturation-Value](https://en.wikipedia.org/wiki/HSL_and_HSV).
+A common projection of RGB to cylindrical coordinates.
+This is also sometimes called "HSB" for Hue-Saturation-Brightness.
 
 ```julia
 struct HSV{T} <: Color{T,3}
@@ -150,8 +152,8 @@ in floating point arithmetic, `360` should also be handled as a valid hue.
 
 ### HSL
 
-[Hue-Saturation-Lightness](https://en.wikipedia.org/wiki/HSL_and_HSV). Another
-common projection of RGB to cylindrical coordinates.
+[Hue-Saturation-Lightness](https://en.wikipedia.org/wiki/HSL_and_HSV).
+Another common projection of RGB to cylindrical coordinates.
 
 ```julia
 struct HSL{T} <: Color{T,3}
@@ -163,8 +165,8 @@ end
 
 ### HSI
 
-Hue, saturation, intensity, a variation of HSL and HSV commonly used
-in computer vision.
+Hue-Saturation-Intensity. A variation of HSL and HSV commonly used in computer
+vision.
 
 ```julia
 struct HSI{T} <: Color{T,3}
@@ -189,6 +191,12 @@ struct XYZ{T} <: Color{T,3}
 end
 ```
 
+The scale normalized by the maximum value of Y to `1` is used by default;
+the white in the illuminant E is represented by `XYZ(1, 1, 1)`.
+Note that some tools may use the component values multiplied by `100`.
+Also, `XYZ` may be used to describe absolute luminance (e.g. in cd/m^2).
+Be careful not to confuse different units.
+
 This colorspace is noteworthy because it is linear---values may be
 added or scaled as if they form a vector space.  See further
 discussion in the ColorVectorSpace.jl package.
@@ -210,8 +218,9 @@ end
 
 ### Lab
 
-A perceptually uniform colorspace standardized by the CIE in 1976. See
-also Luv, the associated colorspace standardized the same year.
+The Lab perceptually uniform colorspace.
+By default, it is interpreted as the [L\*a\*b\*](https://en.wikipedia.org/wiki/CIELAB_color_space),
+standardized by the CIE in 1976.
 
 ```julia
 struct Lab{T} <: Color{T,3}
@@ -221,10 +230,17 @@ struct Lab{T} <: Color{T,3}
 end
 ```
 
+Note that some tools may use the component values divided by `100`.
+
+L\*a\*b\* is calculated relative to a reference white point.
+By default, the illuminant D65, which is also used in sRGB, is applied.
+On the other hand, D50 is often used for printed materials and color management.
+
 ### Luv
 
-A perceptually uniform colorspace standardized by the CIE in 1976. See
-also Lab, a similar colorspace standardized the same year.
+The [L\*u\*v\*](https://en.wikipedia.org/wiki/CIELUV), which is a perceptually
+uniform colorspace standardized by the CIE in 1976.
+See also Lab (L\*a\*b\*), a similar colorspace standardized the same year.
 
 ```julia
 struct Luv{T} <: Color{T,3}
@@ -233,6 +249,9 @@ struct Luv{T} <: Color{T,3}
     v::T # Blue/Yellow
 end
 ```
+
+L\*u\*v\* is calculated relative to a reference white point.
+By default, the illuminant D65 is applied.
 
 ### LCHab and LCHuv
 
@@ -288,10 +307,10 @@ end
 
 ### LMS
 
-Long-Medium-Short cone response values. Multiple methods of converting
-to LMS space have been defined. Here the
-[CAT02](https://en.wikipedia.org/wiki/CIECAM02#CAT02) chromatic
-adaptation matrix is used.
+Long-Medium-Short cone response values.
+Multiple methods of converting to LMS space have been defined.
+By default, the [CAT02](https://en.wikipedia.org/wiki/CIECAM02#CAT02) chromatic
+adaptation matrix is used in Colors.jl.
 
 ```julia
 struct LMS{T} <: Color{T,3}
@@ -305,17 +324,21 @@ Like `XYZ`, `LMS` is a linear color space.
 
 ### YIQ
 
-A color-encoding format used by the NTSC broadcast standard.
+The colorspace derived from the transform matrix used by the
+[NTSC](https://en.wikipedia.org/wiki/NTSC) color TV system.
+This [YIQ](https://en.wikipedia.org/wiki/YIQ) colorspace is used for convenience
+in image processing and is not compatible with the NTSC 1953 specification or
+the SMPTE 170M specification.
 
 ```julia
 struct YIQ{T} <: Color{T,3}
-    y::T
-    i::T
-    q::T
+    y::T # Luma in [0,1]
+    i::T # Chroma (Orange/Blue) in [-0.5959,0.5959]
+    q::T # Chroma (Purple/Green) in [-0.5227,0.5227]
 end
 ```
 
-### Y'CbCr
+### Y'CbCr **TODO: describe the default colorspace and scaling**
 
 A color-encoding format common in video and digital photography.
 
@@ -340,6 +363,14 @@ struct Gray{T} <: AbstractGray{T}
 end
 ```
 
+By default, this colorspace is defined by the relationship to RGB:
+`RGB(Gray(g)) == RGB(g, g, g)`.
+That is, it has the same tone response curve (gamma) as sRGB by default.
+Also, for sRGB to grayscale conversion, the coefficients of the
+[ITU-R BT.601 (Rec.601)](https://en.wikipedia.org/wiki/Rec._601) are used by
+default, but the color primaries and gamma are different from Rec.601.
+
+
 In many situations you don't need a `Gray` wrapper, but there are
 times when it can be helpful to clarify meaning or assist with
 dispatching to appropriate methods.  It is also present for
@@ -358,6 +389,34 @@ end
 The storage format is `0xAAIIIIII`, where each `II` (intensity) pair
 must be identical.  The `AA` is ignored, but in the corresponding
 `AGray32` type it encodes alpha.
+
+## Color gamuts and ranges of components
+
+The [color gamut](https://en.wikipedia.org/wiki/Gamut) is often used to indicate
+the colors that can be accurately represented in a particular colorspace.
+However, there may be multiple colorspaces with different color gamuts, even
+for the same color model.
+For example, there are various standards for the RGB color model, such as sRGB,
+[DCI-P3](https://en.wikipedia.org/wiki/DCI-P3),
+[ProPhoto RGB](https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space),
+[Rec.2020](https://en.wikipedia.org/wiki/Rec._2020), and so on.
+Because of the wide variations, ColorTypes.jl does not provide the way to
+distinguish them within the type system.
+
+For convenience and interoperability, ColorTypes.jl defines the default
+colorspace for each types, and Colors.jl implements the default colorspace
+conversions.
+However, note that it is the responsibility of the downstream packages or users
+to manage the characteristics (profiles) of the colors used.
+
+Since ColorTypes.jl does not necessarily know the valid gamut, and since it is
+useful to store out-of-gamut colors as intermediate representations, the color
+constructors defined in ColorTypes.jl do not check whether the arguments are
+in-gamut or out-of-gamut.
+On the other hand, the color constructors may know the range of the numeric
+type used to represent the components.
+Thus, for example, `RGB{N0f8}(2, 0, 0)` will show an error message, but
+`RGB{N1f15}(2, 0, 0)` will not throw an error.
 
 ## <a name="traits"></a>Traits (utility functions for instances and types)
 
