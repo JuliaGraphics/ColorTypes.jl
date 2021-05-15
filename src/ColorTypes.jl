@@ -8,8 +8,8 @@ const Fractional = Union{AbstractFloat, FixedPoint}
 
 import Base: ==, <, isless, isapprox, isfinite, isinf, isnan, one, oneunit, zero,
              hash, eltype, length, real, convert, reinterpret, show
-using Random
-import Random: rand
+using Random: Random, AbstractRNG, SamplerType
+import Random: rand, rand!
 
 ## Types
 export Fractional
