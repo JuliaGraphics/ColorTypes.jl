@@ -145,8 +145,8 @@ end
                 @test C{N0f16}(val1,val2,val1,0.8) === C(0.2N0f16,0.6N0f16,0.2N0f16,0.8N0f16)
             end
             # 1-arg constructor
-            @test_broken C(val1) === C{typeof(val1)}(0.2,0.2,0.2,1)
-            @test_broken C{N0f8}(val1) === C{N0f8}(0.2,0.2,0.2,1)
+            @test C(val1) === C{typeof(val1)}(0.2,0.2,0.2,1)
+            @test C{N0f8}(val1) === C{N0f8}(0.2,0.2,0.2,1)
         end
 
         @test_throws ArgumentError C(2,1,0) # integers
@@ -161,6 +161,7 @@ end
             @test isa(C(val,val,val), C)
             @test isa(C(val,val,val,0.8), C)
             @test isa(C(val,val,val,val), C) # no exception thrown
+            @test alpha(C(val)) === oneunit(val)
         end
     end
 end
@@ -265,14 +266,8 @@ end
         @test GrayA{N0f16}(val) === GrayA{N0f16}(0.2, 1)
         @test AGray32(val) === AGray32(0.2, 1)
         @test AGray32(val, 0.8) === AGray32(0.2, 0.8)
-        if val isa FixedPoint
-            @test AGray(val, 1) === AGray{Float32}(0.2, 1) # inconsistent eltype
-            @test_broken @inferred(AGray(val, 1)) === AGray{T}(0.2, 1)
-            @test_broken @inferred(GrayA(val, 0)) === GrayA{T}(0.2, 0)
-        else
-            @test @inferred(AGray(val, 1)) === AGray{T}(0.2, 1)
-            @test @inferred(GrayA(val, 0)) === GrayA{T}(0.2, 0)
-        end
+        @test @inferred(AGray(val, 1)) === AGray{T}(0.2, 1)
+        @test @inferred(GrayA(val, 0)) === GrayA{T}(0.2, 0)
         Ta = val isa AbstractGray ? T : Float64
         if val isa Gray24
             @test_broken @inferred(AGray(val, 0.8)) === AGray{Ta}(val, 0.8)
