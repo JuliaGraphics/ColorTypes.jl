@@ -150,8 +150,7 @@ end
             BGR{Float16}, ABGR{N0f32}, BGRA{N2f14},
             HSV{Float32}, HSL{Float64}, ALab{Float32}, LCHabA{Float16},
             Gray, AGray, GrayA,
-            RGB, ARGB, RGBA, BGR, ABGR, BGRA, XRGB, RGBX,
-            HSV, HSL, Lab, LCHab, YIQ,
+            unique(ColorTypes.parametric3)...,
             AHSV, HSLA)
         CC = isconcretetype(C) ? C : C{Float64}
         c = rand(C)
@@ -184,9 +183,10 @@ end
     a = rand!(Array{RGB}(undef, 3, 5))
     @test a isa Matrix{RGB}
     @test typeof(a[1,1]) === RGB{Float64}
-    @test_broken all_in_range(LCHab(50, 10, 359))
-    @test_broken all_in_range(YIQ(0.5, 0.59, 0.0))
-    @test_broken !all_in_range(YIQ(0.5, 0.0, -0.53))
+    # issue #125
+    @test all_in_range(LCHab(50, 10, 359))
+    @test all_in_range(YIQ(0.5, 0.59, 0.0))
+    @test !all_in_range(YIQ(0.5, 0.0, -0.53))
 end
 
 @testset "mapc" begin
