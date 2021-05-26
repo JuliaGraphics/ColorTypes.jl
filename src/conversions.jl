@@ -98,19 +98,12 @@ _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:Transpa
 _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(Cout), gray(c)); Cout(g, g, g))
 _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(A), gray(c)); A(g, g, g, alpha))
 
-convert(::Type{RGB24},   x::Real) = RGB24(x, x, x)
-convert(::Type{ARGB32},  x::Real) = ARGB32(x, x, x)
-convert(::Type{ARGB32},  x::Real, alpha) = ARGB32(x, x, x, alpha)
-convert(::Type{Gray24},  x::Real) = Gray24(x)
-convert(::Type{AGray32}, x::Real) = AGray32(x)
-convert(::Type{AGray32}, x::Real, alpha) = AGray32(x, alpha)
+convert(::Type{C}, x::Real) where {C<:ColorantN{1}} = C(x)
+convert(::Type{C}, x::Real) where {C<:AbstractRGB} = C(x, x, x)
+convert(::Type{C}, x::Real, alpha) where {C<:TransparentColorN{2}} = C(x, alpha)
+convert(::Type{C}, x::Real, alpha) where {C<:TransparentRGB} = C(x, x, x, alpha)
 
-convert(::Type{Gray{T}},  x::Real) where {T} = Gray{T}(x)
-convert(::Type{AGray{T}}, x::Real) where {T} = AGray{T}(x)
-convert(::Type{GrayA{T}}, x::Real) where {T} = GrayA{T}(x)
-
-convert(::Type{T}, x::Gray  ) where {T<:Real} = convert(T, x.val)
-convert(::Type{T}, x::Gray24) where {T<:Real} = convert(T, gray(x))
+convert(::Type{T}, x::ColorantN{1}) where {T<:Real} = convert(T, comp1(x))
 
 (::Type{T})(x::ColorantN{1})  where {T<:Real} = T(comp1(x))
 
