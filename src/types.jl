@@ -390,10 +390,6 @@ end
 Gray24() = reinterpret(Gray24, UInt32(0))
 _Gray24(val::UInt8) = (g = UInt32(val); reinterpret(Gray24, g<<16 | g<<8 | g))
 Gray24(val::N0f8) = _Gray24(reinterpret(val))
-function Gray24(val::Real)
-    checkval(Gray24, val)
-    Gray24(val%N0f8)
-end
 
 """
 `AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -414,7 +410,7 @@ end
 AGray32() = reinterpret(AGray32, 0xff000000)
 _AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); reinterpret(AGray32, UInt32(alpha)<<24 | g<<16 | g<<8 | g))
 AGray32(val::N0f8, alpha::N0f8 = N0f8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
-function AGray32(val::Real, alpha = 1)
+function AGray32(val::Real, alpha)
     checkval(AGray32, val, alpha)
     AGray32(val%N0f8, alpha%N0f8)
 end
@@ -615,6 +611,18 @@ end
 for C in (RGB, BGR, XRGB, RGBX)
     @eval (::Type{$C{T}})(r::GrayLike, g::GrayLike, b::GrayLike) where T = $C{T}(gray(r), gray(g), gray(b))
 end
+function (::Type{C})(x::UInt32) where C <: Union{RGB24, Gray24, ARGB32, AGray32}
+    x <= UInt32(1) || throw_bit_pattern_error(C, x)
+    reinterpret(C, C <: Color ? (-x) & 0xffffff : (-x) | 0xff000000)
+end
+function (::Type{C})(x::GrayLike) where C <: Union{RGB24, Gray24, ARGB32, AGray32}
+    checkval(C, real(x))
+    v = _rem(real(x), N0f8)
+    return C <: Union{RGB24, ARGB32} ? C(v, v, v) : C(v)
+end
+function (::Type{C})(x) where C <: Union{RGB24, Gray24, ARGB32, AGray32}
+    convert(C, x)
+end
 
 alphacolor(::Type{C}) where {C<:AlphaColor} = base_colorant_type(C)
 alphacolor(::Type{C}) where {C<:ColorAlpha} = alphacolor(base_color_type(C))
@@ -675,26 +683,16 @@ end
     isok(T, a, b) & isok(T, c, d) & isok(T, e) || throw_colorerror(C, (a, b, c, d, e))
 end
 
-checkval(::Type{C}, a::T) where {T<:Normed, C<:Colorant{T}} = nothing
-checkval(::Type{C}, a::T, b::T) where {T<:Normed, C<:Colorant{T}} = nothing
-checkval(::Type{C}, a::T, b::T, c::T) where {T<:Normed, C<:Colorant{T}} = nothing
-checkval(::Type{C}, a::T, b::T, c::T, d::T) where {T<:Normed, C<:Colorant{T}} = nothing
-checkval(::Type{C}, a::T, b::T, c::T, d::T, e::T) where {T<:Normed, C<:Colorant{T}} = nothing
-
-checkval(::Type{C}, a) where {C<:Colorant} = nothing
-checkval(::Type{C}, a, b) where {C<:Colorant} = nothing
-checkval(::Type{C}, a, b, c) where {C<:Colorant} = nothing
-checkval(::Type{C}, a, b, c, d) where {C<:Colorant} = nothing
-checkval(::Type{C}, a, b, c, d, e) where {C<:Colorant} = nothing
+checkval(::Type{C}, args::Vararg{T}) where {T<:Normed, C<:Colorant{T}} = nothing
+checkval(::Type{C}, args...) where {C<:Colorant} = nothing
 
 
 function throw_colorerror_(::Type{T}, values) where T<:Normed
-    io = IOBuffer()
-    show(IOContext(io, :compact=>true), typemin(T)); Tmin = String(take!(io))
-    show(IOContext(io, :compact=>true), typemax(T)); Tmax = String(take!(io))
+    Tmin = repr(typemin(T), context=:compact=>true)
+    Tmax = repr(typemax(T), context=:compact=>true)
     bitstring = sizeof(T) == 1 ? "an 8-bit" : "a $(8*sizeof(T))-bit"
     throw(ArgumentError("""
-element type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $Tmin to $Tmax,
+component type $T is $bitstring type representing $(2^(8*sizeof(T))) values from $Tmin to $Tmax,
   but the values $values do not lie within this range.
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
 end
@@ -708,42 +706,24 @@ function throw_colorerror(::Type{C}, values::Tuple{Vararg{Integer}}) where C<:Co
         vstr = "$values are integers"
     end
     Cstr = colorant_string_with_eltype(C)
-    args = join(map(v->"$v/255", values), ',')
+    args = join(map(v -> "$v/255", values), ", ")
     throw(ArgumentError("""
-$vstr in the range 0-255, but integer inputs are encoded with the N0f8
-  type, an 8-bit type representing 256 discrete values between 0 and 1.
+The components of $(nameof(C)) are normalized to the range 0-1,
+  but $vstr in the range 0-255.
   Consider dividing your input values by 255, for example: $Cstr($args)
-  Or use `reinterpret(N0f8, x)` if `x` is a `UInt8`.
+  The component type N0f8 is an 8-bit type representing 256 values from 0 to 1.
+  You can also use `reinterpret(N0f8, x % UInt8)` to encode the input into N0f8.
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
 end
-function throw_colorerror(::Type{C},
-                          values::Tuple{Vararg{Integer}}) where C<:Union{RGB24,ARGB32,Gray24,AGray32}
-    # For consistency, some sets of `UInt32` inputs are valid for the
-    # constructors of these non-parametric colors,
-    # e.g. `RGB24(UInt32(1), UInt32(0), UInt32(0))` is valid.
-    # Therefore, this error should be thrown after the range checking.
+function throw_colorerror(::Type{C}, values::Tuple) where {T<:Normed, C<:Colorant{T}}
+    throw_colorerror_(T, values)
+end
 
-    # We want to suggest `reinterpret` only when users call the 1-arg version of
-    # constructors (e.g. `RGB24(0x123456)`) or try to convert a `UInt32` number.
-    # However, the current implementation cannot distinguish what the users
-    # actually called.
-    # So, we suggest using `reinterpret` when the input is opaque "gray".
-    tripled(t) = t[1] isa UInt32 && t[1] === t[2] && t[2] === t[3]
-    if C === RGB24 && length(values) == 3 && tripled(values)
-    elseif C === ARGB32 && length(values) == 4 && tripled(values) && values[4] == 1
-    elseif C === Gray24 && length(values) == 1 && values[1] isa UInt32
-    elseif C === AGray32 && length(values) == 2 && values[1] isa UInt32 && values[2] == 1
-    else
-        throw_colorerror_(N0f8, values)
-    end
-    hex = string(values[1], base=16, pad=8)
+function throw_bit_pattern_error(@nospecialize(C), value)
+    hex = string(value, base=16, pad=8)
     throw(ArgumentError("""
 $C cannot be constructed or converted directly from a UInt32 input as a bit pattern.
   Use `reinterpret($C, 0x$hex)` instead."""))
-end
-
-function throw_colorerror(::Type{C}, values::Tuple) where {T<:Normed, C<:Colorant{T}}
-    throw_colorerror_(T, values)
 end
 
 _rem(x,::Type{T}) where {T<:Normed} = x % T
