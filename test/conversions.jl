@@ -571,10 +571,10 @@ end
 
     @test_throws ColorTypeResolutionError convert(Colorant, 0.6)
     @test_throws ColorTypeResolutionError convert(Color, 0.6)
-    @test_throws ColorTypeResolutionError convert(Color{N0f8,1}, 0.6)
+    @test_throws MethodError convert(Color{N0f8,1}, 0.6)
 
-    @test_throws MethodError convert(GrayA, 0.6, 0.8)
-    @test_throws MethodError convert(AGray, 0, 1)
+    @test convert(GrayA, 0.6, 0.8) === GrayA{Float64}(0.6, 0.8)
+    @test convert(AGray, 0, 1) === AGray{N0f8}(0, 1)
 
     @test convert(Gray, 2.0) === Gray{Float64}(2.0)
     @test_throws ArgumentError convert(Gray, 2)
@@ -588,8 +588,8 @@ end
     @test convert(ARGB, 0.6) === ARGB(0.6, 0.6, 0.6, 1)
     @test convert(RGBA, 0.6N0f8) === RGBA{N0f8}(0.6, 0.6, 0.6, 1)
 
-    @test_broken convert(ARGB, 0.6f0, 0.8f0) === ARGB{Float32}(0.6, 0.6, 0.6, 0.8)
-    @test_broken convert(RGBA{Float32}, 0.6, 0.8) === RGBA{Float32}(0.6, 0.6, 0.6, 0.8)
+    @test convert(ARGB, 0.6f0, 0.8f0) === ARGB{Float32}(0.6, 0.6, 0.6, 0.8)
+    @test convert(RGBA{Float32}, 0.6, 0.8) === RGBA{Float32}(0.6, 0.6, 0.6, 0.8)
 
 end
 
