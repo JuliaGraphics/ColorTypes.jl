@@ -9,7 +9,8 @@ doctest(ColorTypes, manual = false)
 
 # if the test below fails, please extend the list of types at the call to
 # make_alpha in types.jl (this is the price of making that list explicit)
-@test Set(ColorTypes.ctypes) ==
+ctypes = union(setdiff(ColorTypes.parametric3, (XRGB, RGBX)), (Gray,))
+@test Set(ctypes) ==
     Set([DIN99d, DIN99o, DIN99, HSI, HSL, HSV, LCHab, LCHuv,
          LMS, Lab, Luv, XYZ, YCbCr, YIQ, xyY, BGR, RGB, Gray])
 

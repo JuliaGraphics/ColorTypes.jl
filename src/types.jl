@@ -558,20 +558,13 @@ eltype_default(::Type{C}) where {C<:AbstractGray } = N0f8
 eltype_default(::Type{C}) where {C<:Color  } = Float32
 eltype_default(::Type{P}) where {P<:Colorant        } = eltype_default(color_type(P))
 
-# Upper bound on element type for each color type
-eltype_ub(::Type{P}) where {P<:Colorant        } = eltype_ub(eltype_default(P))
-eltype_ub(::Type{T}) where {T<:FixedPoint   } = Fractional
-eltype_ub(::Type{T}) where {T<:AbstractFloat} = AbstractFloat
+@inline function promote_eltype(::Type{C}, vals...) where C<:Colorant
+    _promote_eltype(eltype_default(C), promote_type(map(typeof, vals)...))
+end
+_promote_eltype(::Type{Tdef}, ::Type{T}) where {Tdef<:AbstractFloat, T<:AbstractFloat} = T
+_promote_eltype(::Type{Tdef}, ::Type{T}) where {Tdef<:FixedPoint, T<:Fractional} = T
+_promote_eltype(::Type{Tdef}, ::Type{T}) where {Tdef, T} = Tdef
 
-@inline promote_eltype(::Type{C}, vals...) where {C<:Colorant} = _promote_eltype(eltype_ub(C), eltype_default(C), promote_type(map(typeof, vals)...))
-_promote_eltype(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:AbstractFloat} = T
-_promote_eltype(::Type{AbstractFloat}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:Real} = Tdef
-_promote_eltype(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:Fractional} = T
-_promote_eltype(::Type{Fractional}, ::Type{Tdef}, ::Type{T}) where {Tdef,T<:Real} = Tdef
-
-ctypes = union(setdiff(parametric3, [XRGB,RGBX]), [Gray])
-
-# the arg list for C below should be identical to ctypes above.
 for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
                         (DIN99o, :ADIN99o, :DIN99oA),
                         (DIN99, :ADIN99, :DIN99A),
@@ -593,8 +586,8 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     fn  = Expr(:tuple, fieldnames(C)...)
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
-    ub   = eltype_ub(C)
-    Csym = nameof(Base.unwrap_unionall(C))
+    ub   = elty <: FixedPoint ? Fractional : AbstractFloat
+    Csym = nameof(C)
     @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
