@@ -124,6 +124,14 @@ to_top(::Type{Colorant{T,N}}) where {T,N} = Colorant{T,N}
 
 to_top(c::Colorant) = to_top(typeof(c))
 
+
+# Return the number of components in the color
+# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., XRGB)
+length(::Type{<:ColorantN{N}}) where N = N
+
+length(c::Colorant) = length(typeof(c))
+
+
 # eltype(RGB{Float32}) -> Float32
 eltype(::Type{C}) where {C<:Colorant{T}} where {T} = T
 

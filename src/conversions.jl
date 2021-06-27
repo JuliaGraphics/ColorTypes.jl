@@ -76,7 +76,6 @@ cconvert(::Type{C}, c) where {C} = _convert(C, base_color_type(C), base_color_ty
 
 convert(::Type{C}, c::Color, alpha) where {C<:TransparentColor} = cconvert(ccolor(C, typeof(c)), c, alpha)
 cconvert(::Type{C}, c::Color, alpha) where {C<:TransparentColor} =_convert(C, base_color_type(C), base_color_type(c), c, alpha)
-cconvert(::Type{ARGB32}, c::AbstractRGB, alpha) = ARGB32(c, alpha) # optimization for speed
 
 # Fallback definitions that print nice error messages
 _convert(::Type{C}, ::Any, ::Any, c) where {C} = error("No conversion of ", c, " to ", C, " has been defined")
@@ -87,7 +86,7 @@ _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:A
 _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractRGB} = A(red(c), green(c), blue(c), alpha)
 
 # Implementations for when the base color type is not changing
-# These might trip/add transparency, however
+# These might strip/add transparency, however
 _convert(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) where {Cout<:Color3,Ccmp<:Color3} = Cout(comp1(c), comp2(c), comp3(c))
 _convert(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha=alpha(c)) where {A<:Transparent3,Ccmp<:Color3} = A(comp1(c), comp2(c), comp3(c), alpha)
 
@@ -98,10 +97,10 @@ _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:Transpa
 _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(Cout), gray(c)); Cout(g, g, g))
 _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:TransparentRGB,C1<:AbstractRGB,C2<:AbstractGray} = (g = convert(eltype(A), gray(c)); A(g, g, g, alpha))
 
-convert(::Type{C}, x::Real) where {C<:ColorantN{1}} = C(x)
-convert(::Type{C}, x::Real) where {C<:AbstractRGB} = C(x, x, x)
+convert(::Type{C}, x::Real) where {C<:Union{ColorantN{1}, TransparentColorN{2}}} = C(x)
+convert(::Type{C}, x::Real) where {C<:Union{AbstractRGB, TransparentRGB}} = C(x)
 convert(::Type{C}, x::Real, alpha) where {C<:TransparentColorN{2}} = C(x, alpha)
-convert(::Type{C}, x::Real, alpha) where {C<:TransparentRGB} = C(x, x, x, alpha)
+convert(::Type{C}, x::Real, alpha) where {C<:TransparentRGB} = C(x, alpha)
 
 convert(::Type{T}, x::ColorantN{1}) where {T<:Real} = convert(T, comp1(x))
 
