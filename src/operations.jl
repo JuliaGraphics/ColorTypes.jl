@@ -1,5 +1,43 @@
-struct BoolTuple end
-@inline BoolTuple(args::Bool...) = args
+# iterator
+struct ComponentIterator{C<:Colorant}
+    c::C
+end
+
+eltype(::Type{ComponentIterator{C}}) where {T, C <: Colorant{T}} = T
+length(::ComponentIterator{C}) where {N, C <: ColorantN{N}} = N
+
+function Base.iterate(itr::ComponentIterator{C}, state::Int=0) where {N, C <: ColorantN{N}}
+    state < 0 && return nothing
+    state >= N && return nothing
+    state += 1
+    return (itr[state], state)
+end
+
+@inline function Base.getindex(itr::ComponentIterator{C}, i::Integer) where {N, C <: ColorantN{N}}
+    N > 0 && i == 1 && return comp1(itr.c)
+    N > 1 && i == 2 && return comp2(itr.c)
+    N > 2 && i == 3 && return comp3(itr.c)
+    N > 3 && i == 4 && return comp4(itr.c)
+    N > 4 && i == 5 && return comp5(itr.c)
+    throw(BoundsError(itr, i))
+end
+Base.getindex(itr::ComponentIterator, r::AbstractRange) = Tuple(itr[i] for i in r)
+Base.getindex(itr::ComponentIterator, ::Colon) = itr
+
+Base.firstindex(::ComponentIterator) = 1
+Base.lastindex(itr::ComponentIterator) = length(itr)
+
+function Base.BroadcastStyle(::Type{<:ComponentIterator{C}}) where {T, N, C <: Colorant{T, N}}
+    Base.BroadcastStyle(NTuple{N, T})
+end
+Base.axes(::ComponentIterator{C}) where {N, C <: ColorantN{N}} = (Base.OneTo(N),)
+Base.ndims(::Type{ComponentIterator{C}}) where {C} = 1
+function Base.broadcastable(itr::ComponentIterator{C}) where {T, N, C <: Colorant{T, N}}
+    (itr...,)::NTuple{N, T}
+end
+
+comps(c::Colorant) = ComponentIterator(c) # TODO: design public APIs
+
 
 # comparison
 _is_same_colorspace(a, b) = base_colorant_type(a) === base_colorant_type(b)
@@ -11,7 +49,7 @@ _is_same_colorspace(a::TransparentRGB, b::TransparentRGB) = true
 
 function ==(a::ColorantN{N}, b::ColorantN{N}) where {N}
     _is_same_colorspace(a, b) || return false
-    all(_mapc(BoolTuple, ==, a, b))
+    all(comps(a) .== comps(b))
 end
 ==(x::Number, y::AbstractGray) = x == gray(y)
 ==(x::AbstractGray, y::Number) = ==(y, x)
@@ -20,7 +58,7 @@ end
 function isapprox(a::ColorantN{N}, b::ColorantN{N}; kwargs...) where {N}
     _is_same_colorspace(a, b) || return false
     componentapprox(x, y) = isapprox(x, y; kwargs...)
-    all(_mapc(BoolTuple, componentapprox, a, b))
+    all(componentapprox.(comps(a), comps(b)))
 end
 isapprox(a::Colorant, b::Colorant; kwargs...) = false
 isapprox(a::Number, b::AbstractGray; kwargs...) = isapprox(a, gray(b); kwargs...)
@@ -192,30 +230,10 @@ color(s), returning an output color in the same colorspace.
     julia> mapc(+, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.6,1.3,0.8)
 """
-@inline mapc(f, c::C) where {C<:ColorantN{1}} =
-    base_colorant_type(C)(f(comp1(c)))
-@inline mapc(f, c::C) where {C<:ColorantN{2}} =
-    base_colorant_type(C)(f(comp1(c)), f(comp2(c)))
-@inline mapc(f, c::C) where {C<:ColorantN{3}} =
-    base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)))
-@inline mapc(f, c::C) where {C<:ColorantN{4}} =
-    base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(comp4(c)))
-@inline mapc(f, c::C) where {C<:ColorantN{5}} =
-    base_colorant_type(C)(f(comp1(c)), f(comp2(c)), f(comp3(c)), f(comp4(c)), f(comp5(c)))
-
+@inline mapc(f, c::C) where {C<:Colorant} = base_colorant_type(C)(f.(comps(c))...)
 @inline mapc(f, x::Number) = f(x)
 
-mapc(f::F, x, y) where F = _mapc(_same_colorspace(x,y), f, x, y)
-_mapc(::Type{C}, f, x::ColorantN{1}, y::ColorantN{1}) where C =
-    C(f(comp1(x), comp1(y)))
-_mapc(::Type{C}, f, x::ColorantN{2}, y::ColorantN{2}) where C =
-    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)))
-_mapc(::Type{C}, f, x::ColorantN{3}, y::ColorantN{3}) where C =
-    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)))
-_mapc(::Type{C}, f, x::ColorantN{4}, y::ColorantN{4}) where C =
-    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(comp4(x), comp4(y)))
-_mapc(::Type{C}, f, x::ColorantN{5}, y::ColorantN{5}) where C =
-    C(f(comp1(x), comp1(y)), f(comp2(x), comp2(y)), f(comp3(x), comp3(y)), f(comp4(x), comp4(y)), f(comp5(x), comp5(y)))
+@inline mapc(f::F, x, y) where {F} = _same_colorspace(x, y)(f.(comps(x), comps(y))...)
 
 _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type(x),
                                                               base_colorant_type(y))
@@ -238,12 +256,7 @@ whereas for RGB
 
 If `c` has an alpha channel, it is always the last one to be folded into the reduction.
 """
-@inline reducec(op, v0, c::ColorantN{1}) = op(v0, comp1(c))
-@inline reducec(op, v0, c::ColorantN{2}) = op(comp2(c), op(v0, comp1(c)))
-@inline reducec(op, v0, c::ColorantN{3}) = op(comp3(c), op(comp2(c), op(v0, comp1(c))))
-@inline reducec(op, v0, c::ColorantN{4}) = op(comp4(c), op(comp3(c), op(comp2(c), op(v0, comp1(c)))))
-@inline reducec(op, v0, c::ColorantN{5}) = op(comp5(c), op(comp4(c), op(comp3(c), op(comp2(c), op(v0, comp1(c))))))
-
+@inline reducec(op, v0, c::C) where {C <: Colorant} = reduce(op, Tuple(c); init=v0)
 @inline reducec(op, v0, x::Number) = op(v0, x)
 
 """
@@ -261,13 +274,5 @@ whereas for RGB
 
 If `c` has an alpha channel, it is always the last one to be folded into the reduction.
 """
-@inline mapreducec(f, op, v0, c::ColorantN{1}) = op(v0, f(comp1(c)))
-@inline mapreducec(f, op, v0, c::ColorantN{2}) = op(f(comp2(c)), op(v0, f(comp1(c))))
-@inline mapreducec(f, op, v0, c::ColorantN{3}) =
-    op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c)))))
-@inline mapreducec(f, op, v0, c::ColorantN{4}) =
-    op(f(comp4(c)), op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c))))))
-@inline mapreducec(f, op, v0, c::ColorantN{5}) =
-    op(f(comp5(c)), op(f(comp4(c)), op(f(comp3(c)), op(f(comp2(c)), op(v0, f(comp1(c)))))))
-
+@inline mapreducec(f, op, v0, c::C) where {C <: Colorant} = reduce(op, f.(comps(c)); init=v0)
 @inline mapreducec(f, op, v0, x::Number) = op(v0, f(x))

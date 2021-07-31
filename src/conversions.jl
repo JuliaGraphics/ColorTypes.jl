@@ -126,3 +126,6 @@ coloralpha(c::C) where {C<:Color} = coloralpha(C)(c)
 coloralpha(c::C,a) where {C<:Color} = coloralpha(C)(c,a)
 coloralpha(c::C) where {C<:TransparentColor} = coloralpha(base_color_type(C))(color(c), alpha(c))
 coloralpha(c::C,a) where {C<:TransparentColor} = coloralpha(base_color_type(C))(color(c), a)
+
+# Tuple
+Tuple(c::Colorant{T, N}) where {T, N} = (comps(c)...,)::NTuple{N, T}

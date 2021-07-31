@@ -46,11 +46,7 @@ function _show_components(io::IO, c::Colorant{T, N}) where {T, N}
     io = _components_iocontext(io, c)
     print(io, '(')
     for i = 1:N
-        i == 1 && show(io, comp1(c))
-        i == 2 && show(io, comp2(c))
-        i == 3 && show(io, comp3(c))
-        i == 4 && show(io, comp4(c))
-        i == 5 && show(io, comp5(c))
+        show(io, comps(c)[i])
         print(io, i < N ? ", " : ")")
     end
 end
