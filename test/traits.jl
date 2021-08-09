@@ -118,6 +118,39 @@ end
     @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
 end
 
+@testset "atan360" begin
+    for y in (-Inf, -0.0, +0.0, Inf, NaN), x in (-Inf, -0.0, +0.0, Inf, NaN)
+        z0 = atand(y, x)
+        z = signbit(z0) ? 360 + z0 : z0
+        @test ColorTypes.atan360(y, x) === z
+        @test ColorTypes.atan360(Float32(y), Float32(x)) === Float32(z)
+    end
+    for theta in 0.0:15.0:360.0
+        yf64, xf64 = (sind(theta), cosd(theta)) .* 65.4321
+        ybf, xbf = big(yf64), big(xf64)
+        @test ColorTypes.atan360(yf64, xf64) ≈ ColorTypes.atan360(ybf, xbf) rtol=3eps(Float64)
+        yf32, xf32 = Float32(yf64), Float32(xf64)
+        ybf, xbf = big(yf32), big(xf32)
+        @test ColorTypes.atan360(yf32, xf32) ≈ ColorTypes.atan360(ybf, xbf) rtol=3eps(Float32)
+    end
+end
+
+@testset "polar_to_cartesian" begin
+    @test ColorTypes.polar_to_cartesian(50.0, NaN) === (NaN, NaN)
+    @test ColorTypes.polar_to_cartesian(0.0f0, Inf32) === (NaN32, NaN32)
+    @test Float64.(ColorTypes.polar_to_cartesian(big"2.0", big"120.0")) === (-1.0, sqrt(3.0))
+
+    theta = -360.0:15.0:540.0
+    yxbf = [sincos(deg2rad(big(t))) .* 64.5 for t in theta]
+    xyf64 = ColorTypes.polar_to_cartesian.(64.5, theta)
+    xyf32 = ColorTypes.polar_to_cartesian.(64.5f0, Float32.(theta))
+
+    @test all(((a, b),) -> isapprox(a[1], b[2], atol=1e-14) &&
+                           isapprox(a[2], b[1], atol=1e-14), zip(xyf64, yxbf))
+    @test all(((a, b),) -> isapprox(a[1], b[2], atol=1e-6) &&
+                           isapprox(a[2], b[1], atol=1e-6), zip(xyf32, yxbf))
+end
+
 @testset "compN" begin
     g = Gray{Float32}(0.5)
     @test comp1(g) === 0.5f0
