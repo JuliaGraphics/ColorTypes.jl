@@ -3,6 +3,9 @@ using ColorTypes.FixedPointNumbers
 using Test
 using ColorTypes: ColorTypeResolutionError
 
+@isdefined(CustomTypes) || include("customtypes.jl")
+using .CustomTypes
+
 @testset "rgb promotions" begin
     @test promote( RGB{N0f8}(0.2,0.3,0.4),  RGB(0.3,0.8,0.1)) === ( RGB{Float64}(0.2N0f8,0.3N0f8,0.4N0f8),  RGB{Float64}(0.3,0.8,0.1))
     @test promote( RGB{N0f8}(0.2,0.3,0.4), RGBA(0.3,0.8,0.1)) === (RGBA{Float64}(0.2N0f8,0.3N0f8,0.4N0f8), RGBA{Float64}(0.3,0.8,0.1))
@@ -662,6 +665,24 @@ end
         @test convert(C, HSV{Float64}(100,0.4,0.6)) === C{Float64}(100,0.4,0.6,1)
         @test convert(C, HSV{Float32}(100,0.4,0.6), 0.2) === C{Float32}(100,0.4,0.6,0.2)
     end
+end
+
+@testset "conversions in the same color space" begin
+    @test convert(Cyanotype{Float32}, Cyanotype{Float64}(0.8)) === Cyanotype{Float32}(0.8)
+
+    @test convert(C2, C2{Float64}(0.4,0.6)) === C2{Float64}(0.4,0.6)
+    @test convert(C2{Float32}, C2{Float64}(0.4,0.6)) === C2{Float32}(0.4,0.6)
+    @test convert(C2, C2A{Float64}(0.4,0.6,0.5)) === C2{Float64}(0.4,0.6)
+    @test convert(C2A, C2A{Float32}(0.4,0.6,0.5)) === C2A{Float32}(0.4,0.6,0.5)
+    @test convert(C2A, C2{Float64}(0.4,0.6)) === C2A{Float64}(0.4,0.6,1.0)
+    @test convert(C2A, C2{Float32}(0.4,0.6), 0.25) === C2A{Float32}(0.4,0.6,0.25)
+
+    @test convert(CMYK, CMYK{Float64}(0.2,0.4,0.6,0.8)) === CMYK{Float64}(0.2,0.4,0.6,0.8)
+    @test convert(CMYK{Float32}, CMYK{Float64}(0.2,0.4,0.6,0.8)) === CMYK{Float32}(0.2,0.4,0.6,0.8)
+    @test convert(CMYK, ACMYK{Float64}(0.2,0.4,0.6,0.8,0.5)) === CMYK{Float64}(0.2,0.4,0.6,0.8)
+    @test convert(ACMYK, ACMYK{Float32}(0.2,0.4,0.6,0.8,0.5)) === ACMYK{Float32}(0.2,0.4,0.6,0.8,0.5)
+    @test convert(ACMYK, CMYK{Float64}(0.2,0.4,0.6,0.8)) === ACMYK{Float64}(0.2,0.4,0.6,0.8,1.0)
+    @test convert(ACMYK, CMYK{Float32}(0.2,0.4,0.6,0.8), 0.25) === ACMYK{Float32}(0.2,0.4,0.6,0.8,0.25)
 end
 
 @testset "conversions from gray to rgb" begin
