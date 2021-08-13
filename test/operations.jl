@@ -260,6 +260,14 @@ end
     @test @inferred(reducec(&, true, true))
     @test !(@inferred(reducec(&, false, true)))
     @test !(@inferred(reducec(&, true, false)))
+
+    @test @inferred(reducec(+, Gray(0.3), init=0.5)) === 0.5 + 0.3
+    @test @inferred(reducec(+, AGray{N0f8}(0.3, 0.8))) === 0.3N0f8 + 0.8N0f8 # overflow
+    @test @inferred(reducec(*, RGB(0.3, 0.8, 0.5), init=0.5)) === ((0.5 * 0.3) * 0.8) * 0.5
+    @test @inferred(reducec(*, RGBA{N0f8}(0.3, 0.8, 0.5, 0.7))) === ((0.3N0f8 * 0.8N0f8) * 0.5N0f8) * 0.7N0f8
+
+    @test @inferred(reducec(max, 0.3, init=0.5)) === 0.5
+    @test @inferred(reducec(min, 0.3)) === 0.3
 end
 
 @testset "mapreducec" begin
@@ -283,6 +291,14 @@ end
     @test !(@inferred(mapreducec(x->!x, &, false, true)))
     @test @inferred(mapreducec(x->!x, &, true, false))
     @test !@inferred(mapreducec(x->!x, &, false, false))
+
+    @test @inferred(mapreducec(x->x^2, max, Gray(0.3), init=0.01)) === 0.3^2
+    @test @inferred(mapreducec(x->x^2, max, AGray{N0f8}(0.3, 0.8))) === N0f8(0.8)^2
+    @test @inferred(mapreducec(x->x^2, min, RGB(0.3, 0.8, 0.5), init=0.2)) === 0.3^2
+    @test @inferred(mapreducec(x->x^2, min, RGBA{N0f8}(0.3, 0.8, 0.5, 0.7))) === N0f8(0.3)^2
+
+    @test @inferred(mapreducec(x->x^2, +, 0.3, init=0.5)) === 0.5 + 0.3^2
+    @test @inferred(mapreducec(x->x^2, *, 0.3)) === 0.3^2
 end
 
 @testset "ones/zeros" begin
