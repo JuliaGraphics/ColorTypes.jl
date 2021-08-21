@@ -478,13 +478,9 @@ AHSV{Float64}(NaN, NaN, NaN, NaN)
 ```
 """
 nan(::Type{T}) where {T<:AbstractFloat} = convert(T, NaN)
-nan(::Type{C}) where {T<:AbstractFloat, C<:Colorant{T}} = mapc(_ -> nan(T), zero(C))
+nan(::Type{C}) where {T<:AbstractFloat, N, C<:Colorant{T, N}} = C(ntuple(_ -> nan(T), Val(N))...)
 
-zero(::Type{C}) where {C<:ColorantN{1}} = C(0)
-zero(::Type{C}) where {C<:ColorantN{2}} = C(0, 0)
-zero(::Type{C}) where {C<:ColorantN{3}} = C(0, 0, 0)
-zero(::Type{C}) where {C<:ColorantN{4}} = C(0, 0, 0, 0)
-zero(::Type{C}) where {C<:ColorantN{5}} = C(0, 0, 0, 0, 0)
+zero(::Type{C}) where {N, C<:ColorantN{N}} = C(ntuple(_ -> 0, Val(N))...)
 zero(c::Colorant) = zero(typeof(c))
 
 oneunit(::Type{C}) where {C<:Colorant} = throw_oneunit_error(C)
