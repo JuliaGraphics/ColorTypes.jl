@@ -45,13 +45,13 @@ gray(x::Number)  = convert(eltype(ccolor(Gray, typeof(x))), x)   # ensures it's 
 """
 chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,Oklab,DIN99,DIN99o,DIN99d}} = sqrt(c.a^2 + c.b^2)
 chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} = sqrt(c.u^2 + c.v^2)
-chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{LCHab,LCHuv}} = c.c
+chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{LCHab,LCHuv, LCHOklab}} = c.c
 
 """
 `hue(c)` returns the hue in degrees. This function does not guarantee that the
 return value is in [0, 360].
 """
-hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{HSV,HSL,HSI,LCHab,LCHuv}} = c.h
+hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{HSV,HSL,HSI,LCHab,LCHuv, LCHOklab}} = c.h
 hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,Oklab,DIN99,DIN99o,DIN99d}} =
     (h = atand(c.b, c.a); h < 0 ? h + 360 : h)
 hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} =
