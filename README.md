@@ -252,6 +252,25 @@ struct LCHuv{T} <: Color{T,3}
 end
 ```
 
+### Oklab and LCHOklab
+
+A perceptual color space for image processing that preserves lightness upon grayscale conversion, maintains hue and lightness when increasing saturation and creates smooth and uniform looking transitions between colors, as well as it’s cylindrically reparametrised version.
+https://bottosson.github.io/posts/oklab/
+
+
+```julia
+struct Oklab{T} <: Color{T,3}
+    l::T # Lightness in [0,100]
+    a::T # Red/Green
+    b::T # Blue/Yellow
+end
+
+struct LCHOklab{T} <: Color{T,3}
+    l::T # Lightness in [0,100]
+    c::T # Chroma
+    h::T # Hue in [0,360]
+end
+```
 
 ### DIN99
 
