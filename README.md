@@ -254,8 +254,7 @@ end
 
 ### Oklab and LCHOklab
 
-A perceptual color space for image processing that preserves lightness upon grayscale conversion, maintains hue and lightness when increasing saturation and creates smooth and uniform looking transitions between colors, as well as it’s cylindrically reparametrised version.
-https://bottosson.github.io/posts/oklab/
+A perceptual color space for image processing that preserves lightness upon grayscale conversion, maintains hue and lightness when increasing saturation and creates smooth and uniform looking transitions between colors, as well as it’s cylindrically reparametrised version. Based on work by [Björn Otteson](https://bottosson.github.io/posts/oklab/)
 
 
 ```julia
