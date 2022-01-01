@@ -226,6 +226,20 @@ struct LCHuv{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
 end
 
+"`Oklab` is the Oklab colorspace."
+struct Oklab{T<:AbstractFloat} <: Color{T,3}
+    l::T # Lightness in [0,100]
+    a::T # Red/Green
+    b::T # Blue/Yellow
+end
+
+"`LCHOklab` is the Luminance-Chroma-Hue, Polar-Oklab colorspace"
+struct LCHOklab{T<:AbstractFloat} <: Color{T,3}
+    l::T # Lightness in [0,100]
+    c::T # Chroma
+    h::T # Hue in [0,360]
+end
+
 "`DIN99` is the (L99, a99, b99) adaptation of CIELAB"
 struct DIN99{T<:AbstractFloat} <: Color{T,3}
     l::T # L99
@@ -482,9 +496,11 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
                         (HSV, :AHSV, :HSVA),
                         (LCHab, :ALCHab, :LCHabA),
                         (LCHuv, :ALCHuv, :LCHuvA),
+                        (LCHOklab, :ALCHOklab, :LCHOklabA),
                         (LMS, :ALMS, :LMSA),
                         (Lab, :ALab, :LabA),
                         (Luv, :ALuv, :LuvA),
+                        (Oklab, :AOklab, :OklabA),
                         (XYZ, :AXYZ, :XYZA),
                         (YCbCr, :AYCbCr, :YCbCrA),
                         (YIQ, :AYIQ, :YIQA),
