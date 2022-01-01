@@ -21,7 +21,7 @@ export AbstractAGray, AbstractGrayA, AbstractARGB, AbstractRGBA
 
 export RGB, BGR, XRGB, RGBX
 export HSV, HSB, HSL, HSI
-export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv
+export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv, Oklab, LCHOklab
 export DIN99, DIN99d, DIN99o
 export YIQ, YCbCr
 
