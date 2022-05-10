@@ -54,6 +54,13 @@ end
 ==(x::Number, y::AbstractGray) = x == gray(y)
 ==(x::AbstractGray, y::Number) = ==(y, x)
 
+function Base.isequal(a::ColorantN{N}, b::ColorantN{N}) where {N}
+    _is_same_colorspace(a, b) || return false
+    all(isequal.(comps(a), comps(b)))
+end
+Base.isequal(x::Number, y::AbstractGray) = isequal(x, gray(y))
+Base.isequal(x::AbstractGray, y::Number) = isequal(y, x)
+
 
 function isapprox(a::ColorantN{N}, b::ColorantN{N}; kwargs...) where {N}
     _is_same_colorspace(a, b) || return false
