@@ -252,29 +252,3 @@ end
     @test @inferred(mapreducec(x->!x, &, true, false))
     @test !@inferred(mapreducec(x->!x, &, false, false))
 end
-
-@testset "ones/zeros" begin
-    for C in (Gray, Gray{N0f8}, GrayA{Float32}, Gray24, AGray32,
-              RGB, RGB{N0f8}, RGBA{Float32}, RGB24, ARGB32)
-        for f in (ones, zeros)
-            if f === ones && C <: TransparentColor
-                @test_broken f(C, 3, 5) # issue #162
-                continue
-            end
-            mat = @inferred(f(C, 3, 5))
-            # note that the return type of `ones(RGB)` is `Array{RGB}`, not `Array{RGB{N0f8}}`
-            @test typeof(mat) === Matrix{C}
-            @test size(mat) == (3, 5)
-            @test mat[2, 3] === (f === ones ? oneunit(C) : zero(C))
-        end
-    end
-    @test_throws ColorTypes.ColorTypeResolutionError ones(HSV{Float32}, 3, 5)
-    # Although `XYZ` and `LMS` have the definition of `oneunit`,
-    # it is generally not equivalent to `Gray(1)`.
-    @test_throws ColorTypes.ColorTypeResolutionError ones(XYZ, 3, 5)
-    @test_throws ColorTypes.ColorTypeResolutionError ones(LMS{Float64}, 3, 5)
-
-    @test zeros(HSV{Float32}, 3, 5)[2, 3] === zero(HSV{Float32})
-    @test zeros(XYZ, 3, 5)[2, 3] === zero(XYZ)
-    @test zeros(LMS{Float64}, 3, 5)[2, 3] === zero(LMS{Float64})
-end

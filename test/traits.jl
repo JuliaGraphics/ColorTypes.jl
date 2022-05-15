@@ -632,37 +632,27 @@ end
     @test_throws MethodError ColorTypes.nan(Gray(1.0))
 end
 
-# see also ones/zeros test in "test/operations.jl"
 @testset "identities for Gray" begin
-    @test one(    Gray{N0f8}) === 1N0f8
     @test oneunit(Gray{N0f8}) === Gray{N0f8}(1)
     @test zero(   Gray{N0f8}) === Gray{N0f8}(0)
-    @test @inferred(one(    Gray)) === 1N0f8
     @test @inferred(oneunit(Gray)) === Gray{N0f8}(1)
     @test @inferred(zero(   Gray)) === Gray{N0f8}(0)
-    @test one(    Gray{Bool}) === true
     @test oneunit(Gray{Bool}) === Gray{Bool}(1)
     @test zero(   Gray{Bool}) === Gray{Bool}(0)
 
-    @test one(    AGray{N0f8}) === 1N0f8
     @test oneunit(AGray{N0f8}) === AGray{N0f8}(1, 1)
     @test zero(   AGray{N0f8}) === AGray{N0f8}(0, 0)
-    @test @inferred(one(    AGray)) === 1N0f8
     @test @inferred(oneunit(AGray)) === AGray{N0f8}(1, 1)
     @test @inferred(zero(   AGray)) === AGray{N0f8}(0, 0)
-    @test one(    GrayA{Float32}) === 1.0f0
     @test oneunit(GrayA{Float32}) === GrayA{Float32}(1, 1)
     @test zero(   GrayA{Float32}) === GrayA{Float32}(0, 0)
 
-    @test one(    Gray24) === 1N0f8
     @test oneunit(Gray24) === Gray24(1)
     @test zero(   Gray24) === Gray24(0)
-    @test one(   AGray32) === 1N0f8
     @test oneunit(AGray32) === AGray32(1, 1)
     @test zero(   AGray32) === AGray32(0, 0)
 
     g = Gray{Float32}(0.8)
-    @test one(    g) === 1.0f0
     @test oneunit(g) === Gray{Float32}(1)
     @test zero(   g) === Gray{Float32}(0)
 
@@ -670,70 +660,53 @@ end
 end
 
 @testset "identities for RGB" begin
-    @test one(    RGB{N0f8}) === 1N0f8
     @test oneunit(RGB{N0f8}) === RGB{N0f8}(1, 1, 1)
     @test zero(   RGB{N0f8}) === RGB{N0f8}(0, 0, 0)
-    @test @inferred(one(    RGB)) === 1N0f8
     @test @inferred(oneunit(RGB)) === RGB{N0f8}(1, 1, 1)
     @test @inferred(zero(   RGB)) === RGB{N0f8}(0, 0, 0)
 
-    @test one(    ARGB{N0f8}) === 1N0f8
     @test oneunit(ARGB{N0f8}) === ARGB{N0f8}(1, 1, 1, 1)
     @test zero(   ARGB{N0f8}) === ARGB{N0f8}(0, 0, 0, 0)
-    @test @inferred(one(    ARGB)) === 1N0f8
     @test @inferred(oneunit(ARGB)) === ARGB{N0f8}(1, 1, 1, 1)
     @test @inferred(zero(   ARGB)) === ARGB{N0f8}(0, 0, 0, 0)
-    @test one(    RGBA{Float32}) === 1.0f0
     @test oneunit(RGBA{Float32}) === RGBA{Float32}(1, 1, 1, 1)
     @test zero(   RGBA{Float32}) === RGBA{Float32}(0, 0, 0, 0)
 
-    @test one(    RGB24) === 1N0f8
     @test oneunit(RGB24) === RGB24(1, 1, 1)
     @test zero(   RGB24) === RGB24(0, 0, 0)
-    @test one(    ARGB32) === 1N0f8
     @test oneunit(ARGB32) === ARGB32(1, 1, 1, 1)
     @test zero(   ARGB32) === ARGB32(0, 0, 0, 0)
 
     c = RGB{Float32}(0.4, 0.5, 0.6)
-    @test one(    c) === 1.0f0
     @test oneunit(c) === RGB{Float32}(1, 1, 1)
     @test zero(   c) === RGB{Float32}(0, 0, 0)
 end
 
 @testset "identities for other colors" begin
-    @test one(    XYZ{Float16}) === Float16(1)
     @test oneunit(XYZ{Float16}) === XYZ{Float16}(1, 1, 1)
     @test zero(   XYZ{Float16}) === XYZ{Float16}(0, 0, 0)
 
-    @test @inferred(one(    LMS)) === 1.0f0
     @test @inferred(oneunit(LMS)) === LMS{Float32}(1, 1, 1)
     @test @inferred(zero(   LMS)) === LMS{Float32}(0, 0, 0)
 
-    @test one( HSV{Float32}) === 1.0f0
-    @test_throws ArgumentError oneunit(HSV{Float32})
+    @test_throws MethodError oneunit(HSV{Float32})
     @test zero(HSV{Float32}) === HSV{Float32}(0, 0, 0)
 
-    @test one( ALab{Float16}) === Float16(1)
-    @test_throws ArgumentError oneunit(ALab{Float16})
+    @test_throws MethodError oneunit(ALab{Float16})
     @test zero(ALab{Float16}) === ALab{Float16}(0, 0, 0, 0)
 
-    @test one( LCHuvA{Float64}) === 1.0
-    @test_throws ArgumentError oneunit(LCHuvA{Float64})
+    @test_throws MethodError oneunit(LCHuvA{Float64})
     @test zero(LCHuvA{Float64}) === LCHuvA{Float64}(0, 0, 0, 0)
 
-    @test one( C2{Float64}) === 1.0
-    @test_throws ArgumentError oneunit(C2{Float64})
+    @test_throws MethodError oneunit(C2{Float64})
     @test zero(C2{Float64}) === C2{Float64}(0, 0)
 
-    @test one( C4{Float64}) === 1.0
-    @test_throws ArgumentError oneunit(C4{Float64})
+    @test_throws MethodError oneunit(C4{Float64})
     @test zero(C4{Float64}) === C4{Float64}(0, 0, 0, 0)
 
-    @test one(    CMYK{N0f8}) === 1N0f8
     @test oneunit(CMYK{N0f8}) === CMYK{N0f8}(1, 1, 1, 1)
     @test zero(   CMYK{N0f8}) === CMYK{N0f8}(0, 0, 0, 0)
 
-    @test one(    ACMYK{N0f8}) === 1N0f8
     @test oneunit(ACMYK{N0f8}) === ACMYK{N0f8}(1, 1, 1, 1, 1)
     @test zero(   ACMYK{N0f8}) === ACMYK{N0f8}(0, 0, 0, 0, 0)
 end
