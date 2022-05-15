@@ -753,6 +753,14 @@ end
     end
 end
 
+@testset "conversions from rgb to gray" begin
+    # The rules are defined in Colors.jl, but we want to make sure it calls
+    # the `convert` method.
+    # Issue #277
+    msg = "No conversion of RGB{N0f8}(0.0, 0.0, 0.0) to Gray{Float32} has been defined"
+    @test_throws ErrorException(msg) Gray{Float32}(RGB())
+end
+
 @testset "conversions between different spaces" begin
     @test_throws ErrorException convert(HSV, RGB(1,0,1))
     @test_throws ErrorException convert(AHSV, RGB(1,0,1), 0.5)
