@@ -44,44 +44,21 @@ hash(c::TransparentRGB, hx::UInt) = hash(alpha(c), hash(blue(c), hash(green(c), 
 Base.adjoint(c::Colorant) = c
 
 # gamut{min,max}
-# the following values are based on the bounding boxes of sRGB gamut (D65).
-gamutmin(::Type{<:ColorantN{N}}) where {N} = ntuple(_ -> 0, N) # fallback
+gamutmax(::Type{T}) where {T<:HSV} = (360,1,1)
+gamutmin(::Type{T}) where {T<:HSV} = (0,0,0)
+gamutmax(::Type{T}) where {T<:HSL} = (360,1,1)
+gamutmin(::Type{T}) where {T<:HSL} = (0,0,0)
+gamutmax(::Type{T}) where {T<:Lab} = (100,128,128)
+gamutmin(::Type{T}) where {T<:Lab} = (0,-127,-127)
+gamutmax(::Type{T}) where {T<:LCHab} = (100,1,360) # FIXME
+gamutmin(::Type{T}) where {T<:LCHab} = (0,0,0)
+gamutmax(::Type{T}) where {T<:YIQ} = (1,0.5226,0.5226) # FIXME
+gamutmin(::Type{T}) where {T<:YIQ} = (0,-0.5957,-0.5957) # FIXME
 
-gamutmax(::Type{<:AbstractGray}) = (1,)
-gamutmax(::Type{<:AbstractRGB}) = (1, 1, 1)
-
-gamutmax(::Type{<:Union{HSV, HSL, HSI}}) = (360, 1, 1)
-
-gamutmax(::Type{<:XYZ}) = (0.9505, 1, 1.089)
-
-gamutmax(::Type{<:xyY}) = (0.3127, 0.3290, 1)
-
-gamutmax(::Type{<:Lab}) = (100, 98.2343, 94.4779)
-gamutmin(::Type{<:Lab}) = (0, -86.1827, -107.8602)
-
-gamutmax(::Type{<:Luv}) = (100, 175.0150, 107.3985)
-gamutmin(::Type{<:Luv}) = (0, -83.077, -134.1030)
-
-gamutmax(::Type{<:LCHab}) = (100, 133.8076, 360)
-
-gamutmax(::Type{<:LCHuv}) = (100, 179.0414, 360)
-
-gamutmax(::Type{<:DIN99}) = (100.0013, 36.1753, 31.1551)
-gamutmin(::Type{<:DIN99}) = (0, -27.4504, -33.3955)
-
-gamutmax(::Type{<:DIN99d}) = (100.0002, 43.6867, 43.6318)
-gamutmin(::Type{<:DIN99d}) = (0, -38.1436, -45.8498)
-
-gamutmax(::Type{<:DIN99o}) = (99.9997, 45.5242, 44.3662)
-gamutmin(::Type{<:DIN99o}) = (0, -40.1101, -40.4900)
-
-gamutmax(::Type{<:LMS}) = (0.9493, 1.0354, 1.0872)
-
-gamutmax(::Type{<:YIQ}) = (1, 0.5957, 0.5226)
-gamutmin(::Type{<:YIQ}) = (0, -0.5957, -0.5226)
-
-gamutmax(::Type{<:YCbCr}) = (235, 240, 240)
-gamutmin(::Type{<:YCbCr}) = (16, 16, 16)
+gamutmax(::Type{T}) where {T<:AbstractGray} = (1,)
+gamutmin(::Type{T}) where {T<:AbstractGray} = (0,)
+gamutmax(::Type{T}) where {T<:AbstractRGB} = (1,1,1)
+gamutmin(::Type{T}) where {T<:AbstractRGB} = (0,0,0)
 
 gamutmax(::Type{C}) where {C<:TransparentColor} = (gamutmax(color_type(C))..., 1)
 gamutmin(::Type{C}) where {C<:TransparentColor} = (gamutmin(color_type(C))..., 0)
