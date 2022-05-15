@@ -145,11 +145,11 @@ function rand(r::AbstractRNG, ::SamplerType{C}) where {T, C<:Colorant{T}}
 end
 function rand(r::AbstractRNG, ::SamplerType{C}) where {T<:Rand01Type, C0<:AbstractGray{T},
                                                        C<:Union{C0, TransparentGray{C0, T}}}
-    mapc(_ -> rand(r, T), C())
+    mapc(_ -> rand(r, T), base_colorant_type(C)())
 end
 function rand(r::AbstractRNG, ::SamplerType{C}) where {T<:Rand01Type, C0<:AbstractRGB{T},
                                                        C<:Union{C0, TransparentRGB{C0, T}}}
-    mapc(_ -> rand(r, T), C())
+    mapc(_ -> rand(r, T), base_colorant_type(C)())
 end
 function rand(r::AbstractRNG, ::SamplerType{AGray32}) # Gray24 has little benefit of specialization.
     reinterpret(AGray32, (rand(r, UInt32) & 0xff0000ff) * 0x010101)

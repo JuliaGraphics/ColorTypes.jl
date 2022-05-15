@@ -512,7 +512,12 @@ _real(x::AbstractGray) = real(x)
 function (::Type{C})() where {N, C <: ColorantN{N}}
     d0 = zero(eltype_default(C))
     dx = C <: TransparentColor ? oneunit(eltype_default(C)) : d0
-    C(ntuple(_ -> d0, Val(N - 1))..., dx)
+    N == 1 && return _new_colorant(C, dx)
+    N == 2 && return _new_colorant(C, d0, dx)
+    N == 3 && return _new_colorant(C, d0, d0, dx)
+    N == 4 && return _new_colorant(C, d0, d0, d0, dx)
+    N == 5 && return _new_colorant(C, d0, d0, d0, d0, dx)
+    throw(MethodError(C, ()))
 end
 
 (::Type{C})(x         ) where {C <: Color    } = _new_colorant(C, x)
