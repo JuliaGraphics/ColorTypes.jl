@@ -39,6 +39,8 @@ struct AC4{T <: Real} <: AlphaColor{C4{T},T,5}
 end
 ColorTypes.alphacolor(::Type{<:C4}) = AC4
 ColorTypes.eltype_default(::Type{<:AC4}) = Int16
+# TODO: The following should be generated automatically
+AC4{T}(c1, c2, c3, c4, alpha=1) where {T} = AC4{T}(T(c1), T(c2), T(c3), T(c4), T(alpha))
 
 struct StrangeGray{Something,T <: Integer} <: AbstractGray{Normed{T}}
     val::T
@@ -52,7 +54,6 @@ ColorTypes.gray(g::StrangeGray{X,T}) where {X, T} = reinterpret(Normed{T,sizeof(
 # non-gray color with a single component
 struct Cyanotype{T <: Real} <: Color{T,1}
    value::T
-   Cyanotype{T}(value::T) where {T} = new{T}(value)
 end
 
 function Base.convert(::Type{Cout}, c::C) where {Cout <: AbstractRGB, T, C <: Cyanotype{T}}
@@ -105,7 +106,8 @@ struct ACMYK{T <: Fractional} <: AlphaColor{CMYK{T},T,5}
     k::T
     ACMYK{T}(c::T, m::T, y::T, k::T, alpha::T=oneunit(T)) where {T} = new{T}(alpha, c, m, y, k)
 end
-ColorTypes.alphacolor(::Type{<:CMYK}) = ACMYK
 # TODO: The following should be generated automatically
+ACMYK{T}(c, m, y, k, alpha=1) where {T} = ACMYK{T}(T(c), T(m), T(y), T(k), T(alpha))
+ACMYK(c::T, m::T, y::T, k::T, alpha::T=oneunit(T)) where {T} = ACMYK{T}(c, m, y, k, alpha)
 ACMYK{T}(col::CMYK{T}, alpha::T=oneunit(T)) where {T} = ACMYK{T}(col.c, col.m, col.y, col.k, alpha)
 end # module

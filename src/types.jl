@@ -104,8 +104,18 @@ struct RGB{T<:Fractional} <: AbstractRGB{T}
     g::T # Green [0,1]
     b::T # Blue [0,1]
 
-    RGB{T}(r::T, g::T, b::T) where {T <: Fractional} = new{T}(r, g, b)
+    RGB{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b)
+    # T might be a Normed, and so some inputs will result in an
+    # error. Try to make it a nice error.
+    function RGB{T}(r::Real, g::Real, b::Real) where T
+        checkval(RGB{T}, r, g, b)
+        new{T}(_rem(r,T), _rem(g,T), _rem(b,T))
+    end
 end
+# For types that support Fractional, we need this to avoid a
+# StackOverflow. For color types that only support AbstractFloat, this
+# is handled by @make_constructors.
+RGB(r::T, g::T, b::T) where {T<:Fractional} = RGB{T}(r, g, b)
 
 """
 `BGR` is a variant of `RGB` with the opposite storage order.  Note
@@ -119,8 +129,13 @@ struct BGR{T<:Fractional} <: AbstractRGB{T}
     g::T
     r::T
 
-    BGR{T}(r::T, g::T, b::T) where {T <: Fractional} = new{T}(b, g, r)
+    BGR{T}(r::T, g::T, b::T) where {T} = new{T}(b, g, r)
+    function BGR{T}(r::Real, g::Real, b::Real) where T
+        checkval(BGR{T}, r, g, b)
+        new{T}(_rem(b,T), _rem(g,T), _rem(r,T))
+    end
 end
+BGR(r::T, g::T, b::T) where {T<:Fractional} = BGR{T}(r, g, b)
 
 """
 `XRGB` is a variant of `RGB` which has a padding element inserted at
@@ -136,8 +151,13 @@ struct XRGB{T<:Fractional} <: AbstractRGB{T}
     g::T
     b::T
 
-    XRGB{T}(r::T, g::T, b::T) where {T <: Fractional} = new{T}(oneunit(T), r, g, b)
+    XRGB{T}(r::T, g::T, b::T) where {T} = new{T}(oneunit(T), r, g, b)
+    function XRGB{T}(r::Real, g::Real, b::Real) where T
+        checkval(XRGB{T}, r, g, b)
+        new{T}(oneunit(T), _rem(r,T), _rem(g,T), _rem(b,T))
+    end
 end
+XRGB(r::T, g::T, b::T) where {T<:Fractional} = XRGB{T}(r, g, b)
 
 """
 `RGBX` is a variant of `RGB` which has a padding element inserted at
@@ -153,8 +173,13 @@ struct RGBX{T<:Fractional} <: AbstractRGB{T}
     b::T
     alphadummy::T
 
-    RGBX{T}(r::T, g::T, b::T) where {T <: Fractional} = new{T}(r, g, b, oneunit(T))
+    RGBX{T}(r::T, g::T, b::T) where {T} = new{T}(r, g, b, oneunit(T))
+    function RGBX{T}(r::Real, g::Real, b::Real) where T
+        checkval(RGBX{T}, r, g, b)
+        new{T}(_rem(r,T), _rem(g,T), _rem(b,T), oneunit(T))
+    end
 end
+RGBX(r::T, g::T, b::T) where {T<:Fractional} = RGBX{T}(r, g, b)
 
 "`HSV` is the Hue-Saturation-Value colorspace."
 struct HSV{T<:AbstractFloat} <: Color{T,3}
@@ -302,11 +327,12 @@ end
 # implementation detail, and user code should not use it directly:
 # use reinterpret(RGB24, x::UInt32) instead. (The Val{true}
 # constructor is used to implement reinterpret, see traits.jl.)
-function RGB24(r::N0f8, g::N0f8, b::N0f8)
-    r32 = UInt32(reinterpret(r)) << 16
-    g32 = UInt32(reinterpret(g)) << 8
-    b32 = UInt32(reinterpret(b))
-    reinterpret(RGB24, r32 | g32 | b32)
+RGB24() = reinterpret(RGB24, UInt32(0))
+_RGB24(r::UInt8, g::UInt8, b::UInt8) = reinterpret(RGB24, UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
+RGB24(r::N0f8, g::N0f8, b::N0f8) = _RGB24(reinterpret(r), reinterpret(g), reinterpret(b))
+function RGB24(r::Real, g::Real, b::Real)
+    checkval(RGB24, r, g, b)
+    RGB24(_rem(r,N0f8), _rem(g,N0f8), _rem(b,N0f8))
 end
 
 """
@@ -325,25 +351,26 @@ struct ARGB32 <: AbstractARGB{RGB24, N0f8}
 
     ARGB32(col::UInt32, ::Type{Val{true}}) = new(col)
 end
-function ARGB32(r::N0f8, g::N0f8, b::N0f8, alpha::N0f8 = N0f8(1))
-    a32 = UInt32(reinterpret(alpha)) << 24
-    r32 = UInt32(reinterpret(r)) << 16
-    g32 = UInt32(reinterpret(g)) << 8
-    b32 = UInt32(reinterpret(b))
-    reinterpret(ARGB32, a32 | r32 | g32 | b32)
-end
-function ARGB32(c::RGB24, alpha::Real = N0f8(1))
-    checkval(ARGB32, alpha)
-    a32 = UInt32(reinterpret(_rem(alpha, N0f8))) << 24
-    reinterpret(ARGB32, a32 | (c.color & 0xFFFFFF))
-end
+ARGB32() = reinterpret(ARGB32, UInt32(0xff)<<24)
+_ARGB32(r::UInt8, g::UInt8, b::UInt8, alpha::UInt8) = reinterpret(ARGB32, UInt32(alpha)<<24 | UInt32(r)<<16 | UInt32(g)<<8 | UInt32(b))
+ARGB32(r::N0f8, g::N0f8, b::N0f8, alpha::N0f8 = N0f8(1)) = _ARGB32(reinterpret(r), reinterpret(g), reinterpret(b), reinterpret(alpha))
+ARGB32(r, g, b, alpha = 1) = ARGB32(N0f8(r), N0f8(g), N0f8(b), N0f8(alpha))
+ARGB32(c::AbstractRGB{T}, alpha = alpha(c)) where {T} = ARGB32(red(c), green(c), blue(c), alpha)
+ARGB32(c::RGB24, alpha = N0f8(1)) = reinterpret(ARGB32, (UInt32(reinterpret(N0f8(alpha))) << 24) | reinterpret(UInt32, c) & 0xFFFFFF)
 
 """
 `Gray` is a grayscale object. You can extract its value with `gray(c)`.
 """
 struct Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
+
+    Gray{T}(val::T) where {T} = new{T}(val)
+    function Gray{T}(val::Real) where T
+        checkval(Gray{T}, val)
+        new{T}(_rem(val,T))
+    end
 end
+Gray(val::T) where {T<:Union{Fractional,Bool}} = Gray{T}(val)
 
 """
 `Gray24` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -360,7 +387,9 @@ struct Gray24 <: AbstractGray{N0f8}
 
     Gray24(c::UInt32, ::Type{Val{true}}) = new(c)
 end
-Gray24(val::N0f8) = reinterpret(Gray24, reinterpret(val) * 0x010101)
+Gray24() = reinterpret(Gray24, UInt32(0))
+_Gray24(val::UInt8) = (g = UInt32(val); reinterpret(Gray24, g<<16 | g<<8 | g))
+Gray24(val::N0f8) = _Gray24(reinterpret(val))
 
 """
 `AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
@@ -378,88 +407,32 @@ struct AGray32 <: AbstractAGray{Gray24, N0f8}
 
     AGray32(c::UInt32, ::Type{Val{true}}) = new(c)
 end
-function AGray32(val::N0f8, alpha::N0f8 = N0f8(1))
-    a32 = UInt32(reinterpret(alpha)) << 24
-    reinterpret(AGray32, a32 | reinterpret(val) * 0x010101)
+AGray32() = reinterpret(AGray32, 0xff000000)
+_AGray32(val::UInt8, alpha::UInt8 = 0xff) = (g = UInt32(val); reinterpret(AGray32, UInt32(alpha)<<24 | g<<16 | g<<8 | g))
+AGray32(val::N0f8, alpha::N0f8 = N0f8(1)) = _AGray32(reinterpret(val), reinterpret(alpha))
+function AGray32(val::Real, alpha)
+    checkval(AGray32, val, alpha)
+    AGray32(val%N0f8, alpha%N0f8)
 end
-function AGray32(g::Gray24, alpha::Real= N0f8(1))
+function AGray32(g::Gray24, alpha = 1)
     checkval(AGray32, alpha)
-    a32 = UInt32(reinterpret(_rem(alpha, N0f8))) << 24
-    reinterpret(AGray32, a32 | (g.color & 0xffffff))
+    reinterpret(AGray32, UInt32(reinterpret(_rem(alpha,N0f8)))<<24 | g.color)
 end
+AGray32(g::AbstractGray, alpha = 1) = AGray32(gray(g), alpha)
 
 # Generated code:
-#   - TransparentColor definitions (e.g., ARGB and RGBA) with inner constructors
-#   - `export`s
-#   - `coloralpha(::Color)` and `alphacolor(::Color)` traits for corresponding types
+#   - more constructors for colors
+#   - TransparentColor definitions (e.g., ARGB), exports, and constructors
+#   - coloralpha(::Color) and alphacolor(::Color) traits for corresponding types
 
 # Note: with the exceptions of `alphacolor` and `coloralpha`, all
 # traits in the rest of this file are intended just for internal use
 
-# Provide the field names in the order expected by the constructor
-colorfields(::Type{C}) where {C<:Color} = (fieldnames(C)...,)
-colorfields(::Type{C}) where {C<:XRGB} = (:r, :g, :b)
-colorfields(::Type{C}) where {C<:RGBX} = (:r, :g, :b)
-colorfields(::Type{C}) where {C<:BGR } = (:r, :g, :b)
-colorfields(::Type{P}) where {P<:TransparentColor} = tuple(colorfields(color_type(P))..., :alpha)
-colorfields(c::Colorant) = colorfields(typeof(c))
-
-eltype_default(::Type) = Float32
-eltype_default(::Type{C}) where {C<:AbstractRGB } = N0f8
-eltype_default(::Type{C}) where {C<:AbstractGray} = N0f8
-eltype_default(::Type{C}) where {C<:TransparentColor} = eltype_default(color_type(C))
-
-# TODO: Generalize the promotion rules so that they are reasonable even for custom types.
-@inline function promote_args_type(::Type{C}, args...) where C <: Color
-    T = promote_type(map(typeof, args)...)
-    _promote_args_type(eltype_default(C), T)
-end
-@inline function promote_args_type(::Type{C}, args...) where {C <: TransparentColor}
-    Ta = typeof(last(args)) # alpha
-    T = _promote_wol(map(typeof, args)...)
-    if T <: Union{Integer, FixedPoint} && Ta <: Integer
-        _promote_args_type(eltype_default(C), T)
-    else
-        _promote_args_type(eltype_default(C), promote_type(T, Ta))
-    end
-end
-# a variant of `promote_type` that ignores the last (i.e. alpha) element
-@inline _promote_wol(t, tail...) = length(tail) == 1 ? t : promote_type(t, _promote_wol(tail...))
-
-_promote_args_type(::Type{Tdef}, ::Type{T}) where {Tdef<:AbstractFloat, T<:AbstractFloat} = T
-_promote_args_type(::Type{Tdef}, ::Type{T}) where {Tdef<:AbstractFloat, T<:Real} = Tdef
-_promote_args_type(::Type{Tdef}, ::Type{T}) where {Tdef<:FixedPoint, T<:Fractional} = T
-_promote_args_type(::Type{Tdef}, ::Type{T}) where {Tdef<:FixedPoint, T<:Real} = Tdef
-_promote_args_type(::Type{Tdef}, ::Type{T}) where {Tdef, T} = promote_type(Tdef, T)
-
-# Generate transparent versions
-macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
-    # ub = upper-bound on T in C{T}
-    # elty = default element type when supplied with Integer arguments
-    fields = fields.args
-    constrfields = constrfields.args
-    N = length(fields) + 1
-    Tfields = Expr[:($f::T) for f in fields]
-    Targs   = Expr[:($f::T) for f in constrfields]
-    Tconstr = Expr(:<:, :T, ub)
-    esc(quote
-        struct $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
-            alpha::T
-            $(Tfields...)
-
-            $acol{T}($(Targs...), alpha::T=oneunit(T)) where {$Tconstr} = new{T}(alpha, $(fields...))
-        end
-        struct $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
-            $(Tfields...)
-            alpha::T
-
-            $cola{T}($(Targs...), alpha::T=oneunit(T)) where {$Tconstr} = new{T}($(fields...), alpha)
-        end
-        export $acol, $cola
-        alphacolor(::Type{C}) where {C<:$C} = $acol
-        coloralpha(::Type{C}) where {C<:$C} = $cola
-    end)
-end
+# The following should be in traits.jl but we need it now.
+# Return the number of components in the color
+# Note this is different from div(sizeof(c), sizeof(eltype(c))) (e.g., XRGB)
+length(c::Colorant) = length(typeof(c))
+length(::Type{C}) where C<:(Colorant{T,N} where T) where N = N
 
 const color3types = map(s->getfield(ColorTypes,s),
                         filter(names(ColorTypes, all=false)) do s
@@ -473,7 +446,125 @@ const color3types = map(s->getfield(ColorTypes,s),
 # wrapped UnionAll-wrapped DataType.
 const parametric3 = filter(x->!isa(x, DataType) || !isempty(x.parameters), color3types)
 
-# For searchability, explicitly enumerate the type names. (issue #16)
+# Provide the field names in the order expected by the constructor
+colorfields(::Type{C}) where {C<:Color} = (fieldnames(C)...,)
+colorfields(::Type{C}) where {C<:XRGB} = (:r, :g, :b)
+colorfields(::Type{C}) where {C<:RGBX} = (:r, :g, :b)
+colorfields(::Type{C}) where {C<:BGR } = (:r, :g, :b)
+colorfields(::Type{P}) where {P<:TransparentColor} = tuple(colorfields(color_type(P))..., :alpha)
+colorfields(c::Colorant) = colorfields(typeof(c))
+
+# Generate convenience constructors for a type
+macro make_constructors(C, fields, elty)
+    # elty = default element type when supplied with Integer arguments
+    fields = fields.args
+    Tfields = Expr[:($f::T) for f in fields]
+    realfields = Expr[:($f::Real) for f in fields]
+    zfields = zeros(Int, length(fields))
+    esc(quote
+        # More constructors for the non-alpha version
+        $C($(Tfields...)) where {T<:Integer} = $C{$elty}($(fields...))
+        $C($(realfields...)) = $C{promote_eltype($C, $(fields...))}($(fields...))
+        $C() = $C{$elty}($(zfields...))
+        # Conversion constructors
+        $C(x) = convert($C, x)
+        $C{T}(x) where T = convert($C{T}, x)
+    end)
+end
+
+# Generate transparent versions
+macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
+    # ub = upper-bound on T in C{T}
+    # elty = default element type when supplied with Integer arguments
+    fields = fields.args
+    constrfields = constrfields.args
+    N = length(fields)+1
+    Tfields       = Expr[:($f::T)    for f in fields]
+    Tconstrfields = Expr[:($f::T)    for f in constrfields]
+    realfields    = Expr[:($f::Real) for f in constrfields]
+    cfields       = Expr[:(c.$f)     for f in constrfields]
+    cinnerfields  = Expr[:(c.$f)     for f in fields]
+    remfields     = Expr[:(_rem($f,T)) for f in fields]
+    zfields       = zeros(Int, length(fields))
+    Tconstr = Expr(:<:, :T, ub)
+    exportexpr = Expr(:export, acol, cola)
+    convqualifier = C == :Gray ? :(x::Colorant) : :x
+    esc(quote
+        struct $acol{$Tconstr} <: AlphaColor{$C{T}, T, $N}
+            alpha::T
+            $(Tfields...)
+
+            $acol{T}($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}(alpha, $(fields...))
+            function $acol{T}($(realfields...), alpha::Real=oneunit(T)) where T
+                checkval($acol{T}, $(fields...), alpha)
+                new{T}(_rem(alpha,T), $(remfields...))
+            end
+            $acol{T}(c::$C, alpha::Real=oneunit(T)) where {T} = $acol{T}($(cfields...), alpha)
+        end
+        struct $cola{$Tconstr} <: ColorAlpha{$C{T}, T, $N}
+            $(Tfields...)
+            alpha::T
+
+            $cola{T}($(Tconstrfields...), alpha::T=oneunit(T)) where {T} = new{T}($(fields...), alpha)
+            function $cola{T}($(realfields...), alpha::Real=oneunit(T)) where T
+                checkval($cola{T}, $(fields...), alpha)
+                new{T}($(remfields...), _rem(alpha,T))
+            end
+            $cola{T}(c::$C, alpha::Real=oneunit(T)) where {T} = $cola{T}($(cfields...), alpha)
+        end
+        $exportexpr
+        alphacolor(::Type{C}) where {C<:$C} = $acol
+        coloralpha(::Type{C}) where {C<:$C} = $cola
+
+        # More constructors for the alpha versions
+        $acol($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $acol{$elty}($(constrfields...), alpha)
+        $acol(c::$C, alpha::Real=oneunit(eltype(c))) = $acol{eltype(c)}(c, alpha)
+        function $acol($(constrfields...))
+            p = promote($(constrfields...))
+            T = typeof(p[1])
+            $acol{T}(p...)
+        end
+        function $acol($(constrfields...), alpha::Real)
+            p = promote($(constrfields...), gray(alpha))
+            T = typeof(p[1])
+            $acol{T}(p...)
+        end
+        $acol(c::Color, alpha::Real) = $acol($C(c), alpha)
+        $acol() = $acol{$elty}($(zfields...))
+        $acol($convqualifier) = convert($acol, x)
+        $acol{T}(x) where T = convert($acol{T}, x)
+
+        $cola($(Tconstrfields...), alpha::T=1) where {T<:Integer} = $cola{$elty}($(constrfields...), alpha)
+        $cola(c::$C, alpha::Real=oneunit(eltype(c))) = $cola{eltype(c)}(c, alpha)
+        function $cola($(constrfields...))
+            p = promote($(constrfields...))
+            T = typeof(p[1])
+            $cola{T}(p...)
+        end
+        function $cola($(constrfields...), alpha::Real)
+            p = promote($(constrfields...), gray(alpha))
+            T = typeof(p[1])
+            $cola{T}(p...)
+        end
+        $cola(c::Color, alpha::Real) = $cola($C(c), alpha)
+        $cola() = $cola{$elty}($(zfields...))
+        $cola($convqualifier) = convert($cola, x)
+        $cola{T}(x) where T = convert($cola{T}, x)
+    end)
+end
+
+eltype_default(::Type{C}) where {C<:AbstractRGB  } = N0f8
+eltype_default(::Type{C}) where {C<:AbstractGray } = N0f8
+eltype_default(::Type{C}) where {C<:Color  } = Float32
+eltype_default(::Type{P}) where {P<:Colorant        } = eltype_default(color_type(P))
+
+@inline function promote_eltype(::Type{C}, vals...) where C<:Colorant
+    _promote_eltype(eltype_default(C), promote_type(map(typeof, vals)...))
+end
+_promote_eltype(::Type{Tdef}, ::Type{T}) where {Tdef<:AbstractFloat, T<:AbstractFloat} = T
+_promote_eltype(::Type{Tdef}, ::Type{T}) where {Tdef<:FixedPoint, T<:Fractional} = T
+_promote_eltype(::Type{Tdef}, ::Type{T}) where {Tdef, T} = Tdef
+
 for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
                         (DIN99o, :ADIN99o, :DIN99oA),
                         (DIN99, :ADIN99, :DIN99A),
@@ -497,61 +588,22 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     elty = eltype_default(C)
     ub   = elty <: FixedPoint ? Fractional : AbstractFloat
     Csym = nameof(C)
+    @eval @make_constructors $Csym $fn $elty
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end
 
-const GrayLike = Union{Number, AbstractGray}
+# XRGB and RGBX require special handling because of the alphadummy field
+@eval @make_constructors XRGB (r,g,b) $N0f8
+@eval @make_constructors RGBX (r,g,b) $N0f8
 
-_real(x) = real(x)
-@noinline function _real(@nospecialize(x::Colorant))
-    throw(ArgumentError("""
-        Color objects other than `AbstractGray` cannot be used as if they were `Real` arguments."""))
+const GrayLike = Union{Real,AbstractGray}
+
+for C in (RGB, BGR, XRGB, RGBX, RGB24)
+    @eval (::Type{$C})(r::GrayLike, g::GrayLike, b::GrayLike) = $C(gray(r), gray(g), gray(b))
 end
-_real(x::AbstractGray) = real(x)
-
-function (::Type{C})() where {N, C <: ColorantN{N}}
-    d0 = zero(eltype_default(C))
-    dx = C <: TransparentColor ? oneunit(eltype_default(C)) : d0
-    N == 1 && return _new_colorant(C, dx)
-    N == 2 && return _new_colorant(C, d0, dx)
-    N == 3 && return _new_colorant(C, d0, d0, dx)
-    N == 4 && return _new_colorant(C, d0, d0, d0, dx)
-    N == 5 && return _new_colorant(C, d0, d0, d0, d0, dx)
-    throw(MethodError(C, ()))
+for C in (RGB, BGR, XRGB, RGBX)
+    @eval (::Type{$C{T}})(r::GrayLike, g::GrayLike, b::GrayLike) where T = $C{T}(gray(r), gray(g), gray(b))
 end
-
-(::Type{C})(x         ) where {C <: Color    } = _new_colorant(C, x)
-(::Type{C})(x, y      ) where {C <: ColorN{2}} = _new_colorant(C, x, y)
-(::Type{C})(x, y, z   ) where {C <: ColorN{3}} = _new_colorant(C, x, y, z)
-(::Type{C})(x, y, z, w) where {C <: ColorN{4}} = _new_colorant(C, x, y, z, w)
-
-(::Type{C})(x                  ) where {C <: TransparentColor    } = _new_colorant(C, x)
-(::Type{C})(x,          alpha  ) where {C <: TransparentColor    } = _new_colorant(C, x, alpha)
-(::Type{C})(x, y,       alpha=1) where {C <: TransparentColorN{3}} = _new_colorant(C, x, y, alpha)
-(::Type{C})(x, y, z,    alpha=1) where {C <: TransparentColorN{4}} = _new_colorant(C, x, y, z, alpha)
-(::Type{C})(x, y, z, w, alpha=1) where {C <: TransparentColorN{5}} = _new_colorant(C, x, y, z, w, alpha)
-
-(::Type{C})(g::GrayLike) where {C <: TransparentColorN{2}} = _new_colorant(C, g, 1)
-(::Type{C})(g::GrayLike) where {C <: AbstractRGB} = _new_colorant(C, g, g, g)
-(::Type{C})(g::GrayLike) where {C <: TransparentRGB} = _new_colorant(C, g, g, g, oneunit(g))
-(::Type{C})(g::GrayLike, alpha) where {C <: TransparentRGB} = _new_colorant(C, g, g, g, alpha)
-
-
-function _new_colorant(::Type{C}, args::Vararg{Any,N}) where {N, C <: ColorantN{N}}
-    rargs = _real.(args)
-    base_colorant_type(C){promote_args_type(C, rargs...)}(rargs...)
-end
-
-function _new_colorant(::Type{C}, c::Colorant) where {N, C <: ColorantN{N}}
-    convert(C, c)
-end
-
-function _new_colorant(::Type{C}, c::Colorant, alpha) where {N, C <: TransparentColorN{N}}
-    # TODO: Make the following a single `convert` call
-    cc = convert(base_color_type(C), color(c))
-    convert(C, cc, alpha)
-end
-
 function (::Type{C})(x::UInt32) where C <: Union{RGB24, Gray24, ARGB32, AGray32}
     x <= UInt32(1) || throw_bit_pattern_error(C, x)
     reinterpret(C, C <: Color ? (-x) & 0xffffff : (-x) | 0xff000000)
@@ -561,67 +613,12 @@ function (::Type{C})(x::GrayLike) where C <: Union{RGB24, Gray24, ARGB32, AGray3
     v = _rem(real(x), N0f8)
     return C <: Union{RGB24, ARGB32} ? C(v, v, v) : C(v)
 end
-
-# T might be a Normed, and so some inputs will result in an error.
-# Try to make it a nice error.
-function _new_colorant(::Type{C}, args::Vararg{GrayLike,N}) where {N, T, C <: Color{T,N}}
-    isconcretetype(C) || throw(MethodError(C, args))
-    r = real.(args)
-    checkval(C, r...)
-    C(_rem.(r, T)...)
-end
-function _new_colorant(::Type{TC}, args::Vararg{GrayLike,N}) where {N, T, C, TC <: TransparentColor{C,T,N}}
-    r = real.(args)
-    checkval(TC, r...)
-    TC(_rem.(r, T)...)
-end
-function _new_colorant(::Type{TC}, args::Vararg{GrayLike,2}) where {T, C, TC <: TransparentColor{C,T,2}}
-    r = real.(args)
-    checkval(TC, r...)
-    TC(_rem.(r, T)...)
+function (::Type{C})(x) where C <: Union{RGB24, Gray24, ARGB32, AGray32}
+    convert(C, x)
 end
 
-"""
-    alphacolor(::Type{<:Colorant})
-    alphacolor(::Colorant)
-
-Return the corresponding transparent color type/instance with storage order
-(alpha, color).
-
-# Examples
-```jldocest; setup = :(using ColorTypes)
-julia> alphacolor(RGB)
-ARGB
-
-julia> alphacolor(RGBA{Float32})
-ARGB
-
-julia> alphacolor(Gray(0.8)) === AGray(0.8, 1.0)
-true
-```
-"""
 alphacolor(::Type{C}) where {C<:AlphaColor} = base_colorant_type(C)
 alphacolor(::Type{C}) where {C<:ColorAlpha} = alphacolor(base_color_type(C))
-
-"""
-    coloralpha(::Type{<:Colorant})
-    coloralpha(::Colorant)
-
-Return the corresponding transparent color type/instance with storage order
-(color, alpha).
-
-# Examples
-```jldocest; setup = :(using ColorTypes)
-julia> coloralpha(RGB)
-RGBA
-
-julia> coloralpha(ARGB{Float32})
-RGBA
-
-julia> coloralpha(Gray(0.8)) === GrayA(0.8, 1.0)
-true
-```
-"""
 coloralpha(::Type{C}) where {C<:ColorAlpha} = base_colorant_type(C)
 coloralpha(::Type{C}) where {C<:AlphaColor} = coloralpha(base_color_type(C))
 
@@ -631,6 +628,16 @@ alphacolor(::Type{C}) where {C<:XRGB} = ARGB
 alphacolor(::Type{C}) where {C<:RGBX} = ARGB
 coloralpha(::Type{C}) where {C<:XRGB} = RGBA
 coloralpha(::Type{C}) where {C<:RGBX} = RGBA
+
+"""
+`alphacolor(RGB)` returns `ARGB`, i.e., the corresponding transparent
+color type with storage order (alpha, color).
+""" alphacolor
+
+"""
+`coloralpha(RGB)` returns `RGBA`, i.e., the corresponding transparent
+color type with storage order (color, alpha).
+""" coloralpha
 
 ### Validating the inputs for Normed constructors
 
@@ -712,8 +719,8 @@ $C cannot be constructed or converted directly from a UInt32 input as a bit patt
   Use `reinterpret($C, 0x$hex)` instead."""))
 end
 
-_rem(x, ::Type{T}) where {T<:Normed} = x % T
-_rem(x, ::Type{T}) where {T}         = convert(T, x)
+_rem(x,::Type{T}) where {T<:Normed} = x % T
+_rem(x, ::Type{T}) where {T}        = x
 
 struct ColorTypeResolutionError <: Exception
     func::Symbol
