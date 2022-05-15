@@ -110,6 +110,13 @@ convert(::Type{T}, x::ColorantN{1}) where {T<:Real} = convert(T, comp1(x))
 real(x::ColorantN{1}) = comp1(x)
 real(x::Type{<:ColorantN{1}}) = real(eltype(x))
 
+# Define some constructors that just call convert since the fallback constructor in Base
+# is removed in Julia 0.7
+# The parametric types are handled in @make_constructors and @make_alpha
+for t in (:ARGB32, :Gray24, :RGB24)
+    @eval $t(x) = convert($t, x)
+end
+
 # reinterpret
 for T in (RGB24, ARGB32, Gray24, AGray32)
     @eval begin
