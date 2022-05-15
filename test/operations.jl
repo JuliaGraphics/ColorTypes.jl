@@ -6,34 +6,6 @@ using Test
 @isdefined(CustomTypes) || include("customtypes.jl")
 using .CustomTypes
 
-@testset "iterators" begin
-    @testset "ComponentIterator" begin
-        argb_comps = ColorTypes.comps(ARGB(1.0f0, 0.5f0, 0.0f0))
-        @test Iterators.IteratorSize(typeof(argb_comps)) === Iterators.HasLength()
-        @test Iterators.IteratorEltype(typeof(argb_comps)) === Iterators.HasEltype()
-        @test length(argb_comps) == 4
-        @test eltype(typeof(argb_comps)) === Float32
-        @test axes(argb_comps) === (Base.OneTo(4),)
-        @test ndims(typeof(argb_comps)) == 1
-        a = []
-        for v in argb_comps
-            push!(a, v)
-        end
-        @test all(a .=== (1.0f0, 0.5f0, 0.0f0, 1.0f0))
-        @test argb_comps[3] === 0.0f0
-        @test_throws BoundsError argb_comps[5]
-        @test_throws MethodError argb_comps[4] = 0.0f0 # read-only
-        @test argb_comps[2:2:4] === (0.5f0, 1.0f0)
-        @test argb_comps[:] === argb_comps
-        @test firstindex(argb_comps) == 1
-        @test lastindex(argb_comps) == 4
-        @test Base.BroadcastStyle(typeof(argb_comps)) === Base.Broadcast.Style{Tuple}()
-        @test argb_comps .* 0.5 === (0.5, 0.25, 0.0, 0.5)
-        @test argb_comps .+ (1:4) == Float32[2.0f0, 2.5f0, 3.0f0, 5.0f0]
-        @test argb_comps ./ (1, 2, 3, 4) === (1.0f0, 0.25f0, 0.0f0, 0.25f0)
-    end
-end
-
 @testset "comparisons" begin
     Cp3 = ColorTypes.parametric3
     for C in unique(vcat(Cp3, coloralpha.(Cp3), alphacolor.(Cp3)))
