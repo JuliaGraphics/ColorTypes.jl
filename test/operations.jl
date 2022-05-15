@@ -233,6 +233,11 @@ end
     @test all_in_range(LCHab(50, 10, 359))
     @test all_in_range(YIQ(0.5, 0.59, 0.0))
     @test !all_in_range(YIQ(0.5, 0.0, -0.53))
+    # issue #275
+    @test rand(Gray{Bool}) in (Gray{Bool}(1), Gray{Bool}(0))
+    a = rand(MersenneTwister(1), Gray{Bool}, 2, 2)
+    @test eltype(a) == Gray{Bool}
+    @test a == Gray{Bool}[0 1; 1 1]
 end
 
 @testset "mapc" begin
