@@ -54,14 +54,14 @@ Base.@deprecate_binding RGB4 RGBX
 """
 ColorTypes summary:
 
-# Type hierarchy
+Type hierarchy:
 ```
                           Colorant{T,N}
              Color{T,N}                    TransparentColor{C,T,N}
      AbstractRGB{T}                  AlphaColor{C,T,N}  ColorAlpha{C,T,N}
 ```
 
-# Concrete types
+Concrete types:
 - `RGB`, `BGR`, `XRGB`, `RGBX`, `RGB24` are all subtypes of `AbstractRGB`
 
 - `HSV`, `HSL`, `HSI`, `XYZ`, `xyY`, `Lab`, `LCHab`, `Luv`, `LCHuv`,
@@ -74,12 +74,10 @@ ColorTypes summary:
 - Grayscale types `Gray` and `Gray24` (subtypes of `Color{T,1}`), and
   the corresponding transparent types `AGray`, `GrayA`, and `AGray32`
 
-# Traits
 - Trait functions `eltype`, `length`, `alphacolor`, `coloralpha`,
   `color_type`, `base_color_type`, `base_colorant_type`, `ccolor`
 
-- Getters `red`, `green`, `blue`, `alpha`, `gray`,
-  `comp1`, `comp2`, `comp3`, `comp4`, `comp5`, `hue`, `chroma`
+- Getters `red`, `green`, `blue`, `alpha`, `gray`, `comp1`, `comp2`, `comp3`
 
 Use `?` to get more information about specific types or functions.
 """ ColorTypes
