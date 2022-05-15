@@ -6,7 +6,6 @@ using ColorTypes.FixedPointNumbers
 
 export C2, C2A, C4, AC4
 export StrangeGray, Cyanotype
-export RGBA32
 export AnaglyphColor, CMYK, ACMYK
 
 struct C2{T <: Real} <: Color{T,2}
@@ -62,20 +61,6 @@ function Base.convert(::Type{Cout}, c::C) where {Cout <: AbstractRGB, T, C <: Cy
     b = 0.88 - 0.5 * c.value^2
     Cout(T(r), T(g), T(b))
 end
-
-# non-parametric color
-struct RGBA32 <: AbstractRGBA{RGB24, N0f8}
-    color::UInt32
-    RGBA32(c::UInt32, ::Type{Val{true}}) = new(c)
-end
-function RGBA32(r, g, b, alpha=1N0f8)
-    u32 = reinterpret(UInt32, ARGB32(r, g, b, alpha))
-    RGBA32((u32 << 0x8) | (u32 >> 0x18), Val{true})
-end
-ColorTypes.red(  c::RGBA32) = reinterpret(N0f8, (c.color >> 0x18) % UInt8)
-ColorTypes.green(c::RGBA32) = reinterpret(N0f8, (c.color >> 0x10) % UInt8)
-ColorTypes.blue( c::RGBA32) = reinterpret(N0f8, (c.color >> 0x08) % UInt8)
-ColorTypes.alpha(c::RGBA32) = reinterpret(N0f8, c.color % UInt8)
 
 # minimal type for testing 2-component color
 struct AnaglyphColor{T} <: Color{T,2} # not `TransparentGray`
