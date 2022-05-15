@@ -78,8 +78,8 @@ convert(::Type{C}, c::Color, alpha) where {C<:TransparentColor} = cconvert(ccolo
 cconvert(::Type{C}, c::Color, alpha) where {C<:TransparentColor} =_convert(C, base_color_type(C), base_color_type(c), c, alpha)
 
 # Fallback definitions that print nice error messages
-_convert(C::Type, ::Any, ::Any, c) = error("No conversion of ", c, " to ", C, " has been defined")
-_convert(C::Type, C1::Any, C2::Any, c, alpha) = error("No conversion of (", c, ",alpha=$alpha) to ", C, " with consistency-types $C1 and $C2 has been defined")
+_convert(::Type{C}, ::Any, ::Any, c) where {C} = error("No conversion of ", c, " to ", C, " has been defined")
+_convert(::Type{C}, C1::Any, C2::Any, c, alpha) where {C} = error("No conversion of (", c, ",alpha=$alpha) to ", C, " with consistency-types $C1 and $C2 has been defined")
 
 # Any AbstractRGB types can be interconverted
 _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractRGB,C1<:AbstractRGB,C2<:AbstractRGB} = Cout(red(c), green(c), blue(c))
@@ -87,13 +87,8 @@ _convert(::Type{A}, ::Type{C1}, ::Type{C2}, c, alpha=alpha(c)) where {A<:Transpa
 
 # Implementations for when the base color type is not changing
 # These might strip/add transparency, however
-function _convert(::Type{Cout}, ::Type{C1}, ::Type{C1}, c) where {Cout<:Color, C1<:Color}
-    Cout(comps(color(c))...)
-end
-function _convert(::Type{Cout}, ::Type{C1}, ::Type{C1}, c,
-                  alpha=alpha(c)) where {Cout<:TransparentColor, C1<:Color}
-    Cout(comps(color(c))..., alpha)
-end
+_convert(::Type{Cout}, ::Type{Ccmp}, ::Type{Ccmp}, c) where {Cout<:Color3,Ccmp<:Color3} = Cout(comp1(c), comp2(c), comp3(c))
+_convert(::Type{A}, ::Type{Ccmp}, ::Type{Ccmp}, c, alpha=alpha(c)) where {A<:Transparent3,Ccmp<:Color3} = A(comp1(c), comp2(c), comp3(c), alpha)
 
 # Grayscale
 _convert(::Type{Cout}, ::Type{C1}, ::Type{C2}, c) where {Cout<:AbstractGray,C1<:AbstractGray,C2<:AbstractGray} = Cout(gray(c))
