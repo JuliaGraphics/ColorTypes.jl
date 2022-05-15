@@ -50,103 +50,79 @@ gamutmax(::Type{T}) where {T<:HSL} = (360,1,1)
 gamutmin(::Type{T}) where {T<:HSL} = (0,0,0)
 gamutmax(::Type{T}) where {T<:Lab} = (100,128,128)
 gamutmin(::Type{T}) where {T<:Lab} = (0,-127,-127)
-gamutmax(::Type{T}) where {T<:LCHab} = (100,1,360) # FIXME
+gamutmax(::Type{T}) where {T<:LCHab} = (100,1,360)
 gamutmin(::Type{T}) where {T<:LCHab} = (0,0,0)
-gamutmax(::Type{T}) where {T<:YIQ} = (1,0.5226,0.5226) # FIXME
-gamutmin(::Type{T}) where {T<:YIQ} = (0,-0.5957,-0.5957) # FIXME
+gamutmax(::Type{T}) where {T<:YIQ} = (1,0.5226,0.5226)
+gamutmin(::Type{T}) where {T<:YIQ} = (0,-0.5957,-0.5957)
 
 gamutmax(::Type{T}) where {T<:AbstractGray} = (1,)
-gamutmin(::Type{T}) where {T<:AbstractGray} = (0,)
+gamutmax(::Type{T}) where {T<:TransparentGray} = (1,1)
 gamutmax(::Type{T}) where {T<:AbstractRGB} = (1,1,1)
+gamutmax(::Type{T}) where {T<:TransparentRGB} = (1,1,1,1)
+gamutmin(::Type{T}) where {T<:AbstractGray} = (0,)
+gamutmin(::Type{T}) where {T<:TransparentGray} = (0,0)
 gamutmin(::Type{T}) where {T<:AbstractRGB} = (0,0,0)
-
-gamutmax(::Type{C}) where {C<:TransparentColor} = (gamutmax(color_type(C))..., 1)
-gamutmin(::Type{C}) where {C<:TransparentColor} = (gamutmin(color_type(C))..., 0)
+gamutmin(::Type{T}) where {T<:TransparentRGB} = (0,0,0,0)
 
 # rand
-const Rand01Normd = Union{N0f8, N0f16, N0f32, N0f64}
-const Rand01Type = Union{AbstractFloat, Rand01Normd}
+for t in [Float16,Float32,Float64,N0f8,N0f16,N0f32]
+    @eval _rand(::Type{T}) where {T<:Union{AbstractRGB{$t},AbstractGray{$t}}} =
+          mapc(x->rand(eltype(T)), base_colorant_type(T)())
+end
 
-# TODO: Remove the following once it is guaranteed to be implemented in FixedPointNumbers.
-if which(rand, Tuple{AbstractRNG, SamplerType{<:FixedPoint}}).module === Random
-    function rand(r::AbstractRNG, ::SamplerType{X}) where X <: FixedPoint
-        reinterpret(X, rand(r, FixedPointNumbers.rawtype(X)))
+function _rand(::Type{T}) where T<:Colorant
+    Gmax = gamutmax(T)
+    Gmin = gamutmin(T)
+    Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
+    A = rand(eltype(T), length(T))
+    for j in eachindex(Gmax)
+        A[j] = A[j] * (Mi * (Gmax[j]-Gmin[j])) + Gmin[j]
     end
+    T(A...)
 end
 
-function rand(r::AbstractRNG, ::SamplerType{C}) where {C<:Colorant}
-    rand(r, base_colorant_type(C){Float64})
-end
-function rand(r::AbstractRNG, ::SamplerType{C}) where {T, C<:Colorant{T}}
-    Cmax = C(gamutmax(C)...)
-    Cmin = C(gamutmin(C)...)
-    mapc((m, n) -> T((m - n) * rand(r, floattype(T)) + n), Cmax, Cmin)
-end
-function rand(r::AbstractRNG, ::SamplerType{C}) where {T<:Rand01Type, C0<:AbstractGray{T},
-                                                       C<:Union{C0, TransparentGray{C0, T}}}
-    mapc(_ -> rand(r, T), base_colorant_type(C)())
-end
-function rand(r::AbstractRNG, ::SamplerType{C}) where {T<:Rand01Type, C0<:AbstractRGB{T},
-                                                       C<:Union{C0, TransparentRGB{C0, T}}}
-    mapc(_ -> rand(r, T), base_colorant_type(C)())
-end
-function rand(r::AbstractRNG, ::SamplerType{AGray32}) # Gray24 has little benefit of specialization.
-    reinterpret(AGray32, (rand(r, UInt32) & 0xff0000ff) * 0x010101)
-end
-rand(r::AbstractRNG, ::SamplerType{RGB24}) = reinterpret(RGB24, rand(r, UInt32) & 0xffffff)
-rand(r::AbstractRNG, ::SamplerType{ARGB32}) = reinterpret(ARGB32, rand(r, UInt32))
-
-function rand(r::AbstractRNG, ::Type{C}, dims::Dims) where {C <: Colorant}
-    CC = isconcretetype(C) ? C : base_colorant_type(C){Float64}
-    rand!(r, Array{CC}(undef, dims), CC)
+if Base.VERSION < v"1.6.0-DEV.1083"
+    reinterpretc(::Type{T}, A::Array{C}) where {T<:Real,C<:AbstractGray} = reinterpret(T, A)
+    reinterpretc(::Type{T}, A::Array{C}) where {T<:Real,C<:Colorant} = reshape(reinterpret(T, A), (sizeof(C)÷sizeof(T), size(A)...))
+else
+    reinterpretc(::Type{T}, A::Array{C}) where {T<:Real,C<:Colorant} = reinterpret(reshape, T, A)
 end
 
-# rand!
-function rand!(r::AbstractRNG, A::Array{C}, ::SamplerType{C}) where {C<:Colorant}
-    rand!(r, A, SamplerType{base_colorant_type(C){Float64}}())
-end
-function rand!(r::AbstractRNG, A::Array{C}, ::SamplerType{C}) where {T, C<:Colorant{T}}
-    A .= rand.((r,), C)
-end
-function _rand01!(r::AbstractRNG, A::Array{C},
-               ::SamplerType{C}) where {T<:Rand01Type, C<:Colorant{T}}
-    N = sizeof(C) ÷ sizeof(T)
-    T0 = T <: FixedPoint ? FixedPointNumbers.rawtype(T) : T
-    At = unsafe_wrap(Array, reinterpret(Ptr{T0}, pointer(A)), (N, size(A)...))
-    rand!(r, At, T0)
-    A
-end
-function rand!(r::AbstractRNG, A::Array{C},
-               s::SamplerType{C}) where {T<:AbstractFloat, C<:Colorant{T}}
-    _rand01!(r, A, s)
-    Cmin = C(gamutmin(C)...)
-    Cs = C((gamutmax(C) .- gamutmin(C))...)
-    f(c) = mapc((a, b) -> T(a + b), mapc(*, c, Cs), Cmin)
-    A .= f.(A)
-end
-function rand!(r::AbstractRNG, A::Array{C},
-               s::SamplerType{C}) where {T<:Rand01Type, C<:Union{Gray{T}, AGray{T}, GrayA{T}}}
-    _rand01!(r, A, s)
-end
-function rand!(r::AbstractRNG, A::Array{C},
-               s::SamplerType{C}) where {T<:Rand01Type,
-                                         C<:Union{RGB{T}, ARGB{T}, RGBA{T}, XRGB{T}, RGBX{T},
-                                                  BGR{T}, ABGR{T}, BGRA{T}}}
-    _rand01!(r, A, s)
-end
-function rand!(r::AbstractRNG, A::Array{C},
-               ::SamplerType{C}) where {C<:Union{Gray24, AGray32, RGB24, ARGB32}}
-    At = unsafe_wrap(Array, reinterpret(Ptr{UInt32}, pointer(A)), size(A))
-    rand!(r, At, UInt32)
-    if C === Gray24
-        At .= At .& 0xff .* 0x010101
-    elseif C === AGray32
-        At .= At .& 0xff0000ff .* 0x010101
-    elseif C === RGB24
-        At .&= 0xffffff
+function _rand(::Type{T}, sz::Dims) where T<:Colorant
+    Mi = eltype(T) <: FixedPoint ? 1.0/typemax(eltype(T)) : 1.0
+    A = Array{T}(undef, sz)
+    Tr = eltype(T) <: FixedPoint ? FixedPointNumbers.rawtype(eltype(T)) : eltype(T)
+    nchannels = sizeof(T)÷sizeof(eltype(T))
+    Au = Random.UnsafeView(convert(Ptr{Tr}, pointer(A)), length(A)*nchannels)
+    rand!(Au)
+
+    Gmax = gamutmax(T)
+    Gmin = gamutmin(T)
+    s = (Gmax .- Gmin) .* Mi
+    if !all(iszero, Gmin) || !all(==(1), s)
+        Ar = reinterpretc(eltype(T), A)
+        if T<:AbstractGray
+            s1, offset1 = s[1], Gmin[1]
+            for I in CartesianIndices(A)
+                Ar[I] = Ar[I] * s1 + offset1
+            end
+        else
+            for I in CartesianIndices(A)
+                for j in eachindex(s)
+                    Ar[j,I] = Ar[j,I] * s[j] + Gmin[j]
+                end
+            end
+        end
     end
-    A
+    return A
 end
+
+rand(::Type{T}, sz::Dims...) where {T<:Colorant} = _rand(ccolor(T, base_colorant_type(T){Float64}), sz...)
+
+rand(::Type{Gray24}) = Gray24(rand(N0f8))
+rand(::Type{Gray24}, sz::Dims) = Gray24.(rand(N0f8,sz))
+rand(::Type{AGray32}) = AGray32(rand(N0f8),rand(N0f8))
+rand(::Type{AGray32}, sz::Dims) = AGray32.(rand(N0f8,sz),rand(N0f8,sz))
 
 # broadcast
 
