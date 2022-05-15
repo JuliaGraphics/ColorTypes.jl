@@ -58,7 +58,7 @@ ColorTypes summary:
 ```
                           Colorant{T,N}
              Color{T,N}                    TransparentColor{C,T,N}
-    AbstractRGB{T}  AbstractGray{T}    AlphaColor{C,T,N}  ColorAlpha{C,T,N}
+     AbstractRGB{T}                  AlphaColor{C,T,N}  ColorAlpha{C,T,N}
 ```
 
 # Concrete types
@@ -71,7 +71,7 @@ ColorTypes summary:
 - Alpha-channel analogs in such as `ARGB` and `RGBA` for most of those
   types (with a few exceptions like `RGB24`, which has `ARGB32`)
 
-- Grayscale types `Gray` and `Gray24` (subtypes of `AbstractGray`), and
+- Grayscale types `Gray` and `Gray24` (subtypes of `Color{T,1}`), and
   the corresponding transparent types `AGray`, `GrayA`, and `AGray32`
 
 # Traits

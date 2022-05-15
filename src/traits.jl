@@ -226,7 +226,6 @@ base_colorant_type(::Type{<:Number}) = Gray
 @pure basetype(@nospecialize(C)) = Base.typename(C).wrapper
 
 abstract_basetype(::Type{<:AbstractRGB}) = AbstractRGB
-abstract_basetype(::Type{<:AbstractGray}) = AbstractGray
 abstract_basetype(::Type{<:ColorN{N}}) where N = ColorN{N}
 abstract_basetype(::Type{<:Color}) = Color
 function abstract_basetype(::Type{TC}) where {TC<:TransparentColor}
