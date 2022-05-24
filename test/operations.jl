@@ -221,6 +221,11 @@ end
 
     @test_throws ArgumentError mapc(min, RGB{N0f8}(0.2,0.8,0.7), BGR{N0f8}(0.5,0.2,0.99))
     @test @inferred(mapc(abs, -2)) === 2
+
+    @test mapc(clamp, Gray{N0f8}(0), Gray{N0f8}(0.1), Gray{N0f8}(0.9)) === Gray{N0f8}(0.1)
+    @test mapc(clamp, RGB{N0f8}(0, 1, 0.4), RGB{N0f8}(0.1, 0.2, 0.3), RGB{N0f8}(0.9, 0.8, 0.7)) === RGB{N0f8}(0.1, 0.8, 0.4)
+    @test_throws ArgumentError mapc(clamp, RGB{N0f8}(0, 1, 0.4), RGB24(0.1, 0.2, 0.3), RGB{N0f8}(0.9, 0.8, 0.7))
+    @test_throws ArgumentError mapc(clamp, RGB{N0f8}(0, 1, 0.4), RGB{N0f8}(0.1, 0.2, 0.3), RGB24(0.9, 0.8, 0.7))
 end
 
 @testset "reducec" begin
