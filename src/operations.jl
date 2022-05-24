@@ -225,8 +225,9 @@ end
 
 # Mapping a function over color channels
 """
-    mapc(f, rgb) -> rgbf
-    mapc(f, rgb1, rgb2) -> rgbf
+    mapc(f, c) -> C
+    mapc(f, c1, c2) -> C
+    mapc(f, c1, c2, c3) -> C
 
 `mapc` applies the function `f` to each color channel of the input
 color(s), returning an output color in the same colorspace.
@@ -236,19 +237,31 @@ color(s), returning an output color in the same colorspace.
     julia> mapc(x->clamp(x,0,1), RGB(-0.2,0.3,1.2))
     RGB{Float64}(0.0,0.3,1.0)
 
+    julia> mapc(clamp, RGB(-0.2,0.3,1.2), RGB(0,0.4,0.5), RGB(1,0.8,0.7))
+    RGB{Float64}(0.0,0.4,0.7)
+
     julia> mapc(max, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.5,0.8,0.5)
 
     julia> mapc(+, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.6,1.3,0.8)
+
+!!! compat "ColorTypes 0.11"
+    `mapc` for 3-argument function requires ColorTypes v0.11 or later.
 """
 @inline mapc(f, c::C) where {C<:Colorant} = base_colorant_type(C)(f.(comps(c))...)
 @inline mapc(f, x::Number) = f(x)
 
 @inline mapc(f::F, x, y) where {F} = _same_colorspace(x, y)(f.(comps(x), comps(y))...)
 
+# 3-arg mapc (useful for clamp)
+@inline mapc(f::F, x, y, z) where {F} =
+    _same_colorspace(x, y, z)(f.(comps(x), comps(y), comps(z))...)
+
 _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type(x),
                                                               base_colorant_type(y))
+_same_colorspace(x::Colorant, y::Colorant, z::Colorant) =
+    _same_colorspace(base_colorant_type(x), _same_colorspace(y, z))
 _same_colorspace(::Type{C}, ::Type{C}) where {C<:Colorant} = C
 @noinline _same_colorspace(::Type{C1}, ::Type{C2}) where {C1<:Colorant,C2<:Colorant} =
     throw(ArgumentError("$C1 and $C2 are from different colorspaces"))
