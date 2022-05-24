@@ -137,6 +137,7 @@ rand(::Type{AGray32}, sz::Dims) = AGray32.(rand(N0f8,sz),rand(N0f8,sz))
 """
     mapc(f, rgb) -> rgbf
     mapc(f, rgb1, rgb2) -> rgbf
+    mapc(f, rgb1, rgb2, rgb3) -> rgbf
 
 `mapc` applies the function `f` to each color channel of the input
 color(s), returning an output color in the same colorspace.
@@ -145,6 +146,9 @@ color(s), returning an output color in the same colorspace.
 
     julia> mapc(x->clamp(x,0,1), RGB(-0.2,0.3,1.2))
     RGB{Float64}(0.0,0.3,1.0)
+
+    julia> mapc(clamp, RGB(-0.2,0.3,1.2), RGB(0, 0.4, 0.5), RGB(1, 0.8, 0.7))
+    RGB{Float64}(0.0,0.4,0.7)
 
     julia> mapc(max, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.5,0.8,0.5)
@@ -165,6 +169,7 @@ color(s), returning an output color in the same colorspace.
 
 @inline mapc(f, x::Number) = f(x)
 
+# 2-arg mapc
 mapc(f::F, x, y) where F = _mapc(_same_colorspace(x,y), f, x, y)
 _mapc(::Type{C}, f, x::ColorantN{1}, y::ColorantN{1}) where C =
     C(f(comp1(x), comp1(y)))
@@ -182,6 +187,24 @@ _same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type
 _same_colorspace(::Type{C}, ::Type{C}) where {C<:Colorant} = C
 @noinline _same_colorspace(::Type{C1}, ::Type{C2}) where {C1<:Colorant,C2<:Colorant} =
     throw(ArgumentError("$C1 and $C2 are from different colorspaces"))
+
+# 3-arg mapc (useful for clamp)
+mapc(f::F, x, y, z) where F = _mapc(_same_colorspace(x,y,z), f, x, y, z)
+_mapc(::Type{C}, f, x::ColorantN{1}, y::ColorantN{1}, z::ColorantN{1}) where C =
+    C(f(comp1(x), comp1(y), comp1(z)))
+_mapc(::Type{C}, f, x::ColorantN{2}, y::ColorantN{2}, z::ColorantN{2}) where C =
+    C(f(comp1(x), comp1(y), comp1(z)), f(comp2(x), comp2(y), comp2(z)))
+_mapc(::Type{C}, f, x::ColorantN{3}, y::ColorantN{3}, z::ColorantN{3}) where C =
+    C(f(comp1(x), comp1(y), comp1(z)), f(comp2(x), comp2(y), comp2(z)), f(comp3(x), comp3(y), comp3(z)))
+_mapc(::Type{C}, f, x::ColorantN{4}, y::ColorantN{4}, z::ColorantN{4}) where C =
+    C(f(comp1(x), comp1(y), comp1(z)), f(comp2(x), comp2(y), comp2(z)), f(comp3(x), comp3(y), comp3(z)),
+      f(comp4(x), comp4(y), comp4(z)))
+_mapc(::Type{C}, f, x::ColorantN{5}, y::ColorantN{5}, z::ColorantN{5}) where C =
+    C(f(comp1(x), comp1(y), comp1(z)), f(comp2(x), comp2(y), comp2(z)), f(comp3(x), comp3(y), comp3(z)),
+      f(comp4(x), comp4(y), comp4(z)), f(comp5(x), comp5(y), comp5(z)))
+
+_same_colorspace(x::Colorant, y::Colorant, z::Colorant) =
+    _same_colorspace(base_colorant_type(x), _same_colorspace(y, z))
 
 """
     reducec(op, v0, c)
