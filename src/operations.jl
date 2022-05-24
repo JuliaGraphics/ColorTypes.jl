@@ -137,6 +137,7 @@ rand(::Type{AGray32}, sz::Dims) = AGray32.(rand(N0f8,sz),rand(N0f8,sz))
 """
     mapc(f, rgb) -> rgbf
     mapc(f, rgb1, rgb2) -> rgbf
+    mapc(f, rgb1, rgb2, rgb3) -> rgbf
 
 `mapc` applies the function `f` to each color channel of the input
 color(s), returning an output color in the same colorspace.
@@ -145,6 +146,9 @@ color(s), returning an output color in the same colorspace.
 
     julia> mapc(x->clamp(x,0,1), RGB(-0.2,0.3,1.2))
     RGB{Float64}(0.0,0.3,1.0)
+
+    julia> mapc(clamp, RGB(-0.2,0.3,1.2), RGB(0, 0.4, 0.5), RGB(1, 0.8, 0.7))
+    RGB{Float64}(0.0,0.4,0.7)
 
     julia> mapc(max, RGB(0.1,0.8,0.3), RGB(0.5,0.5,0.5))
     RGB{Float64}(0.5,0.8,0.5)
@@ -200,8 +204,7 @@ _mapc(::Type{C}, f, x::ColorantN{5}, y::ColorantN{5}, z::ColorantN{5}) where C =
       f(comp4(x), comp4(y), comp4(z)), f(comp5(x), comp5(y), comp5(z)))
 
 _same_colorspace(x::Colorant, y::Colorant, z::Colorant) =
-    _same_colorspace(base_colorant_type(x),
-                     _same_colorspace(base_colorant_type(y), base_colorant_type(z)))
+    _same_colorspace(base_colorant_type(x), _same_colorspace(y, z))
 
 """
     reducec(op, v0, c)
