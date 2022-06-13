@@ -84,8 +84,9 @@ Use `?` to get more information about specific types or functions.
 
 if VERSION >= v"1.4.2" # work around https://github.com/JuliaLang/julia/issues/34121
     # ...and also requires https://github.com/JuliaLang/julia/pull/35378
-    include("precompile.jl")
-    _precompile_()
+    # Disabled for now, see https://github.com/JuliaGraphics/ColorTypes.jl/issues/269
+    #include("precompile.jl")
+    #_precompile_()
 end
 
 __init__() = register_hints()
