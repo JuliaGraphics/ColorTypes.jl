@@ -133,7 +133,7 @@ gamutmin(::Type{C}) where {C<:TransparentColor} = (gamutmin(color_type(C))..., 0
 
 # rand
 const Rand01Normd = Union{N0f8, N0f16, N0f32, N0f64}
-const Rand01Type = Union{AbstractFloat, Rand01Normd}
+const Rand01Type = Union{Bool, AbstractFloat, Rand01Normd}
 
 # TODO: Remove the following once it is guaranteed to be implemented in FixedPointNumbers.
 if which(rand, Tuple{AbstractRNG, SamplerType{<:FixedPoint}}).module === Random
