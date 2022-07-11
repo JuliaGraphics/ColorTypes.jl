@@ -54,6 +54,13 @@ end
 ==(x::Number, y::AbstractGray) = x == gray(y)
 ==(x::AbstractGray, y::Number) = ==(y, x)
 
+function Base.isequal(a::ColorantN{N}, b::ColorantN{N}) where {N}
+    _is_same_colorspace(a, b) || return false
+    all(isequal.(comps(a), comps(b)))
+end
+Base.isequal(x::Number, y::AbstractGray) = isequal(x, gray(y))
+Base.isequal(x::AbstractGray, y::Number) = isequal(y, x)
+
 
 function isapprox(a::ColorantN{N}, b::ColorantN{N}; kwargs...) where {N}
     _is_same_colorspace(a, b) || return false
@@ -126,7 +133,7 @@ gamutmin(::Type{C}) where {C<:TransparentColor} = (gamutmin(color_type(C))..., 0
 
 # rand
 const Rand01Normd = Union{N0f8, N0f16, N0f32, N0f64}
-const Rand01Type = Union{AbstractFloat, Rand01Normd}
+const Rand01Type = Union{Bool, AbstractFloat, Rand01Normd}
 
 # TODO: Remove the following once it is guaranteed to be implemented in FixedPointNumbers.
 if which(rand, Tuple{AbstractRNG, SamplerType{<:FixedPoint}}).module === Random

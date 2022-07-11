@@ -39,6 +39,8 @@ end
     for C in unique(vcat(Cp3, coloralpha.(Cp3), alphacolor.(Cp3)))
         @test C{Float64}(1,0,0) == C{Float32}(1,0,0)
         @test C{Float32}(1,0,0) != C{Float32}(1,0,0.1)
+        @test isequal(C{Float64}(1,0,0), C{Float32}(1,0,0))
+        @test !isequal(C{Float32}(1,0,0), C{Float32}(1,0,0.1))
     end
 
     for (a, b) in ((Gray(1.0), Gray(1)),
@@ -49,6 +51,7 @@ end
         local a, b
         @test a !== b
         @test a == b
+        @test isequal(a, b)
         @test hash(a) == hash(b)
     end
     for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 0.9)),
@@ -57,7 +60,16 @@ end
                    (Lab(70, 0, 60), LCHab(70, 60, 90)))
         local a, b
         @test a != b
+        @test !isequal(a, b)
         @test hash(a) != hash(b)
+    end
+    for (a, b) in ((RGB(1.0, 0.5, NaN), RGB(1.0, 0.5, NaN)),
+                   (Gray(NaN32), Gray(NaN)),
+                   (Gray(NaN), NaN))
+        @test a != b
+        @test b != a
+        @test isequal(a, b)
+        @test isequal(b, a)
     end
     # It's not obvious whether we want these to compare as equal, but
     # whatever happens, you want hashing and equality-testing to yield the
@@ -221,6 +233,17 @@ end
     @test all_in_range(LCHab(50, 10, 359))
     @test all_in_range(YIQ(0.5, 0.59, 0.0))
     @test !all_in_range(YIQ(0.5, 0.0, -0.53))
+    # issue #275
+    @test rand(Gray{Bool}) in (Gray{Bool}(1), Gray{Bool}(0))
+    if VERSION >= v"1.5"
+        a = rand(MersenneTwister(1), Gray{Bool}, 2, 2)
+        @test eltype(a) == Gray{Bool}
+        @test a == Gray{Bool}[0 1; 1 1]
+    else
+        a = rand(MersenneTwister(1), Gray{Bool}, 2, 2)
+        @test eltype(a) == Gray{Bool}
+        @test a == Gray{Bool}[0 1; 0 1]
+    end
 end
 
 @testset "mapc" begin
