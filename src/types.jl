@@ -531,6 +531,7 @@ function (::Type{C})() where {N, C <: ColorantN{N}}
     C(ntuple(_ -> d0, Val(N - 1))..., dx)
 end
 
+Gray{T}(c::Colorant) where {T<:Union{Fractional,Bool}} = _new_colorant(Gray{T}, c)
 (::Type{C})(x         ) where {C <: Color    } = _new_colorant(C, x)
 (::Type{C})(x, y      ) where {C <: ColorN{2}} = _new_colorant(C, x, y)
 (::Type{C})(x, y, z   ) where {C <: ColorN{3}} = _new_colorant(C, x, y, z)
