@@ -19,11 +19,11 @@ end
         gray = Gray(0.8)
         rgb = RGB{Float32}(1, 0, 0)
         err_str = @except_str gray + rgb MethodError
-        @test occursin("no method matching +(::Gray{Float64}, ::RGB{Float32})", err_str)
+        @test occursin("no method matching for call to +(::Gray{Float64}, ::RGB{Float32})", err_str)
         @test occursin("Math on colors is deliberately undefined in ColorTypes, but see the ColorVectorSpace package", err_str)
 
         err_str = @except_str gray * rgb MethodError
-        @test occursin("no method matching *(::Gray{Float64}, ::RGB{Float32})", err_str)
+        @test occursin("no method matching for call to *(::Gray{Float64}, ::RGB{Float32})", err_str)
         @test occursin("Math on colors is deliberately undefined in ColorTypes, but see the ColorVectorSpace package", err_str)
         @test occursin("You may also need `⋅`, `⊙`, or `⊗`.", err_str)
 
