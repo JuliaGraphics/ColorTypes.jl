@@ -77,6 +77,11 @@ function _precompile_()
         precompile(Tuple{typeof(green),C})
         precompile(Tuple{typeof(blue),C})
     end
+    for T in (Float32, Float64), C in (Lab, Luv)
+        precompile(Tuple{typeof(hue), C{T}})
+    end
+    precompile(Tuple{typeof(ColorTypes.polar_to_cartesian), Float32, Float32})
+    precompile(Tuple{typeof(ColorTypes.polar_to_cartesian), Float64, Float64})
     precompile(Tuple{typeof(eltype),Type{AbstractGray{T} where T<:Fractional}})
     precompile(Tuple{typeof(eltype),Type{AbstractRGB{T} where T<:Fractional}})
     # ccolor typically gets compiled as part of other things

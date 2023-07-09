@@ -52,10 +52,88 @@ chroma(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{LCHab,LCHuv}} = 
 return value is in [0, 360].
 """
 hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{HSV,HSL,HSI,LCHab,LCHuv}} = c.h
-hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,DIN99,DIN99o,DIN99d}} =
-    (h = atand(c.b, c.a); h < 0 ? h + 360 : h)
-hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} =
-    (h = atand(c.v, c.u); h < 0 ? h + 360 : h)
+@inline hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Union{Lab,DIN99,DIN99o,DIN99d}} = atan360(c.b, c.a)
+@inline hue(c::Union{C,AlphaColor{C},ColorAlpha{C}}) where {C<:Luv} = atan360(c.v, c.u)
+
+@inline function atan360_kernel(t::Float64)
+    @evalpoly(t^2,
+        0.8952465548919112,  -0.2984155182972285,   0.1790493109637673,   -0.12789236387151418,
+        0.09947179554077099, -0.08138502549008089,  0.06884985860325084,  -0.059532134551367105,
+        0.05164982834653973, -0.042514874197367984, 0.028600080170923112, -0.011001809246782802)
+end
+@inline function atan360_kernel(t::Float32)
+    @evalpoly(t^2,
+        0.89524657f0, -0.2984143f0, 0.17899014f0, -0.12683357f0, 0.090689056f0, -0.045563098f0)
+end
+
+# a variant of `atand` returning the angle in the range of [0, 360]
+atan360(y, x) = (a = atand(y, x); signbit(a) ? oftype(a, a + 360) : a)
+@inline function atan360(y::T, x::T) where T <: Union{Float32, Float64}
+    (isnan(x) | isnan(y)) && return T(NaN)
+    ax, ay = abs(x), abs(y)
+    n, m = @fastmath minmax(ax, ay)
+    if m == T(Inf)
+        d0 = n == T(Inf) ? T(45) : T(0)
+    else
+        m = m == T(0) ? T(0.5) : m
+        ta = (n + n) > m ? T(0.5) : T(0) # 1-step CORDIC
+        # ro=(n + n) > m ? T(atand(0.5) / 64) : T(0)
+        ro = @fastmath max(T(0), ta - T(0.5 - 0.4150789246418436))
+        n1 = n - ta * m
+        m1 = m + ta * n
+        t = n1 / m1 # in [0, 0.5]
+        p = atan360_kernel(t)
+        d0 = muladd(t, p, ro) * T(64)
+    end
+    b1 = T( 90) + flipsign(T( -90), x)
+    b2 = T(180) + flipsign(T(-180), y)
+    d1 = ay > ax ? T(90) - d0 : d0
+    d2 = b1 + flipsign(d1, x) # signbit(x) ? T(180) - d1 : d1
+    dd = b2 + flipsign(d2, y) # signbit(y) ? T(360) - d2 : d2
+    return dd
+end
+
+@inline function sin_kernel(x::Float64)
+    x * @evalpoly(x^2,
+        1.117010721276371, -0.23228479064016105, 0.014491237085286733, -0.00043049771889962576,
+        7.460244157055791e-6, -8.462038405688494e-8, 6.767827147797153e-10, -3.987482394639226e-12)
+end
+@inline function sin_kernel(x::Float32)
+    y = @evalpoly(x^2, 0.11701072f0, -0.23228478f0, 0.014491233f0, -0.0004304645f0, 7.368049f-6)
+    muladd(x, y, x)
+end
+@inline function cos_kernel(x::Float64)
+    @evalpoly(x^2, 1.0,
+        -0.6238564757231793, 0.06486615038362423, -0.002697811198135598, 6.010882091788964e-5,
+        -8.333171603045294e-7, 7.876495580576226e-9, -5.351642293798961e-11)
+end
+@inline function cos_kernel(x::Float32)
+    @evalpoly(x^2, 1.0f0, -0.6238565f0,0.06486606f0,-0.002697325f0, 5.904168f-5)
+end
+
+sincos360(x) = sincos(deg2rad(x))
+@inline function sincos360(x::T) where T <: Union{Float32, Float64}
+    isfinite(x) || return T(NaN), T(NaN)
+    t = x - round(x * T(1/360)) * 360 # [-180, 180]
+    a0 = @fastmath abs(t)              # [0, 180]
+    a1 = a0 <= 90 ? a0 : 180 - a0      # [0, 90]
+    a2 = a1 <= 45 ? a1 : 90 - a1       # [0, 45]
+    ax = a2 * T(1/64)
+    sn, cs  = sin_kernel(ax), cos_kernel(ax)
+    sn1, cs1 = a1 === a2 ? (sn, cs) : (cs, sn)
+    return @fastmath flipsign(sn1, t), flipsign(cs1, 90 - a0)
+end
+
+"""
+    x, y = polar_to_cartesian(r, theta)
+
+Convert a polar coordinate of radius `r` and angle `theta` (in degrees) to a
+Cartesian coordinate.
+"""
+@inline function polar_to_cartesian(r, theta)
+    y, x = r .* sincos360(theta)
+    return x, y
+end
 
 # fallbacks for compN
 _comp(::Val{N}, c::Colorant) where N = getfield(c, N)
