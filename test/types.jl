@@ -222,6 +222,7 @@ end
     @test RGB(0.2, Gray24(0.3), 0.4) === RGB(0.2, 0.3N0f8, 0.4)
     @test HSV(0.2, 0.3, Gray(0.4)) === HSV(0.2, 0.3, 0.4)
     @test ALab(0.2, 0.3, 0.4, Gray24(0.5)) === ALab(0.2, 0.3, 0.4, 0.5N0f8)
+    @test AOklab(0.2, 0.3, 0.4, Gray24(0.5)) === AOklab(0.2, 0.3, 0.4, 0.5N0f8)
 end
 
 @testset "gray constructors" begin

@@ -12,7 +12,8 @@ doctest(ColorTypes, manual = false)
 ctypes = union(setdiff(ColorTypes.parametric3, (XRGB, RGBX)), (Gray,))
 @test Set(ctypes) ==
     Set([DIN99d, DIN99o, DIN99, HSI, HSL, HSV, LCHab, LCHuv,
-         LMS, Lab, Luv, XYZ, YCbCr, YIQ, xyY, BGR, RGB, Gray])
+         LMS, Lab, Luv, XYZ, YCbCr, YIQ, xyY, BGR, RGB, Gray,
+         Oklab, Oklch])
 
 if isdefined(Base, :Experimental) && isdefined(Base.Experimental, :register_error_hint)
     @testset "error_hints" begin
