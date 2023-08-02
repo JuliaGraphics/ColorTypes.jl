@@ -29,7 +29,8 @@ using .CustomTypes
     for (a, b) in ((RGB(1, 0.5, 0), RGBA(1, 0.5, 0, 0.9)),
                    (RGB(0.5, 0.5, 0.5), Gray(0.5)),
                    (HSV(0, 0, 0.5), HSV(100, 0, 0.5)), # grays
-                   (Lab(70, 0, 60), LCHab(70, 60, 90)))
+                   (Lab(70, 0, 60), LCHab(70, 60, 90)),
+                   (Oklab(0.7, 0, 0.2), Oklch(0.7, 0.2, 90)))
         local a, b
         @test a != b
         @test !isequal(a, b)
@@ -160,7 +161,7 @@ end
             ARGB{Float32}, RGBA{N0f16}, XRGB{N0f8}, RGBX{Float64},
             BGR{Float16}, ABGR{N0f32}, BGRA{N2f14},
             HSV{Float32}, HSL{Float64}, ALab{Float32}, LCHabA{Float16},
-            Gray, AGray, GrayA,
+            AOklab{Float32}, Oklch{Float16}, Gray, AGray, GrayA,
             RGB, ARGB, RGBA, BGR, ABGR, BGRA, XRGB, RGBX,
             HSV, HSL, Lab, LCHab, YIQ,
             AHSV, HSLA)

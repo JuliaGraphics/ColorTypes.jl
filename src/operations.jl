@@ -71,6 +71,10 @@ gamutmin(::Type{T}) where {T<:TransparentGray} = (0,0)
 gamutmin(::Type{T}) where {T<:AbstractRGB} = (0,0,0)
 gamutmin(::Type{T}) where {T<:TransparentRGB} = (0,0,0,0)
 
+gamutmax(::Type{<:Oklab}) = (1, 0.4, 0.4)
+gamutmin(::Type{<:Oklab}) = (0, -0.4, -0.4)
+gamutmax(::Type{<:Oklch}) = (1, 0.4, 360)
+
 # rand
 for t in [Float16,Float32,Float64,N0f8,N0f16,N0f32]
     @eval _rand(::Type{T}) where {T<:Union{AbstractRGB{$t},AbstractGray{$t}}} =
