@@ -87,8 +87,10 @@ end
     @test chroma(LCHuv(60, 40, 30)) ≈ 40.0
     @test chroma(LabA(60, -40, 30, 0.5)) ≈ 50.0
     @test chroma(ALab(60, -40, 30, 0.5)) ≈ 50.0
+    @test chroma(Oklab(0.6, -0.4, 0.3)) ≈ 0.5
     @inferred chroma(LCHab(60, 40, 30))
     @inferred chroma(LCHuv(6f1, 4f1, 3f1))
+    @inferred chroma(Oklch(0.6f1, 0.3f1, 3f1))
     @inferred chroma(LabA(60, -40, 30, 0.5))
     @test_throws MethodError chroma(HSV(30, 0.4, 0.6))
 end
@@ -104,7 +106,9 @@ end
     @test hue(LCHuv(60, 40, 30)) ≈ 30.0
     @test hue(LabA(60, -30, 30, 0.5)) ≈ 135.0
     @test hue(ALab(60, -30, 30, 0.5)) ≈ 135.0
+    @test hue(Oklab(0.6, -0.3, 0.3)) ≈ 135.0
     @inferred hue(LCHab(60, -30, 30))
+    @inferred hue(Oklch(0.6, 0.1, 30))
     @inferred hue(LCHuv(6f1, -3f1, 3f1))
     @inferred hue(LabA(60, -30, 30, 0.5))
     @test hue(HSV(999, 0.4, 0.6)) == 999 # without normalization
