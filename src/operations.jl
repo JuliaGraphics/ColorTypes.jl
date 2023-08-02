@@ -128,6 +128,11 @@ gamutmin(::Type{<:YIQ}) = (0, -0.5957, -0.5226)
 gamutmax(::Type{<:YCbCr}) = (235, 240, 240)
 gamutmin(::Type{<:YCbCr}) = (16, 16, 16)
 
+gamutmax(::Type{<:Oklab}) = (1, 0.4, 0.4)
+gamutmin(::Type{<:Oklab}) = (0, -0.4, -0.4)
+
+gamutmax(::Type{<:Oklch}) = (1, 0.4, 360)
+
 gamutmax(::Type{C}) where {C<:TransparentColor} = (gamutmax(color_type(C))..., 1)
 gamutmin(::Type{C}) where {C<:TransparentColor} = (gamutmin(color_type(C))..., 0)
 
