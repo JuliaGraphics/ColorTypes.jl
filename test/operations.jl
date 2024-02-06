@@ -169,6 +169,10 @@ end
             @test_broken rand(C)
             continue
         end
+        if C <: Oklch
+            @test_broken rand(C)
+            continue
+        end
         CC = isconcretetype(C) ? C : C{Float64}
         c = rand(C)
         @test c isa CC
