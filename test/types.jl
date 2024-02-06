@@ -221,6 +221,7 @@ end
     @test RGB(0.2, Gray24(0.3), 0.4) === RGB(0.2, 0.3N0f8, 0.4)
     @test_throws MethodError HSV(0.2, 0.3, Gray(0.4))
     @test_throws MethodError ALab(0.2, 0.3, 0.4, Gray24(0.5))
+    @test_throws MethodError AOklab(0.2, 0.3, 0.4, Gray24(0.5))
 end
 
 @testset "gray constructors" begin

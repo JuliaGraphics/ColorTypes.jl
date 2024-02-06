@@ -286,6 +286,20 @@ struct YCbCr{T<:AbstractFloat} <: Color{T,3}
     cr::T
 end
 
+"`Oklab` is the Oklab colorspace."
+struct Oklab{T<:AbstractFloat} <: Color{T,3}
+    l::T # Lightness in [0,1]
+    a::T # Red/Green
+    b::T # Blue/Yellow
+end
+
+"`Oklch` is the Luminance-Chroma-Hue, Polar-Oklab colorspace."
+struct Oklch{T<:AbstractFloat} <: Color{T,3}
+    l::T # Lightness in [0,1]
+    c::T # Chroma
+    h::T # Hue in [0,360]
+end
+
 """
 `RGB24` uses a `UInt32` representation of color, 0xAARRGGBB, where
 R=red, G=green, B=blue and A is irrelevant. This format is often used
@@ -583,7 +597,9 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
                         (xyY, :AxyY, :xyYA),
                         (BGR, :ABGR, :BGRA),
                         (RGB, :ARGB, :RGBA),
-                        (Gray, :AGray, :GrayA)]
+                        (Gray, :AGray, :GrayA),
+                        (Oklab, :AOklab, :OklabA),
+                        (Oklch, :AOklch, :OklchA)]
     fn  = Expr(:tuple, fieldnames(C)...)
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)

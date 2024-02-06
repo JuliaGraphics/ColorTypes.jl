@@ -24,6 +24,7 @@ export HSV, HSB, HSL, HSI
 export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv
 export DIN99, DIN99d, DIN99o
 export YIQ, YCbCr
+export Oklab, Oklch
 
 export Gray
 
@@ -65,8 +66,8 @@ Concrete types:
 - `RGB`, `BGR`, `XRGB`, `RGBX`, `RGB24` are all subtypes of `AbstractRGB`
 
 - `HSV`, `HSL`, `HSI`, `XYZ`, `xyY`, `Lab`, `LCHab`, `Luv`, `LCHuv`,
-  `DIN99`, `DIN99d`, `DIN99o`, `LMS`, `YIQ`, `YCbCR` are subtypes of
-  `Color{T,3}`
+  `DIN99`, `DIN99d`, `DIN99o`, `LMS`, `YIQ`, `YCbCR`, `Oklab`, and
+  `Oklch` are subtypes of `Color{T,3}`
 
 - Alpha-channel analogs in such as `ARGB` and `RGBA` for most of those
   types (with a few exceptions like `RGB24`, which has `ARGB32`)
