@@ -336,7 +336,7 @@ end
 
 ### Y'CbCr
 
-A color-encoding format common in video and digital photography.
+A color-encoding format common in video and digital photography (also known as Y'UV or simply YUV).
 
 ```julia
 struct YCbCr{T} <: Color{T,3}
