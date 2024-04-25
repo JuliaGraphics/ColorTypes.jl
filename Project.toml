@@ -14,12 +14,13 @@ StyledStringsExt = "StyledStrings"
 
 [compat]
 FixedPointNumbers = "0.5, 0.6, 0.7, 0.8"
-StyledStrings = "1"
+# StyledStrings = "1" # FIXME: workaround for unregistered StyledStrings
 julia = "1"
 
 [extras]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f" # FIXME: workaround for unregistered StyledStrings
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Documenter", "Test"]
+test = ["Documenter", "Pkg", "Test"]
