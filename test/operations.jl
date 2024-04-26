@@ -190,6 +190,7 @@ end
     eltypes = (N0f8, N2f6, N0f16, N2f14, N0f32, N2f30, Q3f12,
                Float16, Float32, Float64)
     @testset "rand($C)" for C in (
+            Gray{Bool}, # issue #275
             (Gray{T} for T in eltypes)...,
             (RGB{T} for T in eltypes)...,
             AGray{Float32}, GrayA{Float64},
@@ -226,6 +227,7 @@ end
         end
     end
     @test rand(MersenneTwister(), RGB{N0f8}) isa RGB{N0f8}
+    @test rand(MersenneTwister(), ARGB32, 3, 2) isa Matrix{ARGB32}
     @test rand!(Gray{Float32}[0.0, 0.1]) isa Vector{Gray{Float32}}
     a = rand!(Array{RGB}(undef, 3, 5))
     @test a isa Matrix{RGB}
@@ -234,17 +236,6 @@ end
     @test all_in_range(LCHab(50, 10, 359))
     @test all_in_range(YIQ(0.5, 0.59, 0.0))
     @test !all_in_range(YIQ(0.5, 0.0, -0.53))
-    # issue #275
-    @test rand(Gray{Bool}) in (Gray{Bool}(1), Gray{Bool}(0))
-    if VERSION >= v"1.5"
-        a = rand(MersenneTwister(1), Gray{Bool}, 2, 2)
-        @test eltype(a) == Gray{Bool}
-        @test a == Gray{Bool}[0 1; 1 1]
-    else
-        a = rand(MersenneTwister(1), Gray{Bool}, 2, 2)
-        @test eltype(a) == Gray{Bool}
-        @test a == Gray{Bool}[0 1; 0 1]
-    end
 end
 
 @testset "mapc" begin
