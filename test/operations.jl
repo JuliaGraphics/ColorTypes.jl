@@ -320,10 +320,6 @@ end
     for C in (Gray, Gray{N0f8}, GrayA{Float32}, Gray24, AGray32,
               RGB, RGB{N0f8}, RGBA{Float32}, RGB24, ARGB32)
         for f in (ones, zeros)
-            if f === ones && C <: TransparentColor
-                @test_broken f(C, 3, 5) # issue #162
-                continue
-            end
             mat = @inferred(f(C, 3, 5))
             # note that the return type of `ones(RGB)` is `Array{RGB}`, not `Array{RGB{N0f8}}`
             @test typeof(mat) === Matrix{C}
