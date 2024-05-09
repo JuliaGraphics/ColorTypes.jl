@@ -1,14 +1,3 @@
-
-# FIXME: Once StyledStrings v1 is registered, remove the following and the `Pkg` dependency
-if isdefined(Base, :get_extension)
-    import Pkg
-    if VERSION < v"1.11"
-        Pkg.add(url="https://github.com/JuliaLang/StyledStrings.jl", rev="julia1-compat")
-    else
-        Pkg.add("StyledStrings")
-    end
-end
-
 using ColorTypes
 using ColorTypes.FixedPointNumbers
 using Test
@@ -21,12 +10,8 @@ doctest(ColorTypes, manual = false)
 @testset "StyledStringsExt" begin
     if isdefined(Base, :get_extension)
         import StyledStrings
-        try
-            simplecolor = convert(StyledStrings.SimpleColor, ARGB(1, 0.6, 0, 0.4))
-            @test simplecolor === StyledStrings.SimpleColor(0xff, 0x99, 0x00)
-        catch
-            @test_broken convert(StyledStrings.SimpleColor, ARGB(1, 0.6, 0, 0.4))
-        end
+        simplecolor = convert(StyledStrings.SimpleColor, ARGB(1, 0.6, 0, 0.4))
+        @test simplecolor === StyledStrings.SimpleColor(0xff, 0x99, 0x00)
         @test_throws Exception convert(StyledStrings.SimpleColor, HSV(0, 0, 0))
     end
 end
