@@ -25,10 +25,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.0'
           - '1.6'
           - '1'
-          - 'nightly'
         os:
           - ubuntu-latest
           - windows-latest
@@ -41,9 +39,6 @@ jobs:
             arch: x86
           - os: macos-latest
             version: '1'
-            arch: aarch64
-          - os: macos-latest
-            version: 'nightly'
             arch: aarch64
     steps:
       - uses: actions/checkout@v4
