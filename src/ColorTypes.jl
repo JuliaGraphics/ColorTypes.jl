@@ -49,8 +49,9 @@ include("show.jl")
 include("operations.jl")
 include("error_hints.jl")
 
-Base.@deprecate_binding RGB1 XRGB
-Base.@deprecate_binding RGB4 RGBX
+# As discussed in https://github.com/JuliaIO/ImageMagick.jl/issues/235
+#Base.@deprecate_binding RGB1 XRGB
+#Base.@deprecate_binding RGB4 RGBX
 
 """
 ColorTypes summary:
