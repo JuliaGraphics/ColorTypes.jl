@@ -184,7 +184,15 @@ end
 """
     HSV{T<:AbstractFloat} <: Color{T,3}
 
-The Hue-Saturation-Value colorspace.
+The Hue-Saturation-Value colorspace, a projection of RGB to
+cylindrical coordinates.
+
+This is also sometimes called "HSB" for Hue-Saturation-Brightness.
+
+# Fields and Ranges:
+- `h`: Hue in *[0, 360]*
+- `s`: Saturation in *[0, 1]*
+- `v`: Value in *[0, 1]*
 """
 struct HSV{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
@@ -198,7 +206,13 @@ const HSB = HSV
 """
     HSL{T<:AbstractFloat} <: Color{T,3}
 
-The Hue-Saturation-Lightness colorspace.
+The Hue-Saturation-Lightness colorspace, a projection of RGB to
+cylindrical coordinates.
+
+# Fields and Ranges:
+- `h`: Hue in *[0, 360]*
+- `s`: Saturation in *[0, 1]*
+- `l`: Lightness in *[0, 1]*
 """
 struct HSL{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
@@ -209,7 +223,13 @@ end
 """
     HSI{T<:AbstractFloat} <: Color{T,3}
 
-The Hue-Saturation-Intensity colorspace.
+The Hue-Saturation-Intensity colorspace, a variation of HSL and HSV
+commonly used in computer vision.
+
+# Fields and Ranges:
+- `h`: Hue in *[0, 360]*
+- `s`: Saturation in *[0, 1]*
+- `i`: Intensity in *[0, 1]*
 """
 struct HSI{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
@@ -246,6 +266,11 @@ end
     Lab{T<:AbstractFloat} <: Color{T,3}
 
 The CIELAB colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `a`: Red/Green
+- `b`: Blue/Yellow
 """
 struct Lab{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
@@ -257,6 +282,11 @@ end
     LCHab{T<:AbstractFloat} <: Color{T,3}
 
 The Luminance-Chroma-Hue, Polar-Lab colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `c`: Chroma
+- `h`: Hue in *[0, 360]*
 """
 struct LCHab{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
@@ -268,6 +298,11 @@ end
     Luv{T<:AbstractFloat} <: Color{T,3}
 
 The CIELUV colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `u`: Red/Green
+- `v`: Blue/Yellow
 """
 struct Luv{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
@@ -279,6 +314,11 @@ end
     LCHuv{T<:AbstractFloat} <: Color{T,3}
 
 The Luminance-Chroma-Hue, Polar-Luv colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `c`: Chroma
+- `h`: Hue in *[0, 360]*
 """
 struct LCHuv{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
@@ -290,6 +330,11 @@ end
     DIN99{T<:AbstractFloat} <: Color{T,3}
 
 The (L99, a99, b99) adaptation of CIELAB.
+
+# Fields:
+- `l`: L99 (Lightness)
+- `a`: a99 (Red/Green)
+- `b`: b99 (Blue/Yellow)
 """
 struct DIN99{T<:AbstractFloat} <: Color{T,3}
     l::T # L99
@@ -301,6 +346,11 @@ end
     DIN99d{T<:AbstractFloat} <: Color{T,3}
 
 The (L99d, a99d, b99d) improvement on DIN99.
+
+# Fields:
+- `l`: L99d (Lightness)
+- `a`: a99d (Red/Green)
+- `b`: b99d (Blue/Yellow)
 """
 struct DIN99d{T<:AbstractFloat} <: Color{T,3}
     l::T # L99d
@@ -312,6 +362,11 @@ end
     DIN99o{T<:AbstractFloat} <: Color{T,3}
 
 The (L99o, a99o, b99o) adaptation of CIELAB.
+
+# Fields:
+- `l`: L99o (Lightness)
+- `a`: a99o (Red/Green)
+- `b`: b99o (Blue/Yellow)
 """
 struct DIN99o{T<:AbstractFloat} <: Color{T,3}
     l::T # L99o
@@ -359,6 +414,11 @@ end
     Oklab{T<:AbstractFloat} <: Color{T,3}
 
 The Oklab colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 1]*
+- `a`: Red/Green
+- `b`: Blue/Yellow
 """
 struct Oklab{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,1]
@@ -370,6 +430,11 @@ end
     Oklch{T<:AbstractFloat} <: Color{T,3}
 
 The Luminance-Chroma-Hue, Polar-Oklab colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 1]*
+- `c`: Chroma
+- `h`: Hue in *[0, 360]*
 """
 struct Oklch{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,1]
