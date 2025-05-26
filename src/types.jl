@@ -1,23 +1,28 @@
 """
-`Colorant{T,N}` is the abstract super-type of all types in ColorTypes,
-and refers to both (opaque) colors and colors-with-transparency (alpha
-channel) information.  `T` is the element type (extractable with
-`eltype`) and `N` is the number of *meaningful* entries (extractable
-with `length`), i.e., the number of arguments you would supply to the
-constructor.
+    abstract type Colorant{T,N}
+
+Abstract super-type of all types in ColorTypes, refers to both (opaque) colors
+and colors-with-transparency (alpha channel) information.
+
+`T` is the element type (extractable with `eltype`) and `N` is the number of
+*meaningful* entries (extractable with `length`), i.e., the number of arguments
+you would supply to the constructor.
 """
 abstract type Colorant{T,N} end
 
 # Colors (without transparency)
 """
-`Color{T,N}` is the abstract supertype for a color (or
-grayscale) with no transparency.
+    abstract type Color{T, N} <: Colorant{T,N}
+
+Abstract supertype for a color (or grayscale) with no transparency.
 """
 abstract type Color{T, N} <: Colorant{T,N} end
 
 """
-`AbstractGray{T}` is an abstract supertype for gray types which corresponds to
-real numbers, where `0` means black and `1` means white.
+    abstract type AbstractGray{T} <: Color{T,1}
+
+Abstract supertype for gray types which corresponds to real numbers, where `0`
+means black and `1` means white.
 
 !!! compat "ColorTypes v0.12"
     Prior to ColorTypes v0.12, `AbstractGray{T}` was the alias for `Color{T,1}`;
@@ -27,11 +32,14 @@ real numbers, where `0` means black and `1` means white.
 abstract type AbstractGray{T} <: Color{T,1} end
 
 """
-`AbstractRGB{T}` is an abstract supertype for red/green/blue color types that
-can be constructed as `C(r, g, b)` and for which the elements can be
-extracted as `red(c)`, `green(c)`, `blue(c)`. You should *not* make
-assumptions about internal storage order, the number of fields, or the
-representation. One `AbstractRGB` color-type, `RGB24`, is not
+    abstract type AbstractRGB{T} <: Color{T,3}
+
+Abstract supertype for red/green/blue color types that can be constructed as
+`C(r, g, b)` and for which the elements can be extracted as `red(c)`,
+`green(c)`, `blue(c)`.
+
+You should *not* make assumptions about internal storage order, the number of
+fields, or the representation. One `AbstractRGB` color-type, `RGB24`, is not
 parametric and does not have fields named `r`, `g`, `b`.
 """
 abstract type AbstractRGB{T} <: Color{T,3} end
@@ -39,12 +47,14 @@ abstract type AbstractRGB{T} <: Color{T,3} end
 
 # Types with transparency
 """
-`TransparentColor{C,T,N}` is the abstract type for any
-color-with-transparency.  The `C` parameter refers to the type of the
-pure color (without transparency) and can be extracted with
-`color_type`. `T` is the element type of both `C` and the `alpha`
-channel, and `N` has the same meaning as in `Colorant` (and is 1 larger
-than the corresponding color type).
+    abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N}
+
+Abstract type for any color-with-transparency.
+    
+The `C` parameter refers to the type of the pure color (without transparency)
+and can be extracted with `color_type`. `T` is the element type of both `C` and
+the `alpha` channel, and `N` has the same meaning as in `Colorant` (and is 1
+larger than the corresponding color type).
 
 All transparent types should support two modes of construction:
 
@@ -63,15 +73,20 @@ order (see `AlphaColor` and `ColorAlpha`, and the `alphacolor` and
 abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N} end
 
 """
-`AlphaColor` is an abstract supertype for types like `ARGB`, where the
-alpha channel comes first in the internal storage order. **Note** that
-the constructor order is still `(color, alpha)`.
+    abstract type AlphaColor{C<:Color,T,N} <: TransparentColor{C,T,N}
+
+Abstract supertype for types like `ARGB`, where the alpha channel comes first
+in the internal storage order.
+
+**Note** that the constructor order is still `(color, alpha)`.
 """
 abstract type AlphaColor{C<:Color,T,N} <: TransparentColor{C,T,N} end
 
 """
-`ColorAlpha` is an abstract supertype for types like `RGBA`, where the
-alpha channel comes last in the internal storage order.
+    abstract type ColorAlpha{C<:Color,T,N} <: TransparentColor{C,T,N}
+
+Abstract supertype for types like `RGBA`, where the alpha channel comes last in
+the internal storage order.
 """
 abstract type ColorAlpha{C<:Color,T,N} <: TransparentColor{C,T,N} end
 
@@ -94,9 +109,12 @@ AlphaColorN{N,C<:Color,T}       = AlphaColor{C,T,N}
 ColorAlphaN{N,C<:Color,T}       = ColorAlpha{C,T,N}
 
 """
-`RGB` is the standard Red-Green-Blue (sRGB) colorspace.  Values of the
-individual color channels range from 0 (black) to 1 (saturated). If
-you want "Integer" storage types (e.g., 255 for full color), use `N0f8(1)`
+    RGB{T<:Fractional} <: AbstractRGB{T}
+
+The standard Red-Green-Blue (sRGB) colorspace.
+
+Values of the individual color channels range from 0 (black) to 1 (saturated).
+If you want "Integer" storage types (e.g., 255 for full color), use `N0f8(1)`
 instead (see FixedPointNumbers).
 """
 struct RGB{T<:Fractional} <: AbstractRGB{T}
@@ -108,8 +126,11 @@ struct RGB{T<:Fractional} <: AbstractRGB{T}
 end
 
 """
-`BGR` is a variant of `RGB` with the opposite storage order.  Note
-that the constructor is still called in the order `BGR(r, g, b)`.
+    BGR{T<:Fractional} <: AbstractRGB{T}
+
+A variant of `RGB` with the opposite storage order. 
+
+Note that the constructor is still called in the order `BGR(r, g, b)`.
 This storage order is noteworthy because on little-endian machines,
 `BGRA` (with transparency) can be `reinterpret`ed to the `UInt32`
 color format used by libraries such as Cairo and OpenGL.
@@ -123,9 +144,11 @@ struct BGR{T<:Fractional} <: AbstractRGB{T}
 end
 
 """
-`XRGB` is a variant of `RGB` which has a padding element inserted at
-the beginning. In some applications it may have useful
-memory-alignment properties.
+    XRGB{T<:Fractional} <: AbstractRGB{T}
+
+A variant of `RGB` which has a padding element inserted at the beginning.
+
+In some applications it may have useful memory-alignment properties.
 
 Like all other AbstractRGB objects, the constructor is still called
 `XRGB(r, g, b)`.
@@ -140,9 +163,11 @@ struct XRGB{T<:Fractional} <: AbstractRGB{T}
 end
 
 """
-`RGBX` is a variant of `RGB` which has a padding element inserted at
-the end. In some applications it may have useful
-memory-alignment properties.
+    RGBX{T<:Fractional} <: AbstractRGB{T}
+
+A variant of `RGB` which has a padding element inserted at the end.
+
+In some applications it may have useful memory-alignment properties.
 
 Like all other AbstractRGB objects, the constructor is still called
 `RGBX(r, g, b)`.
@@ -156,7 +181,19 @@ struct RGBX{T<:Fractional} <: AbstractRGB{T}
     RGBX{T}(r::T, g::T, b::T) where {T <: Fractional} = new{T}(r, g, b, oneunit(T))
 end
 
-"`HSV` is the Hue-Saturation-Value colorspace."
+"""
+    HSV{T<:AbstractFloat} <: Color{T,3}
+
+The Hue-Saturation-Value colorspace, a projection of RGB to
+cylindrical coordinates.
+
+This is also sometimes called "HSB" for Hue-Saturation-Brightness.
+
+# Fields and Ranges:
+- `h`: Hue in *[0, 360]*
+- `s`: Saturation in *[0, 1]*
+- `v`: Value in *[0, 1]*
+"""
 struct HSV{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
@@ -166,14 +203,34 @@ end
 "`HSB` (Hue-Saturation-Brightness) is an alias for `HSV`."
 const HSB = HSV
 
-"`HSL` is the Hue-Saturation-Lightness colorspace."
+"""
+    HSL{T<:AbstractFloat} <: Color{T,3}
+
+The Hue-Saturation-Lightness colorspace, a projection of RGB to
+cylindrical coordinates.
+
+# Fields and Ranges:
+- `h`: Hue in *[0, 360]*
+- `s`: Saturation in *[0, 1]*
+- `l`: Lightness in *[0, 1]*
+"""
 struct HSL{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
     l::T # Lightness in [0,1]
 end
 
-"`HSI` is the Hue-Saturation-Intensity colorspace."
+"""
+    HSI{T<:AbstractFloat} <: Color{T,3}
+
+The Hue-Saturation-Intensity colorspace, a variation of HSL and HSV
+commonly used in computer vision.
+
+# Fields and Ranges:
+- `h`: Hue in *[0, 360]*
+- `s`: Saturation in *[0, 1]*
+- `i`: Intensity in *[0, 1]*
+"""
 struct HSI{T<:AbstractFloat} <: Color{T,3}
     h::T # Hue in [0,360]
     s::T # Saturation in [0,1]
@@ -181,9 +238,12 @@ struct HSI{T<:AbstractFloat} <: Color{T,3}
 end
 
 """
-`XYZ` is the CIE 1931 XYZ colorspace. It is a linear colorspace,
-meaning that mathematical operations such as addition, subtraction,
-and scaling make "colorimetric sense" in this colorspace.
+    XYZ{T<:AbstractFloat} <: Color{T,3}
+
+The CIE 1931 XYZ colorspace.
+
+It is a linear colorspace, meaning that mathematical operations such as
+addition, subtraction, and scaling make "colorimetric sense" in this colorspace.
 """
 struct XYZ{T<:AbstractFloat} <: Color{T,3}
     x::T
@@ -191,56 +251,123 @@ struct XYZ{T<:AbstractFloat} <: Color{T,3}
     z::T
 end
 
-"`xyY` is the CIE 1931 xyY (chromaticity + luminance) space"
+"""
+    xyY{T<:AbstractFloat} <: Color{T,3}
+
+The CIE 1931 xyY (chromaticity + luminance) space.
+"""
 struct xyY{T<:AbstractFloat} <: Color{T,3}
     x::T
     y::T
     Y::T
 end
 
-"`Lab` is the CIELAB colorspace."
+"""
+    Lab{T<:AbstractFloat} <: Color{T,3}
+
+The CIELAB colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `a`: Red/Green
+- `b`: Blue/Yellow
+"""
 struct Lab{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
-"`LCHab` is the Luminance-Chroma-Hue, Polar-Lab colorspace"
+"""
+    LCHab{T<:AbstractFloat} <: Color{T,3}
+
+The Luminance-Chroma-Hue, Polar-Lab colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `c`: Chroma
+- `h`: Hue in *[0, 360]*
+"""
 struct LCHab{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360]
 end
 
-"`Luv` is the CIELUV colorspace"
+"""
+    Luv{T<:AbstractFloat} <: Color{T,3}
+
+The CIELUV colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `u`: Red/Green
+- `v`: Blue/Yellow
+"""
 struct Luv{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
     u::T # Red/Green
     v::T # Blue/Yellow
 end
 
-"`LCHuv` is the Luminance-Chroma-Hue, Polar-Luv colorspace"
+"""
+    LCHuv{T<:AbstractFloat} <: Color{T,3}
+
+The Luminance-Chroma-Hue, Polar-Luv colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 100]*
+- `c`: Chroma
+- `h`: Hue in *[0, 360]*
+"""
 struct LCHuv{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,100]
     c::T # Chroma
     h::T # Hue in [0,360]
 end
 
-"`DIN99` is the (L99, a99, b99) adaptation of CIELAB"
+"""
+    DIN99{T<:AbstractFloat} <: Color{T,3}
+
+The (L99, a99, b99) adaptation of CIELAB.
+
+# Fields:
+- `l`: L99 (Lightness)
+- `a`: a99 (Red/Green)
+- `b`: b99 (Blue/Yellow)
+"""
 struct DIN99{T<:AbstractFloat} <: Color{T,3}
     l::T # L99
     a::T # a99
     b::T # b99
 end
 
-"`DIN99d` is the (L99d, a99d, b99d) improvement on DIN99"
+"""
+    DIN99d{T<:AbstractFloat} <: Color{T,3}
+
+The (L99d, a99d, b99d) improvement on DIN99.
+
+# Fields:
+- `l`: L99d (Lightness)
+- `a`: a99d (Red/Green)
+- `b`: b99d (Blue/Yellow)
+"""
 struct DIN99d{T<:AbstractFloat} <: Color{T,3}
     l::T # L99d
     a::T # a99d
     b::T # b99d
 end
 
-"`DIN99o` is the (L99o, a99o, b99o) adaptation of CIELAB"
+"""
+    DIN99o{T<:AbstractFloat} <: Color{T,3}
+
+The (L99o, a99o, b99o) adaptation of CIELAB.
+
+# Fields:
+- `l`: L99o (Lightness)
+- `a`: a99o (Red/Green)
+- `b`: b99o (Blue/Yellow)
+"""
 struct DIN99o{T<:AbstractFloat} <: Color{T,3}
     l::T # L99o
     a::T # a99o
@@ -248,8 +375,12 @@ struct DIN99o{T<:AbstractFloat} <: Color{T,3}
 end
 
 """
-`LMS` is the Long-Medium-Short colorspace based on activation of the
-three cone photoreceptors.  Like `XYZ`, this is a linear color space.
+    LMS{T<:AbstractFloat} <: Color{T,3}
+
+The Long-Medium-Short colorspace based on activation of the
+three cone photoreceptors.
+
+Like `XYZ`, this is a linear color space.
 """
 struct LMS{T<:AbstractFloat} <: Color{T,3}
     l::T # Long
@@ -257,28 +388,54 @@ struct LMS{T<:AbstractFloat} <: Color{T,3}
     s::T # Short
 end
 
-"`YIQ` is a color encoding, for example used in NTSC transmission."
+"""
+    YIQ{T<:AbstractFloat} <: Color{T,3}
+
+A color encoding, for example used in NTSC transmission.
+"""
 struct YIQ{T<:AbstractFloat} <: Color{T,3}
     y::T
     i::T
     q::T
 end
 
-"`YCbCr` is the Y'CbCr color encoding often used in digital photography or video"
+"""
+    YCbCr{T<:AbstractFloat} <: Color{T,3}
+
+The Y'CbCr color encoding often used in digital photography or video.
+"""
 struct YCbCr{T<:AbstractFloat} <: Color{T,3}
     y::T
     cb::T
     cr::T
 end
 
-"`Oklab` is the Oklab colorspace."
+"""
+    Oklab{T<:AbstractFloat} <: Color{T,3}
+
+The Oklab colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 1]*
+- `a`: Red/Green
+- `b`: Blue/Yellow
+"""
 struct Oklab{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,1]
     a::T # Red/Green
     b::T # Blue/Yellow
 end
 
-"`Oklch` is the Luminance-Chroma-Hue, Polar-Oklab colorspace."
+"""
+    Oklch{T<:AbstractFloat} <: Color{T,3}
+
+The Luminance-Chroma-Hue, Polar-Oklab colorspace.
+
+# Fields and Ranges:
+- `l`: Lightness in *[0, 1]*
+- `c`: Chroma
+- `h`: Hue in *[0, 360]*
+"""
 struct Oklch{T<:AbstractFloat} <: Color{T,3}
     l::T # Lightness in [0,1]
     c::T # Chroma
@@ -286,9 +443,12 @@ struct Oklch{T<:AbstractFloat} <: Color{T,3}
 end
 
 """
-`RGB24` uses a `UInt32` representation of color, 0xAARRGGBB, where
-R=red, G=green, B=blue and A is irrelevant. This format is often used
-by external libraries such as Cairo.
+    RGB24 <: AbstractRGB{N0f8}
+
+A `UInt32` representation of color, 0xAARRGGBB, where R=red, G=green,
+B=blue and A is irrelevant.
+
+This format is often used by external libraries such as Cairo.
 
 `RGB24` colors do not have fields named `r`, `g`, `b`, but you can
 still extract the individual components with `red(c)`, `green(c)`,
@@ -324,10 +484,14 @@ function RGB24(r::N0f8, g::N0f8, b::N0f8)
 end
 
 """
-`ARGB32` uses a `UInt32` representation of color, 0xAARRGGBB, where
-R=red, G=green, B=blue and A is the alpha channel. This format is
-often used by external libraries such as Cairo.  On a little-endian
-machine, this type has the exact same storage format as `BGRA{N0f8}`.
+    ARGB32 <: AbstractARGB{RGB24, N0f8}
+
+A `UInt32` representation of color, 0xAARRGGBB, where R=red, G=green,
+B=blue and A is the alpha channel.
+
+This format is often used by external libraries such as Cairo. On a
+little-endian machine, this type has the exact same storage format as
+`BGRA{N0f8}`.
 
 `ARGB32` colors do not have fields named `alpha`, `r`, `g`, `b`, but
 you can still extract the individual components with `alpha(c)`,
@@ -353,17 +517,22 @@ function ARGB32(c::RGB24, alpha::Real = N0f8(1))
 end
 
 """
-`Gray` is a grayscale object. You can extract its value with `gray(c)`.
+    Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
+
+A grayscale object. You can extract its value with `gray(c)`.
 """
 struct Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
 end
 
 """
-`Gray24` uses a `UInt32` representation of color, 0xAAIIIIII, where
-I=intensity (grayscale value) and A is irrelevant. Each II pair is
-assumed to be the same.  This format is often used by external
-libraries such as Cairo.
+    Gray24 <: AbstractGray{N0f8}
+
+A `UInt32` representation of color, 0xAAIIIIII, where I=intensity
+(grayscale value) and A is irrelevant. Each II pair is assumed to
+be the same.
+
+This format is often used by external libraries such as Cairo.
 
 You can extract the single gray value with `gray(c)`.  You can
 construct them directly from a `UInt32`, or as `Gray24(i)`. Note that
@@ -377,10 +546,12 @@ end
 Gray24(val::N0f8) = reinterpret(Gray24, reinterpret(val) * 0x010101)
 
 """
-`AGray32` uses a `UInt32` representation of color, 0xAAIIIIII, where
-I=intensity (grayscale value) and A=alpha. Each II pair is
-assumed to be the same.  This format is often used by external
-libraries such as Cairo.
+    AGray32 <: AbstractAGray{Gray24, N0f8}
+
+A `UInt32` representation of color, 0xAAIIIIII, where I=intensity
+(grayscale value) and A=alpha. Each II pair is assumed to be the same.
+
+This format is often used by external libraries such as Cairo.
 
 You can extract the single gray value with `gray(c)` and the alpha as
 `alpha(c)`.  You can construct them directly from a `UInt32`, or as
