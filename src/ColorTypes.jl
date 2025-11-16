@@ -25,6 +25,7 @@ export XYZ, xyY, LMS, Lab, LCHab, Luv, LCHuv
 export DIN99, DIN99d, DIN99o
 export YIQ, YCbCr
 export Oklab, Oklch
+export CMY
 
 export Gray
 
@@ -37,7 +38,7 @@ export RGB24, ARGB32, Gray24, AGray32
 ## Functions
 export base_color_type, base_colorant_type, ccolor, color, color_type, parametric_colorant
 export alphacolor, coloralpha
-export alpha, red, green, blue, gray   # accessor functions that generalize to RGB24, etc.
+export alpha, red, green, blue, cyan, magenta, yellow, gray   # accessor functions that generalize to RGB24, etc.
 export chroma, hue
 export comp1, comp2, comp3, comp4, comp5
 export mapc, reducec, mapreducec, gamutmax, gamutmin

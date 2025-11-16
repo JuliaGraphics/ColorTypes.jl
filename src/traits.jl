@@ -29,6 +29,11 @@ blue(c::TransparentRGB) = c.b
 blue(c::RGB24)  = reinterpret(N0f8, c.color % UInt8)
 blue(c::ARGB32) = reinterpret(N0f8, c.color % UInt8)
 
+"`cyan(c)`, `magenta(c)`, `yellow(c)` return the components of an `CMY` opaque color."
+cyan(c::CMY) = c.c
+magenta(c::CMY) = c.m
+yellow(c::CMY) = c.y
+
 "`gray(c)` returns the gray component of a grayscale opaque or transparent color."
 gray(c::Gray)    = c.val
 gray(c::TransparentGray) = c.val
