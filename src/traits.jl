@@ -120,7 +120,7 @@ color(c::TransparentColorN{5,C}) where {C} = C(comp1(c), comp2(c), comp3(c), com
 # recurse up the type hierarchy until you get to Colorant{T,N} for
 # specific T,N.
 to_top(::Type{Colorant{T,N}}) where {T,N} = Colorant{T,N}
-@pure to_top(::Type{C}) where {C<:Colorant} = to_top(supertype(C))
+@foldable to_top(::Type{C}) where {C<:Colorant} = to_top(supertype(C))
 
 to_top(c::Colorant) = to_top(typeof(c))
 
@@ -137,7 +137,7 @@ eltype(::Type{C}) where {C<:Colorant{T}} where {T} = T
 
 eltype(c::Colorant) = eltype(typeof(c))
 
-@pure function _parameter_upper_bound(t::UnionAll, idx)
+@foldable function _parameter_upper_bound(t::UnionAll, idx)
     Base.rewrap_unionall((Base.unwrap_unionall(t)::DataType).parameters[idx], t)
 end
 
@@ -147,7 +147,9 @@ function eltypes_supported(::Type{C}) where {C<:Colorant}
     isconcretetype(C) && C === Cb && return eltype(C)
     _eltypes_supported(Cb, supertype(Cb))
 end
-@pure _eltypes_supported(::Type{<:Colorant}, ::Type{C}) where {C<:Colorant} = _eltypes_supported(C, supertype(C))
+@foldable function _eltypes_supported(::Type{<:Colorant}, ::Type{C}) where {C<:Colorant}
+    _eltypes_supported(C, supertype(C))
+end
 _eltypes_supported(::Type{C}, ::Type) where {C<:Colorant} = _parameter_upper_bound(C, 1)
 
 eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
@@ -231,7 +233,7 @@ base_color_type(x::Union{Colorant,Number}) = base_color_type(typeof(x))
 base_colorant_type(::Type{C}) where {C<:Colorant} = isabstracttype(C) ? abstract_basetype(C) : basetype(C)
 base_colorant_type(::Type{<:Number}) = Gray
 
-@pure basetype(@nospecialize(C)) = Base.typename(C).wrapper
+@foldable basetype(@nospecialize(C)) = Base.typename(C).wrapper
 
 abstract_basetype(::Type{<:AbstractRGB}) = AbstractRGB
 abstract_basetype(::Type{<:AbstractGray}) = AbstractGray
@@ -342,7 +344,7 @@ floattype(::Type{Gray24})  = Gray{floattype(N0f8)}
 floattype(::Type{ARGB32})  = ARGB{floattype(N0f8)}
 floattype(::Type{AGray32}) = AGray{floattype(N0f8)}
 
-@pure pureintersect(::Type{C1}, ::Type{C2}) where {C1,C2} = typeintersect(C1, C2)
+@foldable pureintersect(::Type{C1}, ::Type{C2}) where {C1,C2} = typeintersect(C1, C2)
 
 """
     Calpha, Cbase, T = colorsplit(C)
