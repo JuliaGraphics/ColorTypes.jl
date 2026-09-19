@@ -1,6 +1,6 @@
 # ColorTypes
 
-[![Build Status](https://github.com/JuliaGraphics/ColorTypes.jl/workflows/Unit%20test/badge.svg)](https://github.com/JuliaGraphics/ColorTypes.jl/actions)
+[![Build Status](https://github.com/JuliaGraphics/ColorTypes.jl/actions/workflows/UnitTest.yml/badge.svg)](https://github.com/JuliaGraphics/ColorTypes.jl/actions/workflows/UnitTest.yml)
 [![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/C/ColorTypes.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 [![codecov](https://codecov.io/github/JuliaGraphics/ColorTypes.jl/graph/badge.svg?token=QVcrtmVp3n)](https://codecov.io/github/JuliaGraphics/ColorTypes.jl)
 [![Aqua QA](https://juliatesting.github.io/Aqua.jl/dev/assets/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
@@ -30,8 +30,7 @@ Here is the type hierarchy used in ColorTypes:
   indicates an object that also has alpha-channel information.
 
 - `Color{T,3}` is a 3-component color (like RGB = red, green, blue);
-  `Color{T,1}` is a 1-component color (i.e., grayscale).
-  `AbstractGray{T}` is a typealias for `Color{T,1}`.
+  `Color{T,1}` is a 1-component color (typically, grayscale).
 
 - Most colors have both `AlphaColor` and `ColorAlpha` variants;
   for example, `RGB` has both `ARGB` and `RGBA`.  These indicate
