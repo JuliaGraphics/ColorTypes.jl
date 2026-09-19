@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" height="70mm" sodipodi:docname="types.svg" inkscape:export-xdpi="96" inkscape:export-ydpi="96" inkscape:version="0.92.4 (5da689c313, 2019-01-14)" id="svg_colortypes" version="1.1" viewBox="0 0 230 70" width="230mm">
+<svg height="70mm" sodipodi:docname="types.svg" inkscape:export-xdpi="96" inkscape:export-ydpi="96" inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)" id="svg_colortypes" version="1.1" viewBox="0 0 230 70" width="230mm" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs id="defs">
     <marker id="marker_tri" orient="auto" style="overflow:visible">
       <path d="M -5,0 l 5,-3 v 6 z" id="path_tri" style="fill:none;stroke:#ff3366;stroke-width:0.8" />
@@ -16,7 +16,7 @@
       <path d="m 0,0 h 2.5 v 5 h 2.5 v -2.5 h -5 z" sodipodi:nodetypes="cccccccc" inkscape:connector-curvature="0" id="path_checker" style="fill:#dddddd;fill-opacity:0.4" />
     </pattern>
   </defs>
-  <sodipodi:namedview bordercolor="#666666" borderopacity="1.0" inkscape:document-units="mm" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:snap-text-baseline="true" id="base" pagecolor="#ffffff" scale-x="1" showgrid="true" units="mm" >
+  <sodipodi:namedview bordercolor="#666666" borderopacity="1.0" inkscape:document-units="mm" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:snap-text-baseline="true" id="base" pagecolor="#ffffff" scale-x="1" showgrid="true" units="mm">
     <inkscape:grid empspacing="5" enabled="true" id="grid_1" spacingx="1" spacingy="1" type="xygrid" units="mm" />
   </sodipodi:namedview>
   <metadata id="metadata">
@@ -42,95 +42,41 @@
     <rect height="42" id="rect_act" style="fill:#ffdd77" width="100" x="30" y="13" />
     <rect height="15" id="rect_cct" style="fill:#88ddcc" width="100" x="30" y="55" />
   </g>
-  <g inkscape:groupmode="layer" inkscape:label="texts" id="layer_texts" style="font-family:'Helvetica Neue', Arial, sans-serif;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:0.8" sodipodi:insensitive="true">
-    <g sodipodi:insensitive="true" inkscape:groupmode="layer" inkscape:label="concrete" id="g_concrete" style="font-size:4px">
-      <text id="text_rgb" x="38" y="64">
-        <tspan sodipodi:role="line" id="tspan_rgb" x="38" y="64">RGB{T}</tspan>
-      </text>
-      <text id="text_bgr" x="54" y="64">
-        <tspan sodipodi:role="line" id="tspan_bgr" x="54" y="64">BGR{T}</tspan>
-      </text>
-      <text id="text_sniprgb" x="63" y="64">
-        <tspan sodipodi:role="line" id="tspan_sniprgb" x="63" y="64">...</tspan>
-      </text>
-      <text id="text_rgb24" x="72" y="64">
-        <tspan sodipodi:role="line" id="tspan_rgb24" x="72" y="64">RGB24</tspan>
-      </text>
-      <text id="text_hsv" x="88" y="64">
-        <tspan sodipodi:role="line" id="tspan_hsv" x="88" y="64">HSV{T}</tspan>
-      </text>
-      <text id="text_lab" x="103" y="64">
-        <tspan sodipodi:role="line" id="tspan_lab" x="103" y="64">Lab{T}</tspan>
-      </text>
-      <text id="text_snipc3" x="111" y="64">
-        <tspan sodipodi:role="line" id="tspan_snipc3" x="111" y="64">...</tspan>
-      </text>
-      <text id="text_gray" x="122" y="64">
-        <tspan sodipodi:role="line" id="tspan_gray" x="122" y="64">Gray{T}</tspan>
-      </text>
-      <text id="text_argb" x="140" y="64">
-        <tspan sodipodi:role="line" id="tspan_argb" x="140" y="64">ARGB{T}</tspan>
-      </text>
-      <text id="text_argb32" x="158" y="64">
-        <tspan sodipodi:role="line" id="tspan_argb32" x="158" y="64">ARGB32</tspan>
-      </text>
-      <text id="text_ahsv" x="176" y="64">
-        <tspan sodipodi:role="line" id="tspan_ahsv" x="176" y="64">AHSV{T}</tspan>
-      </text>
-      <text id="text_snipac" x="187" y="64">
-        <tspan sodipodi:role="line" id="tspan_snipac" x="187" y="64">...</tspan>
-      </text>
-      <text id="text_rgba" x="199" y="64">
-        <tspan sodipodi:role="line" id="tspan_rgba" x="199" y="64">RGBA{T}</tspan>
-      </text>
-      <text id="text_hsva" x="217" y="64">
-        <tspan sodipodi:role="line" id="tspan_hsba" x="217" y="64">HSVA{T}</tspan>
-      </text>
-      <text id="text_snipca" x="227" y="64">
-        <tspan sodipodi:role="line" id="tspan_snipca" x="227" y="64">...</tspan>
-      </text>
+  <g inkscape:groupmode="layer" inkscape:label="texts" id="layer_texts" style="font-family:JuliaMono, 'Helvetica Neue', Arial, sans-serif;text-align:center;text-anchor:middle;display:inline;fill:#000000;fill-opacity:0.8">
+    <g inkscape:groupmode="layer" inkscape:label="concrete" id="g_concrete" style="font-size:3.5px;display:inline" sodipodi:insensitive="true">
+      <text id="text_rgb" x="37" y="64"><tspan sodipodi:role="line" id="tspan_rgb" x="37" y="64">RGB{T}</tspan></text>
+      <text id="text_bgr" x="51" y="64"><tspan sodipodi:role="line" id="tspan_bgr" x="51" y="64">BGR{T}</tspan></text>
+      <text id="text_sniprgb" x="61" y="64"><tspan sodipodi:role="line" id="tspan_sniprgb" x="61" y="64">...</tspan></text>
+      <text id="text_rgb24" x="70" y="64"><tspan sodipodi:role="line" id="tspan_rgb24" x="70" y="64">RGB24</tspan></text>
+      <text id="text_hsv" x="85" y="64"><tspan sodipodi:role="line" id="tspan_hsv" x="85" y="64">HSV{T}</tspan></text>
+      <text id="text_lab" x="99" y="64"><tspan sodipodi:role="line" id="tspan_lab" x="99" y="64">Lab{T}</tspan></text>
+      <text id="text_snipc3" x="109" y="64"><tspan sodipodi:role="line" id="tspan_snipc3" x="109" y="64">...</tspan></text>
+      <text id="text_gray" x="122" y="64"><tspan sodipodi:role="line" id="tspan_gray" x="122" y="64">Gray{T}</tspan></text>
+      <text id="text_argb" x="140" y="64"><tspan sodipodi:role="line" id="tspan_argb" x="140" y="64">ARGB{T}</tspan></text>
+      <text id="text_argb32" x="156" y="64"><tspan sodipodi:role="line" id="tspan_argb32" x="156" y="64">ARGB32</tspan></text>
+      <text id="text_ahsv" x="173" y="64"><tspan sodipodi:role="line" id="tspan_ahsv" x="173" y="64">AHSV{T}</tspan></text>
+      <text id="text_snipac" x="184" y="64"><tspan sodipodi:role="line" id="tspan_snipac" x="184" y="64">...</tspan></text>
+      <text id="text_rgba" x="198" y="64"><tspan sodipodi:role="line" id="tspan_rgba" x="198" y="64">RGBA{T}</tspan></text>
+      <text id="text_hsva" x="215" y="64"><tspan sodipodi:role="line" id="tspan_hsba" x="215" y="64">HSVA{T}</tspan></text>
+      <text id="text_snipca" x="226" y="64"><tspan sodipodi:role="line" id="tspan_snipca" x="226" y="64">...</tspan></text>
     </g>
-    <g inkscape:groupmode="layer" inkscape:label="abstract" id="g_abstract" style="font-size:4.5px">
-      <text id="text_colorant" x="130" y="8">
-        <tspan sodipodi:role="line" id="tspan_colorant" x="130" y="8">Colorant{T,N}</tspan>
-      </text>
-      <text id="text_c" x="80" y="20">
-        <tspan sodipodi:role="line" id="tspan_c" x="80" y="20">Color{T,N}</tspan>
-      </text>
-      <text id="text_tc" x="180" y="20">
-        <tspan sodipodi:role="line" id="tspan_tc" x="180" y="20">TransparentColor{C,T,N}</tspan>
-      </text>
-      <text id="text_ac" x="155" y="30">
-        <tspan sodipodi:role="line" id="tspan64" x="155" y="30">AlphaColor{C,T,N}</tspan>
-      </text>
-      <text id="text_ca" x="205" y="30">
-        <tspan sodipodi:role="line" id="tspan_ca" x="205" y="30">ColorAlpha{C,T,N}</tspan>
-      </text>
-      <text id="text_c3" style="fill-opacity:0.7" x="69" y="36">
-        <tspan sodipodi:role="line" id="tspan_c3" x="69" y="36">Color{T,3}</tspan>
-      </text>
-      <text id="text_c1" style="fill-opacity:0.7" x="110" y="36">
-        <tspan sodipodi:role="line" id="tspan_c1" x="110" y="36">Color{T,1}</tspan>
-      </text>
-      <text id="text_abrgb" x="50" y="48">
-        <tspan sodipodi:role="line" id="tspan_abrgb" x="50" y="48">AbstractRGB{T}</tspan>
-      </text>
-      <text id="text_abg" style="font-style:italic;fill:#003366;fill-opacity:0.7" x="113" y="48">
-        <tspan sodipodi:role="line" id="tspan_abg" x="113" y="48">AbstractGray{T}</tspan>
-      </text>
+    <g inkscape:groupmode="layer" inkscape:label="abstract" id="g_abstract" style="font-size:4px;display:inline" sodipodi:insensitive="true">
+      <text id="text_colorant" x="130" y="8"><tspan sodipodi:role="line" id="tspan_colorant" x="130" y="8">Colorant{T,N}</tspan></text>
+      <text id="text_c" x="80" y="20"><tspan sodipodi:role="line" id="tspan_c" x="80" y="20">Color{T,N}</tspan></text>
+      <text id="text_tc" x="180" y="20"><tspan sodipodi:role="line" id="tspan_tc" x="180" y="20">TransparentColor{C,T,N}</tspan></text>
+      <text id="text_ac" x="155" y="30"><tspan sodipodi:role="line" id="tspan64" x="155" y="30">AlphaColor{C,T,N}</tspan></text>
+      <text id="text_ca" x="205" y="30"><tspan sodipodi:role="line" id="tspan_ca" x="205" y="30">ColorAlpha{C,T,N}</tspan></text>
+      <text id="text_c3" style="fill-opacity:0.7" x="69" y="36"><tspan sodipodi:role="line" id="tspan_c3" x="69" y="36">Color{T,3}</tspan></text>
+      <text id="text_c1" style="fill-opacity:0.7" x="110" y="36"><tspan sodipodi:role="line" id="tspan_c1" x="110" y="36">Color{T,1}</tspan></text>
+      <text id="text_abrgb" x="50" y="48"><tspan sodipodi:role="line" id="tspan_abrgb" x="50" y="48">AbstractRGB{T}</tspan></text>
+      <text id="text_abg" x="112" y="48"><tspan sodipodi:role="line" id="tspan_abg" x="112" y="48">AbstractGray{T}</tspan></text>
     </g>
-    <g sodipodi:insensitive="true" inkscape:groupmode="layer" inkscape:label="category" id="g_tt" style="font-size:5px;line-height:6px;fill:currentColor">
-      <text id="text_at" x="15" y="29">
-        <tspan sodipodi:role="line" id="tspan_at1" x="15" y="29">Abstract</tspan>
-        <tspan sodipodi:role="line" id="tspan_at2" x="15" y="35">types</tspan>
-      </text>
-      <text id="text_ct" x="15" y="61">
-        <tspan sodipodi:role="line" id="tspan_ct1" x="15" y="61">Concrete</tspan>
-        <tspan sodipodi:role="line" id="tspan_ct2" x="15" y="67">types</tspan>
-      </text>
+    <g inkscape:groupmode="layer" inkscape:label="category" id="g_tt" style="font-size:5px;line-height:6px;font-family:'Helvetica Neue', Arial, sans-serif;display:inline;fill:currentColor">
+      <text id="text_at" x="15" y="29"><tspan sodipodi:role="line" id="tspan_at1" x="15" y="29">Abstract</tspan><tspan sodipodi:role="line" id="tspan_at2" x="15" y="35">types</tspan></text>
+      <text id="text_ct" x="15" y="61"><tspan sodipodi:role="line" id="tspan_ct1" x="15" y="61">Concrete</tspan><tspan sodipodi:role="line" id="tspan_ct2" x="15" y="67">types</tspan></text>
     </g>
   </g>
-  <g inkscape:groupmode="layer" inkscape:label="lines" id="layer_lines" style="fill:none;stroke:#ff3366;stroke-width:0.25;marker-start:url(#marker_tri)" sodipodi:insensitive="true">
+  <g inkscape:groupmode="layer" inkscape:label="lines" id="layer_lines" style="display:inline;fill:none;stroke:#ff3366;stroke-width:0.25;marker-start:url(#marker_tri)" sodipodi:insensitive="true">
     <path d="m 118,10 -28,6" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_colorant_c" />
     <path d="m 143,10 28,6" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_colorant_tc" />
     <path d="m 76,23 -6,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c_c3" style="stroke-dasharray:1, 1" />
@@ -138,21 +84,21 @@
     <path d="m 170,22 -11,4" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_tc_ac" />
     <path d="m 190,22 11,4" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_tc_ca" />
     <path d="m 61,39 -8,5" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_abrgb" />
-    <path d="m 71,39 14,21" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_hsv" />
-    <path d="m 74,39 26,21" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_lab" />
-    <path d="m 77,39 31,21" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_snip" />
-    <path d="m 111,38 4,6 m 1,0 -4,-6" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c1_abg" style="marker-start:none" />
+    <path d="m 71,39 12,21" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_hsv" />
+    <path d="m 74,39 22,21" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_lab" />
+    <path d="m 77,39 30,21" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c3_snip" />
+    <path d="m 111,39 3,5" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_c1_abg" />
     <path d="m 152,33 -11,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ac_argb" />
-    <path d="m 155,33 2,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ac_argb32" />
+    <path d="m 155,33 1,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ac_argb32" />
     <path d="m 158,33 13,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ac_ahsv" />
-    <path d="m 161,33 23,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ac_snip" />
+    <path d="m 161,33 22,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ac_snip" />
     <path d="m 203,33 -5,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ca_rgba" />
     <path d="m 206,33 7,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ca_hsva" />
     <path d="m 209,33 16,27" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_ca_snip" />
     <path d="m 46,51 -7,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abrgb_rgb" />
-    <path d="m 51,51 1,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abrgb_bgr" />
-    <path d="m 54,51 7,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abrgb_snip" />
+    <path d="m 51,51 0,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abrgb_bgr" />
+    <path d="m 54,51 6,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abrgb_snip" />
     <path d="m 57,51 11,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abrgb_rgb24" />
-    <path d="m 119,51 3,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abg_gray" />
+    <path d="m 118,51 4,9" sodipodi:nodetypes="cc" inkscape:connector-curvature="0" id="path_abg_gray" />
   </g>
 </svg>
