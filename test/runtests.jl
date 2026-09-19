@@ -1,8 +1,11 @@
 using ColorTypes
 using ColorTypes.FixedPointNumbers
 using Test
+using Aqua
 
-@test isempty(detect_ambiguities(ColorTypes, Base, Core))
+@testset "Aqua tests" begin
+    Aqua.test_all(ColorTypes)
+end
 
 using Documenter
 doctest(ColorTypes, manual = false)

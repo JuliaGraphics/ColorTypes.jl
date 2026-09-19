@@ -3,6 +3,7 @@
 [![Build Status](https://github.com/JuliaGraphics/ColorTypes.jl/workflows/Unit%20test/badge.svg)](https://github.com/JuliaGraphics/ColorTypes.jl/actions)
 [![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/C/ColorTypes.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 [![codecov](https://codecov.io/github/JuliaGraphics/ColorTypes.jl/graph/badge.svg?token=QVcrtmVp3n)](https://codecov.io/github/JuliaGraphics/ColorTypes.jl)
+[![Aqua QA](https://juliatesting.github.io/Aqua.jl/dev/assets/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 This "minimalistic" package serves as the foundation for working with
 colors in Julia.  It defines basic color types and their constructors,
