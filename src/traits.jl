@@ -157,7 +157,13 @@ eltypes_supported(c::Colorant) = eltypes_supported(typeof(c))
 
 Returns `true` if `T` is a valid numeric eltype for `C<:Colorant`.
 """
-issupported(::Type{C}, ::Type{T}) where {C<:Colorant,T} = T <: eltypes_supported(C)
+function issupported(::Type{C}, ::Type{T}) where {C<:Colorant,T}
+    try
+        return C{T} isa Type
+    catch
+        return false
+    end
+end
 
 """
     CT = color_type(C::Type)
