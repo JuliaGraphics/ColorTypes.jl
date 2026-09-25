@@ -415,14 +415,12 @@ convert(::Type{C}, p::Colorant) where C<:Colorant = cnvt(ccolor(C,typeof(p)), p)
 
 where `cnvt` is the function that performs explicit conversion.
 """
-function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Union{Number,Colorant}}
+function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Colorant}
+    isconcretetype(Cdest) && return Cdest
+
     Cdestalpha, Cdestbase, Tdest = colorsplit(Cdest)
-    if Csrc <: Number
-        Cdestbase <: Union{AbstractGray, AbstractRGB} || throw(ColorTypeResolutionError(:ccolor, "no automatic conversion from", Csrc, Cdestbase))
-        Csrcalpha, Csrcbase, Tsrc = Any, Color, Csrc
-    else
-        Csrcalpha, Csrcbase, Tsrc = colorsplit(Csrc)
-    end
+    Csrcalpha, Csrcbase, Tsrc = colorsplit(Csrc)
+
     # Step 1: pick the base color type
     if isabstracttype(Cdestbase)
         C = pureintersect(Cdestbase, Csrcbase)
@@ -457,6 +455,13 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Union
     Tf = floattype(Tsrc)
     issupported(C, Tf) && return C{Tf}
     return C{Tdef}
+end
+function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Number}
+    Cdestbase = base_color_type(Cdest)
+    if Cdestbase <: Union{AbstractGray, AbstractRGB}
+        return ccolor(Cdest, Color{Csrc})
+    end
+    throw(ColorTypeResolutionError(:ccolor, "no automatic conversion from", Csrc, Cdestbase))
 end
 
 isfinite(c::Colorant) = mapreducec(isfinite, &, true, c)
