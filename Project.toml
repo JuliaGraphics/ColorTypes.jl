@@ -1,10 +1,16 @@
 name = "ColorTypes"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
-version = "0.12.2"
+version = "0.12.3"
 
 [deps]
 FixedPointNumbers = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[weakdeps]
+StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
+
+[extensions]
+StyledStringsExt = "StyledStrings"
 
 [compat]
 Aqua = "0.8"
@@ -15,9 +21,6 @@ StyledStrings = "1"
 Test = "1"
 julia = "1"
 
-[extensions]
-StyledStringsExt = "StyledStrings"
-
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -26,6 +29,3 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Aqua", "Documenter", "StyledStrings", "Test"]
-
-[weakdeps]
-StyledStrings = "f489334b-da3d-4c2e-b8f0-e476e12c162b"
