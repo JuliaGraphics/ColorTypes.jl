@@ -158,7 +158,10 @@ end
         @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32}) ==
             "TransparentColor{RGB{Float32},$(SP)Float32}"
     end
-    @test ColorTypes.colorant_string_with_eltype(TransparentColor{RGB{Float32},Float32,4}) ==
-        "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)4}"
+    # ensure that `TransparentRGB` is an alias for `TransparentColor`.
+    @test TransparentRGB{RGB{Float32}, Float32} === TransparentColor{RGB{Float32}, Float32, 4}
+    @test ColorTypes.colorant_string_with_eltype(TransparentRGB{RGB{Float32}, Float32}) in
+            ["TransparentRGB{RGB{Float32},$(SP)Float32}",
+             "TransparentColor{RGB{Float32},$(SP)Float32,$(SP)4}"]
     @test_throws MethodError ColorTypes.colorant_string_with_eltype(Float32)
 end
