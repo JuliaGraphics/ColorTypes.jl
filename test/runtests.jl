@@ -23,8 +23,11 @@ end
 
 @testset "Aqua tests" begin
     Aqua.test_all(ColorTypes, unbound_args=false)
-    is_dev = occursin("DEV", string(VERSION))
+    is_dev = v"1.14.0" > VERSION >= v"1.14.0-DEV.0"
     Aqua.test_unbound_args(ColorTypes, broken=is_dev)
+    if is_dev
+        @show Test.detect_unbound_args(ColorTypes)
+    end
 end
 
 using Documenter

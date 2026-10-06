@@ -4,16 +4,16 @@ struct ComponentIterator{C<:Colorant}
 end
 
 eltype(::Type{ComponentIterator{C}}) where {T, C <: Colorant{T}} = T
-length(::ComponentIterator{C}) where {N, C <: ColorantN{N}} = N
+length(::ComponentIterator{<:ColorantN{N}}) where {N} = N
 
-function Base.iterate(itr::ComponentIterator{C}, state::Int=0) where {N, C <: ColorantN{N}}
+function Base.iterate(itr::ComponentIterator{<:ColorantN{N}}, state::Int=0) where {N}
     state < 0 && return nothing
     state >= N && return nothing
     state += 1
     return (itr[state], state)
 end
 
-@inline function Base.getindex(itr::ComponentIterator{C}, i::Integer) where {N, C <: ColorantN{N}}
+@inline function Base.getindex(itr::ComponentIterator{<:ColorantN{N}}, i::Integer) where {N}
     N > 0 && i == 1 && return comp1(itr.c)
     N > 1 && i == 2 && return comp2(itr.c)
     N > 2 && i == 3 && return comp3(itr.c)
@@ -27,12 +27,12 @@ Base.getindex(itr::ComponentIterator, ::Colon) = itr
 Base.firstindex(::ComponentIterator) = 1
 Base.lastindex(itr::ComponentIterator) = length(itr)
 
-function Base.BroadcastStyle(::Type{<:ComponentIterator{C}}) where {T, N, C <: Colorant{T, N}}
+function Base.BroadcastStyle(::Type{ComponentIterator{C}}) where {T, N, C <: Colorant{T, N}}
     Base.BroadcastStyle(NTuple{N, T})
 end
-Base.axes(::ComponentIterator{C}) where {N, C <: ColorantN{N}} = (Base.OneTo(N),)
-Base.ndims(::Type{ComponentIterator{C}}) where {C} = 1
-function Base.broadcastable(itr::ComponentIterator{C}) where {T, N, C <: Colorant{T, N}}
+Base.axes(::ComponentIterator{<:ColorantN{N}}) where {N} = (Base.OneTo(N),)
+Base.ndims(::Type{ComponentIterator{C}}) where {C<:Colorant} = 1
+function Base.broadcastable(itr::ComponentIterator{<:Colorant{T, N}}) where {T, N}
     (itr...,)::NTuple{N, T}
 end
 
