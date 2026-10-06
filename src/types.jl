@@ -443,6 +443,33 @@ struct Oklch{T<:AbstractFloat} <: Color{T,3}
 end
 
 """
+    CMY{T<:Fractional} <: Color{T,3}
+
+Cyan-Magenta-Yellow (CMY) color model.
+
+The [CMY color model](https://en.wikipedia.org/wiki/CMYK_color_model#CMY) is
+common in on-paper printers. The CMYK color model (CMY extended with black) is
+far more common, but the CMY color model is very convenient in computing because
+of its straightforward relationship to the RGB color model: if `(r, g, b)` are
+the components of color `c` in the RGB color model, then 
+`(1 - r, 1 - g, 1 - b)` are its components in the CMY color model.
+
+CMY (as well as CMYK) is a so-called *subtractive* color model, because its
+origin coordinates correspond to white (as is usually paper), and other colors
+are achieved by *subtracting light* from it. That is in contrast to the RGB
+color model. RGB is an *additive* color model, where the origin coordinates
+correspond to black (as is usually a computer screen), and other colors are
+achieved by *adding light* to it.
+"""
+struct CMY{T<:Fractional} <: Color{T,3}
+    c::T # Cyan [0,1]
+    m::T # Magenta [0,1]
+    y::T # Yellow [0,1]
+
+    CMY{T}(c::T, m::T, y::T) where {T <: Fractional} = new{T}(c, m, y)
+end
+
+"""
     RGB24 <: AbstractRGB{N0f8}
 
 A `UInt32` representation of color, 0xAARRGGBB, where R=red, G=green,
