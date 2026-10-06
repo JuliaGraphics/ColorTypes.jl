@@ -142,73 +142,84 @@ const Rand01Type = Union{Bool, AbstractFloat, Rand01Normd}
 
 # TODO: Remove the following once it is guaranteed to be implemented in FixedPointNumbers.
 if which(rand, Tuple{AbstractRNG, SamplerType{<:FixedPoint}}).module === Random
-    function rand(r::AbstractRNG, ::SamplerType{X}) where X <: FixedPoint
+    function Random.rand(r::AbstractRNG, ::SamplerType{X}) where X <: FixedPoint
         reinterpret(X, rand(r, FixedPointNumbers.rawtype(X)))
     end
 end
 
-function rand(r::AbstractRNG, ::SamplerType{C}) where {C<:Colorant}
-    rand(r, base_colorant_type(C){Float64})
+Random.rand(r::AbstractRNG, s::SamplerType{<:Colorant}) = _rand(r, s)
+
+function Random.rand(r::AbstractRNG, ::Type{C}, dims::Dims) where {C <: Colorant}
+    CC = isconcretetype(C) ? C : base_colorant_type(C){Float64}
+    _rand!(r, Array{CC}(undef, dims), SamplerType{CC}())
 end
-function rand(r::AbstractRNG, ::SamplerType{C}) where {T, C<:Colorant{T}}
+
+function _rand(r::AbstractRNG, ::SamplerType{C}) where {C<:Colorant}
+    _rand(r, SamplerType{base_colorant_type(C){Float64}}())
+end
+function _rand(r::AbstractRNG, ::SamplerType{C}) where {T, C<:Colorant{T}}
     Cmax = C(gamutmax(C)...)
     Cmin = C(gamutmin(C)...)
     mapc((m, n) -> T((m - n) * rand(r, floattype(T)) + n), Cmax, Cmin)
 end
-function rand(r::AbstractRNG, ::SamplerType{C}) where {T<:Rand01Type, C0<:AbstractGray{T},
-                                                       C<:Union{C0, TransparentGray{C0, T}}}
+function _rand(r::AbstractRNG,
+               ::SamplerType{C}) where {T<:Rand01Type, C<:Union{
+                                        AbstractGray{T}, AbstractRGB{T}}}
     mapc(_ -> rand(r, T), C())
 end
-function rand(r::AbstractRNG, ::SamplerType{C}) where {T<:Rand01Type, C0<:AbstractRGB{T},
-                                                       C<:Union{C0, TransparentRGB{C0, T}}}
+function _rand(r::AbstractRNG,
+               ::SamplerType{C}) where {T<:Rand01Type, C<:Union{
+                                        TransparentGray{<:AbstractGray{T}, T},
+                                        TransparentRGB{<:AbstractRGB{T}, T}}}
     mapc(_ -> rand(r, T), C())
 end
-function rand(r::AbstractRNG, ::SamplerType{AGray32}) # Gray24 has little benefit of specialization.
+function _rand(r::AbstractRNG, ::SamplerType{AGray32}) # Gray24 has little benefit of specialization.
     reinterpret(AGray32, (rand(r, UInt32) & 0xff0000ff) * 0x010101)
 end
-rand(r::AbstractRNG, ::SamplerType{RGB24}) = reinterpret(RGB24, rand(r, UInt32) & 0xffffff)
-rand(r::AbstractRNG, ::SamplerType{ARGB32}) = reinterpret(ARGB32, rand(r, UInt32))
+_rand(r::AbstractRNG, ::SamplerType{RGB24}) = reinterpret(RGB24, rand(r, UInt32) & 0xffffff)
+_rand(r::AbstractRNG, ::SamplerType{ARGB32}) = reinterpret(ARGB32, rand(r, UInt32))
 
-function rand(r::AbstractRNG, ::Type{C}, dims::Dims) where {C <: Colorant}
-    CC = isconcretetype(C) ? C : base_colorant_type(C){Float64}
-    rand!(r, Array{CC}(undef, dims), CC)
-end
 
 # rand!
-function rand!(r::AbstractRNG, A::Array{C}, ::SamplerType{C}) where {C<:Colorant}
-    rand!(r, A, SamplerType{base_colorant_type(C){Float64}}())
+function Random.rand!(r::AbstractRNG, A::Array{C}, s::SamplerType{C}) where {C<:Colorant}
+    _rand!(r, A, s)
 end
-function rand!(r::AbstractRNG, A::Array{C}, ::SamplerType{C}) where {T, C<:Colorant{T}}
-    A .= rand.((r,), C)
+
+function _rand!(r::AbstractRNG, A::Array{C}, ::SamplerType{C}) where {C<:Colorant}
+    rand!(r, A, SamplerType{base_colorant_type(C){Float64}}()) # use Random.rand!
+end
+function _rand!(r::AbstractRNG, A::Array{C}, s::SamplerType{C}) where {T, C<:Colorant{T}}
+    f() = _rand(r, s)
+    A .= f.()
 end
 function _rand01!(r::AbstractRNG, A::Array{C},
-               ::SamplerType{C}) where {T<:Rand01Type, C<:Colorant{T}}
+                  ::SamplerType{C}) where {T<:Rand01Type, C<:Colorant{T}}
     N = sizeof(C) ÷ sizeof(T)
     T0 = T <: FixedPoint ? FixedPointNumbers.rawtype(T) : T
     At = unsafe_wrap(Array, reinterpret(Ptr{T0}, pointer(A)), (N, size(A)...))
     rand!(r, At, T0)
     A
 end
-function rand!(r::AbstractRNG, A::Array{C},
-               s::SamplerType{C}) where {T<:AbstractFloat, C<:Colorant{T}}
+function _rand!(r::AbstractRNG, A::Array{C},
+                s::SamplerType{C}) where {T<:AbstractFloat, C<:Colorant{T}}
     _rand01!(r, A, s)
     Cmin = C(gamutmin(C)...)
     Cs = C((gamutmax(C) .- gamutmin(C))...)
     f(c) = mapc((a, b) -> T(a + b), mapc(*, c, Cs), Cmin)
     A .= f.(A)
 end
-function rand!(r::AbstractRNG, A::Array{C},
-               s::SamplerType{C}) where {T<:Rand01Type, C<:Union{Gray{T}, AGray{T}, GrayA{T}}}
+function _rand!(r::AbstractRNG, A::Array{C},
+                s::SamplerType{C}) where {T<:Rand01Type, C<:Union{Gray{T}, AGray{T}, GrayA{T}}}
     _rand01!(r, A, s)
 end
-function rand!(r::AbstractRNG, A::Array{C},
-               s::SamplerType{C}) where {T<:Rand01Type,
-                                         C<:Union{RGB{T}, ARGB{T}, RGBA{T}, XRGB{T}, RGBX{T},
-                                                  BGR{T}, ABGR{T}, BGRA{T}}}
+function _rand!(r::AbstractRNG, A::Array{C},
+                s::SamplerType{C}) where {T<:Rand01Type,
+                                          C<:Union{RGB{T}, ARGB{T}, RGBA{T}, XRGB{T}, RGBX{T},
+                                                   BGR{T}, ABGR{T}, BGRA{T}}}
     _rand01!(r, A, s)
 end
-function rand!(r::AbstractRNG, A::Array{C},
-               ::SamplerType{C}) where {C<:Union{Gray24, AGray32, RGB24, ARGB32}}
+function _rand!(r::AbstractRNG, A::Array{C},
+                ::SamplerType{C}) where {C<:Union{Gray24, AGray32, RGB24, ARGB32}}
     At = unsafe_wrap(Array, reinterpret(Ptr{UInt32}, pointer(A)), size(A))
     rand!(r, At, UInt32)
     if C === Gray24
