@@ -3,6 +3,19 @@
 function _promote_et(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant}
     T1 = isconcretetype(eltype(C1)) ? eltype(C1) : eltypes_supported(C1)
     T2 = isconcretetype(eltype(C2)) ? eltype(C2) : eltypes_supported(C2)
+
+    # Starting with FixedPointNumbers v0.9, combinations of `FixedPoint` and
+    # `Integer` types are promoted to an `AbstractFloat` type.
+    # Although Julia's support for `Float16` has improved, it remains less
+    # common than `Float32`, so the minimum promoted type is `Float32`.
+    # However, for color component types, `Float32` is unnecessarily wide as the
+    # promoted type for, e.g., a combination of `N0f8` and `Bool`.
+    # Therefore, a special rule is added here.
+    if (T1 <: Integer && T2 <: FixedPoint) || (T1 <: FixedPoint && T2 <: Integer)
+        Ti, Tx = T1 <:Integer ? (T1, T2) : (T2, T1)
+        imax, imin = floor(Integer, typemax(Tx)), ceil(Integer, typemin(Tx))
+        imax >= typemax(Ti) && typemin(Ti) >= imin && return Tx
+    end
     promote_type(T1, T2)
 end
 # Get the promoted base "color" type
