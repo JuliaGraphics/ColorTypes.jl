@@ -512,6 +512,8 @@ end
     @test @inferred(floattype(RGB24)) == RGB{Float32}
     @test @inferred(floattype(Gray24)) == Gray{Float32}
 
+    @test @inferred(floattype(GrayF32)) === GrayF32 # !== Gray{Float32}
+
     @test_throws MethodError @inferred(floattype(RGB))
 
     @test_throws MethodError @inferred(floattype(RGB{N0f8}(1,0,0)))
@@ -525,6 +527,10 @@ end
     @test parametric_colorant(Gray24)       === Gray{N0f8}
     @test parametric_colorant(ARGB32)       === ARGB{N0f8}
     @test parametric_colorant(AGray32)      === AGray{N0f8}
+
+    @test parametric_colorant(GrayF32) === Gray{Float32}
+    @test parametric_colorant(GrayAF32) === GrayA{Float32}
+    @test parametric_colorant(RGBA32) === RGBA{N0f8}
 end
 
 @testset "ccolor" begin

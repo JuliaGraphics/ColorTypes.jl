@@ -5,8 +5,8 @@ using ColorTypes
 using ColorTypes.FixedPointNumbers
 
 export C2, C2A, C4, AC4
-export StrangeGray, Cyanotype
-export RGBA32
+export GrayF32, GrayAF32, StrangeGray, Cyanotype
+export RGBA32, RGB48, ARGB64
 export AnaglyphColor, CMYK, ACMYK
 
 struct C2{T <: Real} <: Color{T,2}
@@ -39,6 +39,18 @@ struct AC4{T <: Real} <: AlphaColor{C4{T},T,5}
 end
 ColorTypes.alphacolor(::Type{<:C4}) = AC4
 ColorTypes.eltype_default(::Type{<:AC4}) = Int16
+
+# not a alias of Gray{Float32}, but a distinct type
+struct GrayF32 <: AbstractGray{Float32}
+    val::Float32
+    GrayF32(val::Float32) = new(val)
+end
+
+struct GrayAF32 <: AbstractGrayA{GrayF32, Float32}
+    val::Float32
+    alpha::Float32
+    GrayAF32(val::Float32, alpha::Float32) = new(val, alpha)
+end
 
 struct StrangeGray{Something,T <: Integer} <: AbstractGray{Normed{T}}
     val::T
@@ -75,6 +87,16 @@ ColorTypes.red(  c::RGBA32) = reinterpret(N0f8, (c.color >> 0x18) % UInt8)
 ColorTypes.green(c::RGBA32) = reinterpret(N0f8, (c.color >> 0x10) % UInt8)
 ColorTypes.blue( c::RGBA32) = reinterpret(N0f8, (c.color >> 0x08) % UInt8)
 ColorTypes.alpha(c::RGBA32) = reinterpret(N0f8, c.color % UInt8)
+
+struct RGB48 <: AbstractRGB{N0f16}
+    color::UInt64
+    RGB48(c::UInt64, ::Type{Val{true}}) = new(c)
+end
+
+struct ARGB64 <: AbstractARGB{RGB48, N0f16}
+    color::UInt64
+    ARGB64(c::UInt64, ::Type{Val{true}}) = new(c)
+end
 
 # minimal type for testing 2-component color
 struct AnaglyphColor{T} <: Color{T,2} # not `TransparentGray`
