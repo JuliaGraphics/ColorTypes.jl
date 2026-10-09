@@ -1,6 +1,6 @@
 name = "ColorTypes"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
-version = "0.12.3"
+version = "0.12.4"
 
 [deps]
 FixedPointNumbers = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
@@ -15,7 +15,7 @@ StyledStringsExt = "StyledStrings"
 [compat]
 Aqua = "0.8"
 Documenter = "0.27, 1"
-FixedPointNumbers = "0.8"
+FixedPointNumbers = "0.8, 0.9"
 Random = "<0.0.1, 1"
 StyledStrings = "1"
 Test = "1"
