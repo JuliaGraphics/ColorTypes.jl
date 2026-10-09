@@ -25,6 +25,8 @@ end
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant} = AlphaColor
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:ColorAlpha, C2<:Color} = ColorAlpha
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:ColorAlpha, C2<:ColorAlpha} = ColorAlpha
+_promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:AbstractAGray, C2<:AbstractGrayA} = AlphaColor
+_promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:AbstractGrayA, C2<:AbstractAGray} = AlphaColor
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:ColorAlpha, C2<:AbstractAGray} = ColorAlpha
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:AbstractAGray, C2<:ColorAlpha} = ColorAlpha
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:Color, C2<:Color} = Color
