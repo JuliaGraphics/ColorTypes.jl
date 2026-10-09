@@ -29,22 +29,18 @@ _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:ColorAlpha, C2<:AbstractAGray}
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:AbstractAGray, C2<:ColorAlpha} = ColorAlpha
 _promote_alpha(::Type{C1}, ::Type{C2}) where {C1<:Color, C2<:Color} = Color
 
-Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant} = _promote_rule(C1, C2)
-Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Color, C2<:TransparentColor} = Base.Bottom # to reduce rules
-
-Base.promote_rule(::Type{RGB24},   ::Type{Gray24})  = RGB24 # C vs. C
-Base.promote_rule(::Type{Gray24},  ::Type{RGB24})   = RGB24 # C vs. C
-Base.promote_rule(::Type{ARGB32},  ::Type{AGray32}) = ARGB32 # TC vs. TC
-Base.promote_rule(::Type{AGray32}, ::Type{ARGB32})  = ARGB32 # TC vs. TC
-Base.promote_rule(::Type{AGray32}, ::Type{Gray24})  = AGray32
-Base.promote_rule(::Type{AGray32}, ::Type{RGB24})   = ARGB32
-Base.promote_rule(::Type{ARGB32},  ::Type{Gray24})  = ARGB32
-Base.promote_rule(::Type{ARGB32},  ::Type{RGB24})   = ARGB32
-
+function Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant}
+    C1 <: Color && C2 <: TransparentColor && return Base.Bottom # to reduce rules
+    _promote_rule(C1, C2)
+end
 
 function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant}
-    et, alpha = _promote_et(C1, C2), _promote_alpha(C1, C2)
     Cp1, Cp2 = parametric_colorant(C1), parametric_colorant(C2)
+    if Cp1 !== C1 && Cp2 !== C2
+        Cnp = _promote_rule_nonparametric(C1, C2)
+        Cnp !== Base.Bottom && return Cnp
+    end
+    et, alpha = _promote_et(C1, C2), _promote_alpha(C1, C2)
     color = _promote_color(base_color_type(Cp1), base_color_type(Cp2))
     _with_et(C::UnionAll, et) = isconcretetype(et) ? C{et} : C
     if !isabstracttype(color)
@@ -63,6 +59,68 @@ function _promote_rule(::Type{C1}, ::Type{C2}) where {C1<:Colorant, C2<:Colorant
         isconcretetype(et) ? A{C,et} where {C<:Cb{et}} : A{C,T} where {T, C<:Cb{T}}
     end
     _with_et(alpha, color, et)
+end
+
+_promote_rule_nonparametric(::Type{<:Colorant}, ::Type{<:Colorant}) = Base.Bottom
+function _promote_rule_nonparametric(::Type{C1}, ::Type{C2}) where {C1<:Color,
+                                                                    C2<:Color}
+    T = _promote_et(C1, C2)
+    # RGB vs. Gray
+    C1 <: AbstractRGB{T} && C2 <: AbstractGray && return C1
+    C1 <: AbstractGray && C2 <: AbstractRGB{T} && return C2
+
+    Cbc1 = abstract_basetype(color_type(C1))
+    Cbc2 = abstract_basetype(color_type(C2))
+    if Cbc1 === Cbc2 && (Cbc1 === AbstractRGB || Cbc1 === AbstractGray) # TODO: generalization
+        C1 <: Colorant{T} && C2 <: Colorant{T} && return Base.Bottom # draw
+        C1 <: Colorant{T} && return C1
+        C2 <: Colorant{T} && return C2
+    end
+    return Base.Bottom
+end
+function _promote_rule_nonparametric(::Type{C1}, ::Type{C2}) where {C1<:TransparentColor,
+                                                                    C2<:TransparentColor}
+    T = _promote_et(C1, C2)
+    TRGB = TransparentRGB{<:AbstractRGB, T}
+    # RGB vs. Gray
+    C1 <: TRGB && C2 <: TransparentGray && return C1
+    C1 <: TransparentGray && C2 <: TRGB && return C2
+
+    Cbc1 = abstract_basetype(color_type(C1))
+    Cbc2 = abstract_basetype(color_type(C2))
+    if Cbc1 === Cbc2 && (Cbc1 === AbstractRGB || Cbc1 === AbstractGray) # TODO: generalization
+        if C1 <: Colorant{T} && C2 <: Colorant{T}
+            Calpha = _promote_alpha(C1, C2)
+            C1 <: Calpha && !(C2 <: Calpha) && return C1
+            !(C1 <: Calpha) && C2 <: Calpha && return C2
+            return Base.Bottom # draw
+        end
+        C1 <: Colorant{T} && return C1
+        C2 <: Colorant{T} && return C2
+    end
+    return Base.Bottom
+end
+function _promote_rule_nonparametric(::Type{C1}, ::Type{C2}) where {C1<:TransparentColor,
+                                                                    C2<:Color}
+    color_type(C1) === C2 && return C1
+    T = _promote_et(C1, C2)
+    TRGB = TransparentRGB{<:AbstractRGB, T}
+    # RGB vs. Gray
+    C1 <: TRGB && C2 <: AbstractGray && return C1
+    # There is no general promotion rule from non-parametric RGB to
+    # non-parametric transparent RGB.
+    # For example, while RGB555 can have a corresponding ARGB1555, there is no
+    # obvious corresponding ARGB type for RGB565.
+    # Also, just as `RGBA32` is not exist in this package, there may be cases
+    # where only one of `AlphaColor` or `ColorAlpha` type exists.
+    C1 === AGray32 && C2 === RGB24 && return ARGB32 # specific rule for known types
+
+    Cbc1 = abstract_basetype(color_type(C1))
+    Cbc2 = abstract_basetype(C2)
+    if Cbc1 === Cbc2 && (Cbc1 === AbstractRGB || Cbc1 === AbstractGray) # TODO: generalization
+        C1 <: Colorant{T} && return C1
+    end
+    return Base.Bottom
 end
 
 

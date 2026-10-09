@@ -80,6 +80,9 @@ using .CustomTypes
     @test promote_type(RGB, AbstractRGB{Float16}) === RGB
     @test promote_type(AbstractRGB{Float16}, RGB{Float16}) === RGB{Float16}
     @test promote_type(AbstractRGB{Float16}, RGB24) === RGB{Float32}
+
+    @test promote_type(RGBA32, RGB24) === RGBA32
+    @test promote_type(RGBA32, ARGB32) === ARGB32
 end
 
 @testset "hsv promotions" begin
@@ -139,6 +142,12 @@ end
     @test promote_type(Gray, AbstractGray{Float16}) === Gray
     @test promote_type(AbstractGray{Float16}, Gray{Float16}) === Gray{Float16}
     @test promote_type(AbstractGray{Float16}, Gray24) === Gray{Float32}
+
+    @test promote_type(GrayF32, Gray24) === GrayF32
+    @test promote_type(GrayF32, AGray32) === AGray{Float32}
+    @test promote_type(GrayAF32, Gray24) === GrayAF32
+    @test promote_type(GrayAF32, GrayF32) === GrayAF32
+    @test promote_type(GrayAF32, AGray32) === GrayAF32
 end
 
 @testset "rgb and gray promotions" begin
@@ -244,6 +253,11 @@ end
     @test promote_type(ARGB, AbstractAGray{Gray{Float16},Float16}) === ARGB
     @test promote_type(AbstractARGB{RGB{Float16},Float16}, AGray{Float16}) === ARGB{Float16}
     @test promote_type(AbstractARGB{RGB{Float16},Float16}, AGray32) === ARGB{Float32}
+
+    @test promote_type(RGB24, GrayF32) === RGB{Float32}
+    @test promote_type(ARGB32, GrayF32) === ARGB{Float32}
+    @test promote_type(RGB24, GrayAF32) === RGBA{Float32}
+    @test promote_type(ARGB32, GrayAF32) === ARGB{Float32}
 end
 
 @testset "hsv and gray promotions" begin

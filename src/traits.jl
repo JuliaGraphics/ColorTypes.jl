@@ -6,7 +6,6 @@ without an alpha channel, it will always return 1.
 """
 alpha(c::TransparentColor) = c.alpha
 alpha(c::Color)   = oneunit(eltype(c))
-alpha(c::RGB24)   = N0f8(1)
 alpha(c::ARGB32)  = reinterpret(N0f8, (c.color >> 0x18) % UInt8)
 alpha(c::AGray32) = reinterpret(N0f8, (c.color >> 0x18) % UInt8)
 alpha(x::Number)  = convert(eltype(ccolor(Gray, typeof(x))), oneunit(x))  # ensures it's a type supported by Gray (which has widest eltype support)
@@ -298,6 +297,13 @@ A safe and easy way to switch the element type of a colorant value `c` to be `Fl
 """
 base_colorant_type(c::Union{Colorant, Number}) = base_colorant_type(typeof(c))
 
+typical_base_colorant_type(::Type{<:AbstractRGB}) = RGB
+typical_base_colorant_type(::Type{<:TransparentRGB}) = ARGB
+typical_base_colorant_type(::Type{<:AbstractRGBA}) = RGBA
+typical_base_colorant_type(::Type{<:AbstractGray}) = Gray
+typical_base_colorant_type(::Type{<:TransparentGray}) = AGray
+typical_base_colorant_type(::Type{<:AbstractGrayA}) = GrayA
+
 """
     Cp = parametric_colorant(C::Type)
 
@@ -320,10 +326,9 @@ true
 ```
 """
 parametric_colorant(::Type{C}) where C<:Colorant = C
-parametric_colorant(::Type{RGB24}) = RGB{N0f8}
-parametric_colorant(::Type{Gray24}) = Gray{N0f8}
-parametric_colorant(::Type{ARGB32}) = ARGB{N0f8}
-parametric_colorant(::Type{AGray32}) = AGray{N0f8}
+function parametric_colorant(::Type{C}) where {T, C<:Colorant{T}}
+    return base_colorant_type(C) === C ? typical_base_colorant_type(C){T} : C
+end
 
 """
     CF = floattype(C::Type)
@@ -336,13 +341,16 @@ Promote storage data type of colorant type `C` to `AbstractFloat` while keeping 
     Non-parametric colorants will be promoted to corresponding parametric
     colorants. For example, `floattype(RGB24) == RGB{Float32}`.
 """
-floattype(::Type{T}) where T <: Colorant =
-    base_colorant_type(T){floattype(eltype(T))} # 1 parameter
-# 0 parameter
-floattype(::Type{RGB24})   = RGB{floattype(N0f8)}
-floattype(::Type{Gray24})  = Gray{floattype(N0f8)}
-floattype(::Type{ARGB32})  = ARGB{floattype(N0f8)}
-floattype(::Type{AGray32}) = AGray{floattype(N0f8)}
+function floattype(::Type{C}) where C <: Colorant
+    Cbase = base_colorant_type(parametric_colorant(C))
+    return Cbase{floattype(eltype(C))}
+end
+# Regardless of whether it is parametric, if its component type is an
+# `AbstractFloat`, it is returned as-is.
+# In principle, we can define `GrayF32` as a distinct type rather than an alias
+# of `Gray{Float32}`, and the hypothetical `GrayF32` should be handled as a
+# `floattype`.
+floattype(::Type{C}) where C <: Colorant{<:AbstractFloat} = C
 
 @foldable pureintersect(::Type{C1}, ::Type{C2}) where {C1,C2} = typeintersect(C1, C2)
 
