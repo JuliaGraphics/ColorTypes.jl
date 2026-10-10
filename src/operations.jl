@@ -40,12 +40,22 @@ comps(c::Colorant) = ComponentIterator(c) # TODO: design public APIs
 
 
 # comparison
-_is_same_colorspace(a, b) = base_colorant_type(a) === base_colorant_type(b)
-_is_same_colorspace(a::TransparentColor, b::TransparentColor) = base_color_type(a) === base_color_type(b)
-_is_same_colorspace(a::AbstractGray, b::AbstractGray) = true
-_is_same_colorspace(a::TransparentGray, b::TransparentGray) = true
-_is_same_colorspace(a::AbstractRGB, b::AbstractRGB) = true
-_is_same_colorspace(a::TransparentRGB, b::TransparentRGB) = true
+_is_same_colorspace(a::Colorant, b::Colorant) = _is_same_colorspace(typeof(a), typeof(b))
+_is_same_colorspace(::Type{<:Colorant}, ::Type{<:Colorant}) = false
+function _is_same_colorspace(::Type{C1}, ::Type{C2}) where {N, C1 <: ColorN{N},
+                                                               C2 <: ColorN{N}}
+    Cb1 = base_color_type(parametric_colorant(C1))
+    Cb2 = base_color_type(parametric_colorant(C2))
+    Cb1 === Cb2 && return true
+    Ca1 = abstract_basetype(Cb1)
+    Ca2 = abstract_basetype(Cb2)
+    (Ca1 === ColorN{N} || Ca2 === ColorN{N})&& return false
+    return Ca1 === Ca2
+end
+function _is_same_colorspace(::Type{C1}, ::Type{C2}) where {N, C1 <: TransparentColorN{N},
+                                                               C2 <: TransparentColorN{N}}
+    _is_same_colorspace(base_color_type(C1), base_color_type(C2))
+end
 
 function ==(a::ColorantN{N}, b::ColorantN{N}) where {N}
     _is_same_colorspace(a, b) || return false
@@ -258,13 +268,17 @@ color(s), returning an output color in the same colorspace.
 @inline mapc(f::F, x, y, z) where {F} =
     _same_colorspace(x, y, z)(f.(comps(x), comps(y), comps(z))...)
 
-_same_colorspace(x::Colorant, y::Colorant) = _same_colorspace(base_colorant_type(x),
-                                                              base_colorant_type(y))
-_same_colorspace(x::Colorant, y::Colorant, z::Colorant) =
-    _same_colorspace(base_colorant_type(x), _same_colorspace(y, z))
+function _same_colorspace(x::Colorant, y::Colorant)
+    return _same_colorspace(base_colorant_type(x), base_colorant_type(y))
+end
+function _same_colorspace(x::Colorant, y::Colorant, z::Colorant)
+    return _same_colorspace(base_colorant_type(x), _same_colorspace(y, z))
+end
 _same_colorspace(::Type{C}, ::Type{C}) where {C<:Colorant} = C
-@noinline _same_colorspace(::Type{C1}, ::Type{C2}) where {C1<:Colorant,C2<:Colorant} =
+function _same_colorspace(C1::Type{<:Colorant}, C2::Type{<:Colorant})
+    _is_same_colorspace(C1, C2) && return base_colorant_type(promote_type(C1, C2))
     throw(ArgumentError("$C1 and $C2 are from different colorspaces"))
+end
 
 """
     reducec(op, v0, c)
