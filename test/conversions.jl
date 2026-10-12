@@ -80,6 +80,17 @@ using .CustomTypes
     @test promote_type(RGB, AbstractRGB{Float16}) === RGB
     @test promote_type(AbstractRGB{Float16}, RGB{Float16}) === RGB{Float16}
     @test promote_type(AbstractRGB{Float16}, RGB24) === RGB{Float32}
+
+    @test_broken promote_type(RGBA32, RGB24) === RGBA32
+    @test_broken promote_type(RGBA32, ARGB32) === ARGB32
+
+    @test_broken promote_type(RGB48, RGB24) === RGB48
+    @test_broken promote_type(ARGB64, RGB24) === ARGB64
+    @test_broken promote_type(ARGB64, RGB48) === ARGB64
+    @test_broken promote_type(ARGB64, ARGB32) === ARGB64
+    @test_broken promote_type(ARGB64, RGBA32) === ARGB64
+    @test promote_type(ARGB32, RGB48) === ARGB{N0f16} # Ideally, it would be `ARGB64`, but this is the current spec.
+    @test promote_type(RGBA32, RGB48) === RGBA{N0f16} # since `RGBA64` is not defined
 end
 
 @testset "hsv promotions" begin
@@ -143,6 +154,12 @@ end
     @test promote_type(Gray, AbstractGray{Float16}) === Gray
     @test promote_type(AbstractGray{Float16}, Gray{Float16}) === Gray{Float16}
     @test promote_type(AbstractGray{Float16}, Gray24) === Gray{Float32}
+
+    @test_broken promote_type(GrayF32, Gray24) === GrayF32
+    @test promote_type(GrayF32, AGray32) === AGray{Float32} # since `AGrayF32` is not defined
+    @test_broken promote_type(GrayAF32, Gray24) === GrayAF32
+    @test_broken promote_type(GrayAF32, GrayF32) === GrayAF32
+    @test_broken promote_type(GrayAF32, AGray32) === GrayAF32
 end
 
 @testset "rgb and gray promotions" begin
@@ -248,6 +265,16 @@ end
     @test promote_type(ARGB, AbstractAGray{Gray{Float16},Float16}) === ARGB
     @test promote_type(AbstractARGB{RGB{Float16},Float16}, AGray{Float16}) === ARGB{Float16}
     @test promote_type(AbstractARGB{RGB{Float16},Float16}, AGray32) === ARGB{Float32}
+
+    @test promote_type(RGB24, GrayF32) === RGB{Float32}
+    @test promote_type(ARGB32, GrayF32) === ARGB{Float32}
+    @test promote_type(RGB24, GrayAF32) === RGBA{Float32}
+    @test promote_type(ARGB32, GrayAF32) === ARGB{Float32}
+
+    @test_broken promote_type(RGB48, Gray24) === RGB48
+    @test_broken promote_type(ARGB64, Gray24) === ARGB64
+    @test promote_type(RGB48, AGray32) === ARGB{N0f16} # Ideally, it would be `ARGB64`, but this is the current spec.
+    @test_broken promote_type(ARGB64, AGray32) === ARGB64
 end
 
 @testset "hsv and gray promotions" begin
@@ -399,6 +426,16 @@ end
     @test promote_type(TransparentColor, RGBA{Float64}) == AlphaColor{C,T} where {T, C<:Color{T}}
     @test promote_type(AlphaColor, RGBA{Float64}) == AlphaColor{C,T} where {T, C<:Color{T}}
     @test promote_type(ColorAlpha, RGBA{Float64}) == ColorAlpha{C,T} where {T, C<:Color{T}}
+end
+
+@testset "promotions with non-Color/non-TransparentColor types" begin
+    @test_broken promote_type(Colorant, YetAnotherColor1) == Colorant
+    @test_broken promote_type(Colorant{Bool}, YetAnotherColor1) == Colorant{Bool}
+    @test_broken promote_type(Color, YetAnotherColor1) == Colorant
+    @test_broken promote_type(AbstractRGB, YetAnotherColor1) == Colorant{Bool}
+    @test_broken promote_type(RGB, YetAnotherColor1) == Colorant{Bool}
+    @test_broken promote_type(RGB{Float32}, YetAnotherColor1) == Colorant{Float32}
+    @test_broken promote_type(RGB24, YetAnotherColor1) == Colorant{N0f8}
 end
 
 
