@@ -1,6 +1,7 @@
 # ColorTypes
 
 [![Build Status](https://github.com/JuliaGraphics/ColorTypes.jl/actions/workflows/UnitTest.yml/badge.svg)](https://github.com/JuliaGraphics/ColorTypes.jl/actions/workflows/UnitTest.yml)
+[![PkgEval](https://perf.julialang.org/badges/pkgeval/ColorTypes.svg)](https://perf.julialang.org/?tab=eco-pkgeval&pkg=ColorTypes)
 [![codecov](https://codecov.io/github/JuliaGraphics/ColorTypes.jl/graph/badge.svg?token=QVcrtmVp3n)](https://codecov.io/github/JuliaGraphics/ColorTypes.jl)
 [![Aqua QA](https://juliatesting.github.io/Aqua.jl/dev/assets/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
