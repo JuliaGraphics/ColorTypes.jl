@@ -538,10 +538,14 @@ end
     @test @inferred(ccolor(Colorant{N0f8}, RGBX{Float32})) === RGBX{N0f8}
     @test @inferred(ccolor(Colorant{N0f8,3}, BGR{N0f8})) === BGR{N0f8}
 
-    @test_throws ColorTypeResolutionError ccolor(AbstractRGB, HSV{Float32})
+    ret = @test_throws ColorTypeResolutionError ccolor(AbstractRGB, HSV{Float32})
+    @test occursin("in ccolor, empty intersection between AbstractRGB and HSV",
+                   sprint(showerror, ret.value))
     @test_throws ColorTypeResolutionError ccolor(AbstractRGB{N0f8}, HSV{Float32})
     @test @inferred(ccolor(AbstractRGB, RGB24)) === RGB24
-    @test_throws ErrorException ccolor(AbstractRGB{Float32}, RGB24)
+    ret = @test_throws ErrorException ccolor(AbstractRGB{Float32}, RGB24)
+    @test occursin("nonparametric type RGB24 has ambiguous destination AbstractRGB{Float32}",
+                   sprint(showerror, ret.value))
 
     @test @inferred(ccolor(RGB, RGB)) === RGB
     @test @inferred(ccolor(RGB, HSV)) === RGB
@@ -592,7 +596,9 @@ end
     @test @inferred(ccolor(TransparentColor, AHSV{Float32})) === AHSV{Float32}
 
     # Ambiguous storage order, choose AlphaColor or ColorAlpha
-    @test_throws ColorTypeResolutionError ccolor(TransparentColor, HSV{Float32})
+    ret = @test_throws ColorTypeResolutionError ccolor(TransparentColor, HSV{Float32})
+    @test occursin("in ccolor, ambiguous alpha layout between TransparentColor and HSV{Float32}",
+                   sprint(showerror, ret.value))
     @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB}, HSV{Float32})
     @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB,Float64}, HSV{Float32})
     @test_throws ColorTypeResolutionError ccolor(TransparentColor{RGB{Float64},Float64}, HSV{Float32})
@@ -601,6 +607,9 @@ end
     @test @inferred(ccolor(AlphaColor, RGB)) === ARGB
     @test @inferred(ccolor(AlphaColor, RGB{N0f8})) === ARGB{N0f8}
     @test @inferred(ccolor(AlphaColor, RGB24)) === ARGB32
+    ret = @test_throws ColorTypeResolutionError ccolor(ColorAlpha, RGB24)
+    @test occursin("in ccolor, no corresponding type for RGB24 in ColorAlpha",
+                   sprint(showerror, ret.value))
     @test @inferred(ccolor(AbstractARGB, RGB)) === ARGB
     @test @inferred(ccolor(AbstractARGB, RGB{N0f8})) === ARGB{N0f8}
     @test @inferred(ccolor(AbstractARGB, RGB24)) === ARGB32
@@ -611,6 +620,14 @@ end
         @test @inferred(ccolor(Gray24, C)) === Gray24
         @test @inferred(ccolor(AGray32, C)) === AGray32
     end
+
+    ret = @test_throws ColorTypeResolutionError ccolor(Colorant, AbstractRGB)
+    @test occursin("in ccolor, abstract intersection between Color and AbstractRGB",
+                   sprint(showerror, ret.value))
+
+    ret = @test_throws ColorTypeResolutionError ccolor(HSV, Float32)
+    @test occursin("in ccolor, no automatic conversion from Float32 to HSV",
+                   sprint(showerror, ret.value))
 
     @test_throws MethodError ccolor(RGB, RGB{N0f8}(1,0,0))
 end
