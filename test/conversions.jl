@@ -493,7 +493,7 @@ end
     @test convert(AbstractRGB{N0f8}, rgb24) === RGB24(1, 0.6, 0)
     @test_throws ColorTypeResolutionError convert(TransparentColor, rgb24)
     @test convert(AlphaColor, rgb24) === ARGB32(1, 0.6, 0, 1)
-    @test_throws MethodError convert(ColorAlpha, rgb24)
+    @test_throws ColorTypeResolutionError convert(ColorAlpha, rgb24)
 
     argb32 = ARGB32(1, 0.6, 0, 0.8)
     @test convert(Colorant, argb32) === ARGB32(1, 0.6, 0, 0.8)
@@ -504,7 +504,7 @@ end
     @test convert(AbstractRGB{N0f8}, argb32) === RGB24(1, 0.6, 0)
     @test convert(TransparentColor, argb32) === ARGB32(1, 0.6, 0, 0.8)
     @test convert(AlphaColor, argb32) === ARGB32(1, 0.6, 0, 0.8)
-    @test_throws MethodError convert(ColorAlpha, argb32)
+    @test_throws ColorTypeResolutionError convert(ColorAlpha, argb32)
 
     @test convert(AbstractARGB{RGB,N0f8}, c, 0.2) === ARGB{N0f8}(1, 0.6, 0, 0.2)
     @test convert(AbstractRGBA{RGB,N0f8}, c, 0.2) === RGBA{N0f8}(1, 0.6, 0, 0.2)
@@ -550,7 +550,7 @@ end
     @test convert(Color, gray24) === Gray24(0.4)
     @test_throws ColorTypeResolutionError convert(TransparentColor, gray24)
     @test convert(AlphaColor, gray24) === AGray32(0.4, 1)
-    @test_throws MethodError convert(ColorAlpha, gray24) # TODO: need docs
+    @test_throws ColorTypeResolutionError convert(ColorAlpha, gray24)
 
     agray32 = AGray32(0.4, 0.8)
     @test convert(Colorant, agray32) === AGray32(0.4, 0.8)
@@ -559,7 +559,7 @@ end
     @test convert(Color, agray32) === Gray24(0.4)
     @test convert(TransparentColor, agray32) === AGray32(0.4, 0.8)
     @test convert(AlphaColor, agray32) === AGray32(0.4, 0.8)
-    @test_throws MethodError convert(ColorAlpha, agray32) # TODO: need docs
+    @test_throws ColorTypeResolutionError convert(ColorAlpha, agray32)
 
     @test convert(AbstractAGray{Gray,N0f8}, c, 0.2) === AGray{N0f8}(0.4, 0.2)
     @test convert(AbstractGrayA{Gray,N0f8}, c, 0.2) === GrayA{N0f8}(0.4, 0.2)

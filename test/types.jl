@@ -382,8 +382,8 @@ end
     @test @inferred(coloralpha(RGB{N0f8})) === RGBA
     @test @inferred(coloralpha(RGBA{Float32})) === RGBA
     @test @inferred(coloralpha(ARGB{Float64})) === RGBA
-    @test_throws MethodError coloralpha(RGB24)
-    @test_throws MethodError coloralpha(ARGB32)
+    @test @inferred(coloralpha(RGB24)) === ColorAlpha
+    @test @inferred(coloralpha(ARGB32)) === ColorAlpha
 
     @test @inferred(coloralpha(BGR)) === BGRA
     @test @inferred(coloralpha(BGR{N0f8})) === BGRA
@@ -396,8 +396,8 @@ end
     @test @inferred(coloralpha(Gray{N0f8})) === GrayA
     @test @inferred(coloralpha(GrayA{Float32})) === GrayA
     @test @inferred(coloralpha(AGray{Float64})) === GrayA
-    @test_throws MethodError coloralpha(Gray24)
-    @test_throws MethodError coloralpha(AGray32)
+    @test @inferred(coloralpha(Gray24)) === ColorAlpha
+    @test @inferred(coloralpha(AGray32)) === ColorAlpha
 
     @test @inferred(coloralpha(HSV)) === HSVA
     @test @inferred(coloralpha(HSVA)) === HSVA
@@ -406,7 +406,12 @@ end
     @test @inferred(coloralpha(HSVA{Float32})) === HSVA
     @test @inferred(coloralpha(AHSV{Float64})) === HSVA
 
-    @test_throws MethodError coloralpha(AbstractRGB)
+    @test_broken coloralpha(AbstractRGB) === AbstractRGBA
+    @test_broken coloralpha(AbstractARGB) === AbstractRGBA
+    @test_broken coloralpha(AbstractRGBA) === AbstractRGBA
+    @test_broken coloralpha(AbstractGray) === AbstractGrayA
+    @test_broken coloralpha(AbstractAGray) === AbstractGrayA
+    @test_broken coloralpha(AbstractGrayA) === AbstractGrayA
     @test_throws MethodError coloralpha(N0f8)
 end
 
@@ -441,6 +446,11 @@ end
     @test @inferred(alphacolor(HSVA{Float32})) === AHSV
     @test @inferred(alphacolor(AHSV{Float64})) === AHSV
 
-    @test_throws MethodError alphacolor(AbstractRGB)
+    @test_broken alphacolor(AbstractRGB) === AbstractARGB
+    @test_broken alphacolor(AbstractARGB) === AbstractARGB
+    @test_broken alphacolor(AbstractRGBA) === AbstractARGB
+    @test_broken alphacolor(AbstractGray) === AbstractAGray
+    @test_broken alphacolor(AbstractAGray) === AbstractAGray
+    @test_broken alphacolor(AbstractGrayA) === AbstractAGray
     @test_throws MethodError alphacolor(N0f8)
 end

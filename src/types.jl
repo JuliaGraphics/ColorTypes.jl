@@ -771,8 +771,10 @@ end
 Return the corresponding transparent color type/instance with storage order
 (alpha, color).
 
+See also [`coloralpha`](@ref).
+
 # Examples
-```jldocest; setup = :(using ColorTypes)
+```jldoctest; setup = :(using ColorTypes)
 julia> alphacolor(RGB)
 ARGB
 
@@ -782,7 +784,13 @@ ARGB
 julia> alphacolor(Gray(0.8)) === AGray(0.8, 1.0)
 true
 ```
+
+!!! compat "ColorTypes 0.12.6"
+    For type inputs, a fallback was added that returns `AlphaColor` when no
+    corresponding type is defined.
+    In this case, `AlphaColor` is a marker, not a concrete result type.
 """
+alphacolor(::Type{<:Colorant}) = AlphaColor # fallback
 alphacolor(::Type{C}) where {C<:AlphaColor} = base_colorant_type(C)
 alphacolor(::Type{C}) where {C<:ColorAlpha} = alphacolor(base_color_type(C))
 
@@ -793,8 +801,10 @@ alphacolor(::Type{C}) where {C<:ColorAlpha} = alphacolor(base_color_type(C))
 Return the corresponding transparent color type/instance with storage order
 (color, alpha).
 
+See also [`alphacolor`](@ref).
+
 # Examples
-```jldocest; setup = :(using ColorTypes)
+```jldoctest; setup = :(using ColorTypes)
 julia> coloralpha(RGB)
 RGBA
 
@@ -804,7 +814,13 @@ RGBA
 julia> coloralpha(Gray(0.8)) === GrayA(0.8, 1.0)
 true
 ```
+
+!!! compat "ColorTypes 0.12.6"
+    For type inputs, a fallback was added that returns `ColorAlpha` when no
+    corresponding type is defined.
+    In this case, `ColorAlpha` is a marker, not a concrete result type.
 """
+coloralpha(::Type{<:Colorant}) = ColorAlpha # fallback
 coloralpha(::Type{C}) where {C<:ColorAlpha} = base_colorant_type(C)
 coloralpha(::Type{C}) where {C<:AlphaColor} = coloralpha(base_color_type(C))
 
@@ -905,6 +921,13 @@ struct ColorTypeResolutionError <: Exception
     C2
 end
 
-function Base.showerror(io::IO, ex::ColorTypeResolutionError)
-    print(io, "in ", ex.func, ", ", ex.msg, ' ', ex.C1, " and ", ex.C2)
+@noinline function Base.showerror(io::IO, ex::ColorTypeResolutionError)
+    if endswith(ex.msg, "from")
+        conj = " to "
+    elseif endswith(ex.msg, "for")
+        conj = " in "
+    else # endswith(ex.msg, "between")
+        conj = " and "
+    end
+    print(io, "in ", ex.func, ", ", ex.msg, ' ', ex.C1, conj, ex.C2)
 end
