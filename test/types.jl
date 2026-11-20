@@ -289,6 +289,9 @@ end
         @test_throws ArgumentError AGray32(val)
         @test_throws ArgumentError AGray32(val, 0.8)
     end
+    @test AGray(Gray{Bool}(true)) === AGray{Bool}(true, true)
+    @test GrayA(Gray{Bool}(true)) === GrayA{Bool}(true, true)
+
     # 0-arg constructor
     @test AGray() === AGray{N0f8}(0, 1)
     @test GrayA() === GrayA{N0f8}(0, 1)

@@ -669,6 +669,9 @@ end
     @testset "Gray conversions" begin
         @test convert(Gray, Gray{Float64}(0.4)) === Gray{Float64}(0.4)
         @test convert(Gray{N0f8}, Gray{Float64}(0.4)) === Gray{N0f8}(0.4)
+        @test_throws InexactError convert(Gray{Bool}, Gray{Float64}(0.4))
+        @test_throws InexactError convert(Gray{Bool}, Gray{N0f8}(0.4))
+        @test convert(Gray{Bool}, Gray{N0f8}(1)) === Gray{Bool}(true)
         @test convert(Gray, Gray24(0.4)) === Gray{N0f8}(0.4)
         @test convert(Gray24, Gray(0.4)) === Gray24(0.4)
         @test convert(Gray, AGray32(0.4,0.8)) === Gray{N0f8}(0.4)
@@ -678,6 +681,7 @@ end
     @testset "$C conversions" for C in (AGray, GrayA)
         @test convert(C, C{Float64}(0.4,0.8)) === C{Float64}(0.4,0.8)
         @test convert(C{N0f8}, C{Float64}(0.4,0.8)) === C{N0f8}(0.4,0.8)
+        @test convert(C{Bool}, C{N0f8}(1, 0)) === C{Bool}(true, false)
         @test convert(C, Gray24(0.4)) === C{N0f8}(0.4,1)
         @test convert(C, Gray24(0.4), 0.2) === C{N0f8}(0.4,0.2)
         @test convert(Gray24, C(0.4,0.8)) === Gray24(0.4)
@@ -864,6 +868,9 @@ end
     @test alphacolor(AGray32(0.6), 0.8) === AGray32(0.6, 0.8)
     @test_throws MethodError coloralpha(AGray32(0.6))
     @test_throws MethodError coloralpha(AGray32(0.6), 0.8)
+
+    @test coloralpha(Gray{Bool}(true)) === GrayA{Bool}(true, true)
+    @test alphacolor(Gray{Bool}(false)) === AGray{Bool}(false, true)
 end
 
 @testset "reinterpret" begin
