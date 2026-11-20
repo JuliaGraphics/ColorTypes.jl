@@ -15,6 +15,9 @@ macro except_str(expr, err_type)
 end
 
 @testset "error hints" begin
+    # Issue #365
+    @test_nowarn showerror(devnull, MethodError(missing, (1,)))
+
     @testset "Math" begin
         gray = Gray(0.8)
         rgb = RGB{Float32}(1, 0, 0)
