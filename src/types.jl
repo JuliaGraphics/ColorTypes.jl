@@ -682,7 +682,11 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
     fn  = Expr(:tuple, fieldnames(C)...)
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
-    ub   = elty <: FixedPoint ? Fractional : AbstractFloat
+    if C === Gray
+        ub = Union{Fractional, Bool}
+    else
+        ub = elty <: FixedPoint ? Fractional : AbstractFloat
+    end
     Csym = nameof(C)
     @eval @make_alpha $Csym $acol $cola $fn $cfn $ub $elty
 end

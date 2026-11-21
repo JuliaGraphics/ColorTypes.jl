@@ -241,7 +241,8 @@ end
     @test Fractional <: @inferred(ColorTypes.eltypes_supported(RGB))
     @test N0f8 <: @inferred(ColorTypes.eltypes_supported(RGB(1,0,0)))
     @test @inferred(ColorTypes.issupported(Gray, Bool))
-    @test @inferred(!ColorTypes.issupported(AGray, Bool))
+    @test @inferred(ColorTypes.issupported(AGray, Bool))
+    @test @inferred(ColorTypes.issupported(GrayA, Bool))
 
     @test @inferred(ColorTypes.eltypes_supported(C2{Float32})) === Real
     @test_broken @inferred(ColorTypes.eltypes_supported(C2A)) === Real
@@ -268,10 +269,8 @@ end
     @test @inferred(color_type(RGBX)) === RGBX
 
     @test @inferred(color_type(Gray)) === Gray
-    @test @inferred(color_type(GrayA)) == Gray{<:ColorTypes.Fractional} # FIXME
-    @test @inferred(color_type(AGray)) == Gray{<:ColorTypes.Fractional} # FIXME
-    @test_broken @inferred(color_type(GrayA)) === Gray
-    @test_broken @inferred(color_type(AGray)) === Gray
+    @test @inferred(color_type(GrayA)) == Gray
+    @test @inferred(color_type(AGray)) == Gray
     @test @inferred(color_type(Gray{N0f8})) === Gray{N0f8}
     @test @inferred(color_type(GrayA{Float32})) === Gray{Float32}
     @test @inferred(color_type(AGray{Float64})) === Gray{Float64}
