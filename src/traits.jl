@@ -416,6 +416,10 @@ ERROR: in ccolor, empty intersection between AbstractRGB and HSV
 `ccolor` will throw an error when no unambiguous concrete type can be determined.
 In the previous case, `AbstractRGB{Float32}` encompases `RGB{Float32}` and `BGR{Float32}`.
 
+!!! note
+    When `Csrc` is non-parametric, `ccolor` may not always be able to determine
+    a reasonable result. The behavior may change in a future version.
+
 `ccolor` is most useful in defining other methods.
 For example, to allow users to write `convert(RGB, c)` without having to specify the
 numeric element type of `RGB`, define
@@ -435,8 +439,8 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Color
     # Step 1: pick the base color type
     if isabstracttype(Cdestbase)
         C = pureintersect(Cdestbase, Csrcbase)
-        C === Union{} && throw(ColorTypeResolutionError(:ccolor, "empty intersection between", Cdestbase, Csrcbase))
-        isabstracttype(C) && throw(ColorTypeResolutionError(:ccolor, "abstract intersection between", Cdestbase, Csrcbase))
+        C === Union{} && resolerror("empty intersection between", Cdestbase, Csrcbase)
+        isabstracttype(C) && resolerror("abstract intersection between", Cdestbase, Csrcbase)
     else
         C = Cdestbase
     end
@@ -444,11 +448,14 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Color
     if Cdestalpha === Nothing
     else
         Calpha = (Cdestalpha === TransparentColor || Cdestalpha === Any) ? Csrcalpha : Cdestalpha
-        Cdestalpha === TransparentColor && Calpha === Nothing && throw(ColorTypeResolutionError(:ccolor, "ambiguous alpha storage between", Cdest, Csrc))
+        if (Cdestalpha === TransparentColor && Calpha === Nothing) || Calpha === TransparentColor
+            resolerror("ambiguous alpha layout between", Cdest, Csrc)
+        end
         if Calpha !== Nothing
-            Calpha === TransparentColor && throw(ColorTypeResolutionError(:ccolor, "ambiguous alpha storage between", Cdest, Csrc))
             C = Calpha <: AlphaColor ? alphacolor(C) :
                 Calpha <: ColorAlpha ? coloralpha(C) : error("unexpected Calpha ", Calpha)
+            # TODO: strive for more consistent resolutions
+            (C === AlphaColor || C === ColorAlpha) && resolerror("no corresponding type for", Csrc, C)
         end
     end
     # Step 3: assign the eltype
@@ -458,7 +465,7 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Color
     end
     isabstracttype(Tdest) || !issupported(C, Tdest) || return C{Tdest}
     T = pureintersect(Tdest, Tsrc)
-    T === Union{} && throw(ColorTypeResolutionError(:ccolor, "empty intersection between", Tdest, Tsrc))
+    T === Union{} && resolerror("empty intersection between", Tdest, Tsrc)
     T === Any && return C
     issupported(C, T) && return C{T}
     Tdef = eltype_default(C)
@@ -472,7 +479,11 @@ function ccolor(::Type{Cdest}, ::Type{Csrc}) where {Cdest<:Colorant, Csrc<:Numbe
     if Cdestbase <: Union{AbstractGray, AbstractRGB}
         return ccolor(Cdest, Color{Csrc})
     end
-    throw(ColorTypeResolutionError(:ccolor, "no automatic conversion from", Csrc, Cdestbase))
+    resolerror("no automatic conversion from", Csrc, Cdestbase)
+end
+
+@noinline function resolerror(msg, @nospecialize(c1), @nospecialize(c2))
+    throw(ColorTypeResolutionError(:ccolor, msg, c1, c2))
 end
 
 isfinite(c::Colorant) = mapreducec(isfinite, &, true, c)
