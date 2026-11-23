@@ -442,3 +442,33 @@ In special cases, there may be other considerations:
 - For `AbstractRGB`/`AbstractGray` types, `0` means "black" and `1` means
   "saturated."
 - If your type has extra fields, check the "Generated code" section of `types.jl` carefully. You may need to define a `colorfields` function and/or call `@make_alpha` manually.
+
+## Avoiding a Direct Dependency on FixedPointNumbers
+
+If you only need types such as `RGB{N0f8}`, you may be able to avoid a direct
+dependency on `FixedPointNumbers`.
+The default component type for `AbstractGray` and `AbstractRGB` is `N0f8`, and
+this default will not change silently between patch releases within the same
+`ColorTypes` series (v0.x).
+
+Therefore, you can obtain the corresponding concrete types without explicitly
+`import`-ing `FixedPointNumbers`:
+
+```julia
+const Gray8 = typeof(Gray())    # === Gray{N0f8}
+const RGB888 = typeof(RGB())    # === RGB{N0f8}
+const ARGB8888 = typeof(ARGB()) # === ARGB{N0f8}
+```
+
+You can also obtain the `N0f8` type itself as follows:
+```julia
+const N0f8 = typeof(gray(Gray()))
+```
+
+However, in many cases, it is better practice to generalize over an abstract
+type such as `AbstractRGB{T}` rather than use a specific concrete type such as
+`RGB{N0f8}`.
+
+If you need functionality specific to `FixedPointNumbers` that cannot be
+expressed in terms of `Real`, you should declare `FixedPointNumbers` as a direct
+dependency.
