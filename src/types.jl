@@ -523,6 +523,11 @@ A grayscale object. You can extract its value with `gray(c)`.
 """
 struct Gray{T<:Union{Fractional,Bool}} <: AbstractGray{T}
     val::T
+    function Gray{T}(val) where {T<:Union{Fractional,Bool}}
+        r = real(val)
+        checkval(Gray{T}, r)
+        new{T}(_rem(r, T))
+    end
 end
 
 """
@@ -597,15 +602,17 @@ eltype_default(::Type{C}) where {C<:TransparentColor} = eltype_default(color_typ
 # TODO: Generalize the promotion rules so that they are reasonable even for custom types.
 @inline function promote_args_type(::Type{C}, args...) where C <: Color
     T = promote_type(map(typeof, args)...)
+    T === Bool && issupported(C, Bool) && return Bool
     _promote_args_type(eltype_default(C), T)
 end
 @inline function promote_args_type(::Type{C}, args...) where {C <: TransparentColor}
     Ta = typeof(last(args)) # alpha
     T = _promote_wol(map(typeof, args)...)
+    T === Bool && Ta === Bool && issupported(C, Bool) && return Bool
     if T <: Union{Integer, FixedPoint} && Ta <: Integer
-        _promote_args_type(eltype_default(C), T)
+        return _promote_args_type(eltype_default(C), T)
     else
-        _promote_args_type(eltype_default(C), promote_type(T, Ta))
+        return _promote_args_type(eltype_default(C), promote_type(T, Ta))
     end
 end
 # a variant of `promote_type` that ignores the last (i.e. alpha) element
