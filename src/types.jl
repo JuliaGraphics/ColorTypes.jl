@@ -843,16 +843,16 @@ end
     (-Δ <= n) & (m < typemax(T)+Δ)
 end
 
-@inline function checkval(::Type{C}, a) where {T<:Normed, C<:Colorant{T}}
+@inline function checkval(C::Type{<:Colorant{T}}, a) where {T<:Normed}
     isok(T, a) || throw_colorerror(C, (a,))
 end
-@inline function checkval(::Type{C}, a, b) where {T<:Normed, C<:Colorant{T}}
+@inline function checkval(C::Type{<:Colorant{T}}, a, b) where {T<:Normed}
     isok(T, a, b) || throw_colorerror(C, (a, b))
 end
-@inline function checkval(::Type{C}, a, b, c) where {T<:Normed, C<:Colorant{T}}
+@inline function checkval(C::Type{<:Colorant{T}}, a, b, c) where {T<:Normed}
     isok(T, a, b) & isok(T, b, c) || throw_colorerror(C, (a, b, c))
 end
-@inline function checkval(::Type{C}, a, b, c, d) where {T<:Normed, C<:Colorant{T}}
+@inline function checkval(C::Type{<:Colorant{T}}, a, b, c, d) where {T<:Normed}
     Δ = eps(T)/2
     @fastmath min_ab, max_ab = minmax(a, b)
     @fastmath min_cd, max_cd = minmax(c, d)
@@ -860,7 +860,7 @@ end
     @fastmath m = max(max_ab, max_cd)
     (-Δ <= n) & (m < typemax(T)+Δ) || throw_colorerror(C, (a, b, c, d))
 end
-@inline function checkval(::Type{C}, a, b, c, d, e) where {T<:Normed, C<:Colorant{T}}
+@inline function checkval(C::Type{<:Colorant{T}}, a, b, c, d, e) where {T<:Normed}
     isok(T, a, b) & isok(T, c, d) & isok(T, e) || throw_colorerror(C, (a, b, c, d, e))
 end
 
@@ -868,7 +868,7 @@ checkval(::Type{C}, args::Vararg{T}) where {T<:Normed, C<:Colorant{T}} = nothing
 checkval(::Type{C}, args...) where {C<:Colorant} = nothing
 
 
-function throw_colorerror_(::Type{T}, values) where T<:Normed
+@noinline function throw_colorerror_t(@nospecialize(T::Type{<:Normed}), @nospecialize(values))
     Tmin = repr(typemin(T), context=:compact=>true)
     Tmax = repr(typemax(T), context=:compact=>true)
     bitstring = sizeof(T) == 1 ? "an 8-bit" : "a $(8*sizeof(T))-bit"
@@ -878,9 +878,13 @@ component type $T is $bitstring type representing $(2^(8*sizeof(T))) values from
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
 end
 
-function throw_colorerror(::Type{C}, values::Tuple{Vararg{Integer}}) where C<:Colorant{N0f8}
+@noinline function throw_colorerror(@nospecialize(C::Type{<:Colorant}),
+                                    @nospecialize(values::Tuple))
+    T = eltype(C)
     # Let's try to read the user's mind
-    all(x->0<=x<=255, values) || throw_colorerror_(N0f8, values)
+    if T !== N0f8 || !(values isa Tuple{Vararg{Integer}}) || any(x->x<0 || x>255, values)
+        throw_colorerror_t(T, values)
+    end
     if length(values) == 1
         vstr = "$(values[1]) is an integer"
     else
@@ -896,11 +900,8 @@ The components of $(nameof(C)) are normalized to the range 0-1,
   You can also use `reinterpret(N0f8, x % UInt8)` to encode the input into N0f8.
   See the READMEs for FixedPointNumbers and ColorTypes for more information."""))
 end
-function throw_colorerror(::Type{C}, values::Tuple) where {T<:Normed, C<:Colorant{T}}
-    throw_colorerror_(T, values)
-end
 
-function throw_bit_pattern_error(@nospecialize(C), value)
+@noinline function throw_bit_pattern_error(@nospecialize(C), value)
     hex = string(value, base=16, pad=8)
     throw(ArgumentError("""
 $C cannot be constructed or converted directly from a UInt32 input as a bit pattern.
