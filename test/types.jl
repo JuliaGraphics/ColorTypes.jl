@@ -241,6 +241,9 @@ end
         @test_throws ArgumentError Gray{N0f16}(val)
         @test_throws ArgumentError Gray24(val)
     end
+
+    @test Gray{Bool}(true) === Gray{Bool}(1)
+
     # 0-arg constructor
     @test Gray() === Gray{N0f8}(0)
     @test Gray24() === Gray24(0)
@@ -291,6 +294,12 @@ end
     end
     @test AGray(Gray{Bool}(true)) === AGray{Bool}(true, true)
     @test GrayA(Gray{Bool}(true)) === GrayA{Bool}(true, true)
+    @test AGray(false) === AGray{N0f8}(0, 1)
+    @test GrayA(false) === GrayA{N0f8}(0, 1)
+    @test AGray(false, true) === AGray{Bool}(0, 1)
+    @test GrayA(true, false) === GrayA{Bool}(1, 0)
+    @test AGray(false, 0) === AGray{N0f8}(0, 0)
+    @test GrayA(true, 1) === GrayA{N0f8}(1, 1)
 
     # 0-arg constructor
     @test AGray() === AGray{N0f8}(0, 1)

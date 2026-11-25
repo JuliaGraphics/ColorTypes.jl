@@ -619,6 +619,8 @@ end
 
     @test convert(GrayA, 0.6, 0.8) === GrayA{Float64}(0.6, 0.8)
     @test convert(AGray, 0, 1) === AGray{N0f8}(0, 1)
+    @test convert(GrayA, true, false) === GrayA{Bool}(1, 0)
+    @test convert(AGray, false, true) === AGray{Bool}(0, 1)
 
     @test convert(Gray, 2.0) === Gray{Float64}(2.0)
     @test_throws ArgumentError convert(Gray, 2)
