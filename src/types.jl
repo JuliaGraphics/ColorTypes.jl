@@ -50,7 +50,7 @@ abstract type AbstractRGB{T} <: Color{T,3} end
     abstract type TransparentColor{C<:Color,T,N} <: Colorant{T,N}
 
 Abstract type for any color-with-transparency.
-    
+
 The `C` parameter refers to the type of the pure color (without transparency)
 and can be extracted with `color_type`. `T` is the element type of both `C` and
 the `alpha` channel, and `N` has the same meaning as in `Colorant` (and is 1
@@ -128,7 +128,7 @@ end
 """
     BGR{T<:Fractional} <: AbstractRGB{T}
 
-A variant of `RGB` with the opposite storage order. 
+A variant of `RGB` with the opposite storage order.
 
 Note that the constructor is still called in the order `BGR(r, g, b)`.
 This storage order is noteworthy because on little-endian machines,
@@ -653,20 +653,21 @@ macro make_alpha(C, acol, cola, fields, constrfields, ub, elty)
     end)
 end
 
+# Remove duplicate type aliases (e.g. `HSB === HSV`).
 const color3types = map(s->getfield(ColorTypes,s),
                         filter(names(ColorTypes, all=false)) do s
                             isdefined(ColorTypes, s) || return false
                             t = getfield(ColorTypes, s)
                             isa(t, Type{<:Color3}) && !isabstracttype(t)
-                        end |> unique
-                        )
+                        end
+                        ) |> unique
 
 # The above should have filtered out every non-DataType that's not also a
 # wrapped UnionAll-wrapped DataType.
 const parametric3 = filter(x->!isa(x, DataType) || !isempty(x.parameters), color3types)
 
 # For searchability, explicitly enumerate the type names. (issue #16)
-for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
+for (C, acol, cola) in ((DIN99d, :ADIN99d, :DIN99dA),
                         (DIN99o, :ADIN99o, :DIN99oA),
                         (DIN99, :ADIN99, :DIN99A),
                         (HSI, :AHSI, :HSIA),
@@ -685,7 +686,7 @@ for (C, acol, cola) in [(DIN99d, :ADIN99d, :DIN99dA),
                         (RGB, :ARGB, :RGBA),
                         (Gray, :AGray, :GrayA),
                         (Oklab, :AOklab, :OklabA),
-                        (Oklch, :AOklch, :OklchA)]
+                        (Oklch, :AOklch, :OklchA))
     fn  = Expr(:tuple, fieldnames(C)...)
     cfn = Expr(:tuple, colorfields(C)...)
     elty = eltype_default(C)
